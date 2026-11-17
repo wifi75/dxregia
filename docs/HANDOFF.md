@@ -45,3 +45,7 @@ Portale pubblico: direzione grafica approvata su anteprima statica con dati dimo
 ## Prima configurazione via browser
 
 Il modulo Svelte e l'endpoint Go generano la configurazione Mojo in una copia nuova. Build web e Go riuscite. Verificati codice errato, porta fuori intervallo, salvataggio con porta 7474, sintassi Perl e rifiuto del secondo invio. L'anteprima funziona sul loopback con codice temporaneo. Prossimo passo: inizializzare la banca utenti e avviare automaticamente il motore, quindi verificare la porta scelta.
+
+## Avvio di Mojo dopo la configurazione
+
+Con -setup-perl il backend inizializza una banca utenti nuova e avvia Mojo con log dedicato. La risposta del wizard attende il prompt Telnet sulla porta scelta. Build Go e Svelte riuscite. Su Windows, test HTTP con Mojo reale passato dopo una prima porta occupata e un retry sugli stessi dati. Il backend ha poi riportato ready sulla porta effettiva. Restano gestione del riavvio, correzione della configurazione già scritta, autenticazione sysop definitiva, installatore e collaudo Linux.

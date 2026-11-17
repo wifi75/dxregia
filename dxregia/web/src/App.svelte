@@ -62,7 +62,7 @@
       <div><dt>Ultima risposta</dt><dd>{status ? utc(status.checkedAt) + ' UTC' : '—'}</dd></div>
     </dl>
   </article>
-  <Setup />
+  <Setup onSaved={refresh} />
 </main>
 
 <style>

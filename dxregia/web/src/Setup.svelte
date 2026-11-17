@@ -2,7 +2,8 @@
   import { onMount } from 'svelte'
 
   let available = $state(false)
-  let saved = $state(false)
+  let result = $state<{ started: boolean; port: number }>()
+  let { onSaved }: { onSaved: () => void } = $props()
   let pending = $state(false)
   let error = $state('')
   let node = $state('')
@@ -38,7 +39,8 @@
         return
       }
       code = ''
-      saved = true
+      result = await response.json()
+      onSaved()
       available = false
     } catch {
       error = 'Il pannello non riesce a raggiungere il servizio di configurazione.'
@@ -48,11 +50,11 @@
   }
 </script>
 
-{#if available || saved}
+{#if available || result}
   <section aria-labelledby="setup-title">
     <h2 id="setup-title">Prima configurazione</h2>
-    {#if saved}
-      <p role="status">Configurazione Mojo salvata. L'avvio automatico del nodo è ancora in sviluppo.</p>
+    {#if result}
+      <p role="status">{result.started ? 'Mojo è attivo su 127.0.0.1:' + result.port + '.' : 'Configurazione Mojo salvata.'}</p>
     {:else}
       <form onsubmit={save}>
         <div class="fields">
@@ -63,7 +65,7 @@
           <label class="code">Codice temporaneo <input type="password" bind:value={code} autocomplete="off" maxlength="48" required /></label>
         </div>
         {#if error}<p class="error" role="alert">{error}</p>{/if}
-        <button disabled={pending}>{pending ? 'Salvataggio…' : 'Salva configurazione'}</button>
+        <button disabled={pending}>{pending ? 'Configurazione in corso…' : 'Applica configurazione'}</button>
       </form>
     {/if}
   </section>

@@ -14,6 +14,7 @@
 - [x] Implementare la diagnostica locale Go/Svelte sul listener Telnet.
 - [ ] Verificare la diagnostica web contro Mojo reale su Linux.
 - [x] Collegare il modulo web di prima configurazione alla generazione dei file Mojo in una copia nuova.
+- [x] Provare avvio gestito di Mojo dopo il salvataggio e verificare la porta Telnet scelta su Windows.
 - [ ] Realizzare il wizard di primo avvio e la gestione di un nodo partner interamente dal browser, dalla macchina appena installata al listener Telnet operativo, senza modifica manuale di file.
 - [ ] Verificare accesso al terminale classico via Telnet da un client esterno e da un logger. Integrare console sysop web con cronologia e aiuto, utenti e spot in diretta.
 - [ ] Distribuire OCI amd64/arm64 e realizzare lo [script di installazione Linux](dxregia/deploy/README.md) con URL del pannello, password temporanea e cambio obbligatorio al primo accesso. Verificare avvio, riavvio e riesecuzione su Linux.

@@ -11,8 +11,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
+	"sync/atomic"
 	"time"
 )
 
@@ -53,6 +55,8 @@ func main() {
 	target := flag.String("telnet", "127.0.0.1:7300", "DXSpider host:port")
 	web := flag.String("web", "../web/dist", "built Svelte directory")
 	setupRoot := flag.String("setup-root", "", "fresh Mojo checkout for local setup")
+	setupPerl := flag.String("setup-perl", "", "Perl executable for starting Mojo during setup")
+	setupInternal := flag.Int("setup-internal-port", 27754, "Mojo internal loopback port")
 	flag.Parse()
 
 	if *port < 1 || *port > 65535 {
@@ -67,20 +71,34 @@ func main() {
 		log.Fatalf("Build the web frontend first: %v", err)
 	}
 
+	service, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
 	mux := http.NewServeMux()
-	if err := registerSetup(mux, *setupRoot); err != nil {
+	var activeTarget atomic.Value
+	activeTarget.Store(*target)
+	if err := registerSetup(service, mux, *setupRoot, *setupPerl, *setupInternal, func(port int) {
+		activeTarget.Store(net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
+	}); err != nil {
 		log.Fatal(err)
 	}
 	mux.HandleFunc("GET /api/listener", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")
-		if err := json.NewEncoder(w).Encode(checkListener(r.Context(), *target)); err != nil {
+		if err := json.NewEncoder(w).Encode(checkListener(r.Context(), activeTarget.Load().(string))); err != nil {
 			log.Print(err)
 		}
 	})
 	mux.Handle("GET /", http.FileServer(http.Dir(*web)))
 	address := net.JoinHostPort("127.0.0.1", strconv.Itoa(*port))
 	log.Printf("DXRegia: http://%s", address)
-	server := &http.Server{Addr: address, Handler: mux, ReadHeaderTimeout: 5 * time.Second, WriteTimeout: 10 * time.Second}
-	log.Fatal(server.ListenAndServe())
+	server := &http.Server{Addr: address, Handler: mux, ReadHeaderTimeout: 5 * time.Second, WriteTimeout: 25 * time.Second}
+	go func() {
+		<-service.Done()
+		shutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = server.Shutdown(shutdown)
+	}()
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Print(err)
+	}
 }

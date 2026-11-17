@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/hex"
@@ -43,9 +44,12 @@ func (c *nodeConfig) validate() error {
 	return nil
 }
 
-func registerSetup(mux *http.ServeMux, root string) error {
+func registerSetup(service context.Context, mux *http.ServeMux, root, perl string, internalPort int, setTarget func(int)) error {
 	if root == "" {
 		return nil
+	}
+	if internalPort < 1 || internalPort > 65535 {
+		return errors.New("invalid internal port")
 	}
 	root, err := filepath.Abs(root)
 	if err != nil {
@@ -69,6 +73,7 @@ func registerSetup(mux *http.ServeMux, root string) error {
 	log.Printf("Codice temporaneo di configurazione: %s", token)
 	var lock sync.Mutex
 	done := false
+	var saved *nodeConfig
 	mux.HandleFunc("GET /api/setup", func(w http.ResponseWriter, r *http.Request) {
 		lock.Lock()
 		defer lock.Unlock()
@@ -98,18 +103,38 @@ func registerSetup(mux *http.ServeMux, root string) error {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if err := writeMojoConfig(root, local, string(template), config); err != nil {
-			log.Printf("Mojo setup: %v", err)
-			http.Error(w, "Impossibile salvare la configurazione Mojo.", http.StatusInternalServerError)
+		if config.Port == internalPort {
+			http.Error(w, "Scegli una porta Telnet diversa dalla porta interna di Mojo.", http.StatusBadRequest)
 			return
 		}
+		if saved != nil && *saved != config {
+			http.Error(w, "Per riprovare usa i dati già salvati.", http.StatusConflict)
+			return
+		}
+		if saved == nil {
+			if err := writeMojoConfig(root, local, string(template), config, internalPort); err != nil {
+				log.Printf("Mojo setup: %v", err)
+				http.Error(w, "Impossibile salvare la configurazione Mojo.", http.StatusInternalServerError)
+				return
+			}
+			saved = &config
+		}
+		if perl != "" {
+			if err := startMojo(service, perl, root, config); err != nil {
+				log.Printf("Mojo startup: %v", err)
+				http.Error(w, "Configurazione salvata. Avvio di Mojo non riuscito. Consulta il registro di avvio e riprova.", http.StatusServiceUnavailable)
+				return
+			}
+		}
+		setTarget(config.Port)
 		done = true
-		w.WriteHeader(http.StatusNoContent)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"started": perl != "", "port": config.Port})
 	})
 	return nil
 }
 
-func writeMojoConfig(root, local, template string, config nodeConfig) error {
+func writeMojoConfig(root, local, template string, config nodeConfig, internalPort int) error {
 	const ending = "\n1;"
 	template = strings.ReplaceAll(template, "\r\n", "\n")
 	end := strings.LastIndex(template, ending)
@@ -121,7 +146,7 @@ func writeMojoConfig(root, local, template string, config nodeConfig) error {
 		return err
 	}
 	defer os.RemoveAll(stage)
-	values := fmt.Sprintf("\n$mycall = '%s';\n$myalias = '%s';\n$mylocator = '%s';\n$myname = '%s';\n$myqth = '%s';\n$myemail = '';\n", config.Node, config.Sysop, config.Locator, config.Sysop, config.Locator)
+	values := fmt.Sprintf("\n$mycall = '%s';\n$myalias = '%s';\n$mylocator = '%s';\n$myname = '%s';\n$myqth = '%s';\n$myemail = '';\n$clusterport = %d;\n", config.Node, config.Sysop, config.Locator, config.Sysop, config.Locator, internalPort)
 	if err := os.WriteFile(filepath.Join(stage, "DXVars.pm"), []byte(template[:end]+values+template[end:]), 0600); err != nil {
 		return err
 	}
