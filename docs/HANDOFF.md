@@ -31,3 +31,7 @@ Build Go e Svelte riuscite. Server HTTP e tre stati (prompt ricevuto, prompt ass
 ## 2026-11-17 — Mojo reale su Windows
 
 Mojo 1.57 build 687 avviato in una copia di laboratorio separata, con Strawberry Perl portatile 5.42.3.1 e moduli Mojolicious, Data::Structure::Util, Math::Round e Digest::SHA1. Net::CIDR::Lite resta assente; la protezione CIDR è opzionale e il collaudo è ristretto al loopback. Il listener 127.0.0.1:7300 ha superato prompt, login con nominativo di prova e show/dx su archivio vuoto. L'API web sulla 8080 riporta ready. Prossimo passo: riprodurre su Linux con due nodi di prova e verificare scambio spot e riconnessione.
+
+## 2026-11-17 — Collegamento fra due nodi di prova
+
+Su Windows, Mojo Q1QQQ-2 (Telnet 127.0.0.1:7300) e Q3QQQ-2 (Telnet 127.0.0.1:7373) hanno completato il collegamento DXSP/PC92. Verificati links, disconnessione e riconnessione manuale. Uno spot di prova è arrivato come PC61 al ricevente ed è stato scartato dal controllo upstream di loopback/RFC1918. Nessun nodo pubblico coinvolto. La consegna dello spot al client e il collaudo Linux restano aperti.
