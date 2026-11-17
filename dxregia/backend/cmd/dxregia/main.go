@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"sync/atomic"
+	"syscall"
 	"time"
 )
 
@@ -71,7 +72,7 @@ func main() {
 		log.Fatalf("Build the web frontend first: %v", err)
 	}
 
-	service, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	service, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	mux := http.NewServeMux()
 	var activeTarget atomic.Value

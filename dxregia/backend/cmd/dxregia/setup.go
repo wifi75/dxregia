@@ -55,15 +55,40 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 	if err != nil {
 		return err
 	}
-	template, err := os.ReadFile(filepath.Join(root, "perl", "DXVars.pm.issue"))
-	if err != nil {
-		return err
-	}
 	local := filepath.Join(root, "local")
+	var template []byte
+	var saved *nodeConfig
 	if _, err := os.Lstat(local); err == nil {
-		return nil
+		state, err := os.ReadFile(filepath.Join(local, "dxregia-node.json"))
+		if os.IsNotExist(err) {
+			return nil // Existing configuration belongs to the sysop.
+		}
+		if err != nil {
+			return err
+		}
+		saved = new(nodeConfig)
+		if err := json.Unmarshal(state, saved); err != nil {
+			return fmt.Errorf("read saved node configuration: %w", err)
+		}
+		if err := saved.validate(); err != nil {
+			return fmt.Errorf("invalid saved node configuration: %w", err)
+		}
+		setTarget(saved.Port)
+		if perl == "" {
+			return nil
+		}
+		if err := startMojo(service, perl, root, *saved); err == nil {
+			return nil
+		} else {
+			log.Printf("Mojo restart: %v", err)
+		}
 	} else if !os.IsNotExist(err) {
 		return err
+	} else {
+		template, err = os.ReadFile(filepath.Join(root, "perl", "DXVars.pm.issue"))
+		if err != nil {
+			return err
+		}
 	}
 	key := make([]byte, 24)
 	if _, err := rand.Read(key); err != nil {
@@ -73,13 +98,16 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 	log.Printf("Codice temporaneo di configurazione: %s", token)
 	var lock sync.Mutex
 	done := false
-	var saved *nodeConfig
 	mux.HandleFunc("GET /api/setup", func(w http.ResponseWriter, r *http.Request) {
 		lock.Lock()
 		defer lock.Unlock()
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]bool{"available": !done})
+		response := map[string]any{"available": !done}
+		if !done && saved != nil {
+			response["saved"] = *saved
+		}
+		json.NewEncoder(w).Encode(response)
 	})
 	mux.HandleFunc("POST /api/setup", func(w http.ResponseWriter, r *http.Request) {
 		lock.Lock()
@@ -103,7 +131,7 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if config.Port == internalPort {
+		if saved == nil && config.Port == internalPort {
 			http.Error(w, "Scegli una porta Telnet diversa dalla porta interna di Mojo.", http.StatusBadRequest)
 			return
 		}
@@ -118,6 +146,7 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 				return
 			}
 			saved = &config
+			setTarget(config.Port)
 		}
 		if perl != "" {
 			if err := startMojo(service, perl, root, config); err != nil {
@@ -126,7 +155,6 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 				return
 			}
 		}
-		setTarget(config.Port)
 		done = true
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"started": perl != "", "port": config.Port})
@@ -152,6 +180,13 @@ func writeMojoConfig(root, local, template string, config nodeConfig, internalPo
 	}
 	listeners := fmt.Sprintf("package main;\nour @listen = ([ '127.0.0.1', %d ]);\n1;\n", config.Port)
 	if err := os.WriteFile(filepath.Join(stage, "Listeners.pm"), []byte(listeners), 0600); err != nil {
+		return err
+	}
+	state, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(stage, "dxregia-node.json"), state, 0600); err != nil {
 		return err
 	}
 	if _, err := os.Lstat(local); err == nil || !os.IsNotExist(err) {

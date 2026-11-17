@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
 
   let available = $state(false)
+  let alreadySaved = $state(false)
   let result = $state<{ started: boolean; port: number }>()
   let { onSaved }: { onSaved: () => void } = $props()
   let pending = $state(false)
@@ -16,7 +17,12 @@
     try {
       const response = await fetch('/api/setup', { cache: 'no-store' })
       if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
-        available = (await response.json()).available === true
+        const setup = await response.json()
+        available = setup.available === true
+        if (setup.saved) {
+          ({ node, sysop, locator, port } = setup.saved)
+          alreadySaved = true
+        }
       }
     } catch {
       // The diagnostic page can run without the setup service.
@@ -35,6 +41,7 @@
         body: JSON.stringify({ node, sysop, locator, port }),
       })
       if (!response.ok) {
+        if (response.status === 503) alreadySaved = true
         error = (await response.text()).trim() || 'Salvataggio non riuscito.'
         return
       }
@@ -58,14 +65,14 @@
     {:else}
       <form onsubmit={save}>
         <div class="fields">
-          <label>Nominativo del nodo <input bind:value={node} maxlength="12" required placeholder="IU3ABC-2" /></label>
-          <label>Nominativo del sysop <input bind:value={sysop} maxlength="12" required placeholder="IU3ABC" /></label>
-          <label>Locator <input bind:value={locator} maxlength="6" required placeholder="JN55AA" /></label>
-          <label>Porta Telnet <input type="number" bind:value={port} min="1" max="65535" required /></label>
+          <label>Nominativo del nodo <input bind:value={node} maxlength="12" readonly={alreadySaved} required placeholder="IU3ABC-2" /></label>
+          <label>Nominativo del sysop <input bind:value={sysop} maxlength="12" readonly={alreadySaved} required placeholder="IU3ABC" /></label>
+          <label>Locator <input bind:value={locator} maxlength="6" readonly={alreadySaved} required placeholder="JN55AA" /></label>
+          <label>Porta Telnet <input type="number" bind:value={port} min="1" max="65535" readonly={alreadySaved} required /></label>
           <label class="code">Codice temporaneo <input type="password" bind:value={code} autocomplete="off" maxlength="48" required /></label>
         </div>
         {#if error}<p class="error" role="alert">{error}</p>{/if}
-        <button disabled={pending}>{pending ? 'Configurazione in corso…' : 'Applica configurazione'}</button>
+        <button disabled={pending}>{pending ? 'Configurazione in corso…' : alreadySaved ? 'Riprova avvio' : 'Applica configurazione'}</button>
       </form>
     {/if}
   </section>

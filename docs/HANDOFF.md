@@ -49,3 +49,7 @@ Il modulo Svelte e l'endpoint Go generano la configurazione Mojo in una copia nu
 ## Avvio di Mojo dopo la configurazione
 
 Con -setup-perl il backend inizializza una banca utenti nuova e avvia Mojo con log dedicato. La risposta del wizard attende il prompt Telnet sulla porta scelta. Build Go e Svelte riuscite. Su Windows, test HTTP con Mojo reale passato dopo una prima porta occupata e un retry sugli stessi dati. Il backend ha poi riportato ready sulla porta effettiva. Restano gestione del riavvio, correzione della configurazione già scritta, autenticazione sysop definitiva, installatore e collaudo Linux.
+
+## Ripartenza del nodo configurato
+
+Lo stato DXRegia viene salvato insieme ai file Mojo. Al riavvio il backend riprende la porta e avvia il motore senza ricreare il database. Se fallisce, il modulo ripropone i dati salvati per un nuovo tentativo. Build Go e Svelte riuscite. Collaudo Windows con Mojo reale: configurazione via HTTP, login Telnet di prova, spegnimento del nodo, riavvio del backend, stessa porta pronta e utente presente in SQLite. Restano autenticazione sysop definitiva, installatore e collaudo Linux.
