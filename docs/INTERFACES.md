@@ -14,6 +14,7 @@ La pagina Spot è l'ingresso pubblico, consultabile senza login. Il riferimento 
 
 L'area privata usa lo stesso sistema visivo e una navigazione orientata ai compiti: Panoramica, Nodi partner, Utenti, Filtri, Configurazione e Console.
 
+- Al primo accesso con la password temporanea fornita dall'installatore, il sysop deve impostare una nuova password. Poi si apre il wizard.
 - Il primo avvio è guidato. Il sysop inserisce nominativi, locator e porta Telnet, controlla il riepilogo e vede l'esito della configurazione.
 - La pagina dei partner mostra stato, ultima connessione ed eventuale errore. Aggiunta, test e riconnessione sono azioni visibili nel flusso.
 - Quando esiste un comando equivalente, mostrarlo accanto all'esito dell'azione. La console classica rimane disponibile per operazioni avanzate.

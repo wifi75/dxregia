@@ -11,7 +11,7 @@
 - [ ] Implementare backend Go e pannello Svelte/TypeScript con un primo flusso di sola lettura che mostri lo stato effettivo di DXSpider.
 - [ ] Realizzare il wizard di primo avvio e la gestione di un nodo partner.
 - [ ] Integrare console sysop, utenti e spot in diretta.
-- [ ] Preparare distribuzione OCI amd64/arm64, con volumi persistenti, e provare installazione e riavvio su Linux.
+- [ ] Distribuire OCI amd64/arm64 e realizzare lo [script di installazione Linux](dxregia/deploy/README.md) con URL del pannello, password temporanea e cambio obbligatorio al primo accesso. Verificare avvio, riavvio e riesecuzione su Linux.
 - [ ] Chiarire l'applicabilità di COPYING e LICENSE e censire le dipendenze prima della prima distribuzione.
 
 ## Criterio per la prima versione operativa
