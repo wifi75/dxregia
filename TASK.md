@@ -10,7 +10,7 @@
 - [ ] Verificare la baseline con due nodi locali e una sessione Telnet. Annotare gli scambi attesi e i criteri per spot, riconnessione e persistenza.
 - [ ] Implementare backend Go e pannello Svelte/TypeScript con un primo flusso di sola lettura che mostri lo stato effettivo di DXSpider.
 - [ ] Realizzare il wizard di primo avvio e la gestione di un nodo partner.
-- [ ] Integrare console sysop, utenti e spot in diretta.
+- [ ] Verificare accesso al terminale classico via Telnet da un client esterno e da un logger. Integrare console sysop web con cronologia e aiuto, utenti e spot in diretta.
 - [ ] Distribuire OCI amd64/arm64 e realizzare lo [script di installazione Linux](dxregia/deploy/README.md) con URL del pannello, password temporanea e cambio obbligatorio al primo accesso. Verificare avvio, riavvio e riesecuzione su Linux.
 - [ ] Chiarire l'applicabilità di COPYING e LICENSE e censire le dipendenze prima della prima distribuzione.
 

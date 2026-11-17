@@ -12,3 +12,5 @@
 - Primo passo operativo: predisporre un ambiente Linux riproducibile per avviare Mojo e verificare la console locale. I criteri di accettazione sono in TASK.md.
 
 I requisiti di monitoraggio dei partner, log, backup e ripristino sono descritti in [Operazioni del sysop](OPERATIONS.md). Implementazione e prove operative in sospeso.
+
+L'accesso esterno alla console classica via Telnet e i relativi test con un logger sono specificati in docs/INTERFACES.md.

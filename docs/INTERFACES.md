@@ -21,6 +21,14 @@ L'area privata usa lo stesso sistema visivo e una navigazione orientata ai compi
 - Per le modifiche persistenti mostrare valori correnti, anteprima delle modifiche e se è richiesto un riavvio. Mostrare chiaramente se una modifica è stata applicata oppure è fallita.
 - La pagina pubblica legge solo gli spot e le informazioni rese pubbliche dal nodo. Le azioni di gestione e la console richiedono autenticazione sysop.
 
+## Terminale Telnet
+
+La console classica deve essere raggiungibile anche da un client Telnet esterno, sulla porta TCP configurata per DXSpider. La pagina pubblica mostra host e porta. La sessione supporta login per nominativo, prompt e comandi DXSpider. Per le operazioni amministrative valgono i privilegi del sysop.
+
+Migliorare l'uso interattivo con aiuto consultabile, messaggi chiari e, nella console web, cronologia e completamento dei comandi. Per eventuali estensioni Telnet usare impostazioni esplicite e verificare che login, prompt, terminatori di riga, formato spot e output dei comandi continuino a funzionare con i logger. L'amministrazione via Telnet va prevista su LAN fidata o VPN, perché Telnet trasmette in chiaro.
+
+Verificare con un client Telnet esterno e un programma di logging: login, show/dx, ricezione di spot in diretta e controllo dei privilegi sysop. Eseguire un comando dalla console web e dalla sessione classica per verificare che entrambe interagiscano con lo stesso motore.
+
 ## Verifiche della prima interfaccia
 
 Provare la pagina spot su desktop e mobile, con tastiera e con feed interrotto. Provare il wizard e l'aggiunta di un partner senza dover aprire la console, compreso un tentativo di connessione fallito.
