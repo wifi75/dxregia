@@ -77,7 +77,7 @@ func main() {
 	mux := http.NewServeMux()
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
-	if err := registerSetup(service, mux, *setupRoot, *setupPerl, *setupInternal, func(port int) {
+	if err := registerSetup(service, mux, *setupRoot, *setupPerl, *setupInternal, number, func(port int) {
 		activeTarget.Store(net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
 	}); err != nil {
 		log.Fatal(err)

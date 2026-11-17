@@ -20,11 +20,9 @@ func startMojo(service context.Context, perl, root string, config nodeConfig) er
 		return err
 	}
 	address := net.JoinHostPort("127.0.0.1", strconv.Itoa(config.Port))
-	listener, err := net.Listen("tcp", address)
-	if err != nil {
+	if err := checkPortAvailable(config.Port); err != nil {
 		return fmt.Errorf("la porta Telnet non è disponibile: %w", err)
 	}
-	listener.Close()
 
 	logFile, err := os.OpenFile(filepath.Join(data, "dxregia-startup.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
@@ -84,6 +82,14 @@ func startMojo(service context.Context, perl, root string, config nodeConfig) er
 			}
 		}
 	}
+}
+
+func checkPortAvailable(port int) error {
+	listener, err := net.Listen("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
+	if err != nil {
+		return err
+	}
+	return listener.Close()
 }
 
 func mojoCommand(ctx context.Context, perl, root, script string, logs io.Writer) *exec.Cmd {

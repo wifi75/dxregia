@@ -19,6 +19,7 @@
       if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
         const setup = await response.json()
         available = setup.available === true
+        if (setup.suggestedPort) port = setup.suggestedPort
         if (setup.saved) {
           ({ node, sysop, locator, port } = setup.saved)
           alreadySaved = true

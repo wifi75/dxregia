@@ -44,7 +44,7 @@ func (c *nodeConfig) validate() error {
 	return nil
 }
 
-func registerSetup(service context.Context, mux *http.ServeMux, root, perl string, internalPort int, setTarget func(int)) error {
+func registerSetup(service context.Context, mux *http.ServeMux, root, perl string, internalPort, suggestedPort int, setTarget func(int)) error {
 	if root == "" {
 		return nil
 	}
@@ -103,7 +103,7 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 		defer lock.Unlock()
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "application/json")
-		response := map[string]any{"available": !done}
+		response := map[string]any{"available": !done, "suggestedPort": suggestedPort}
 		if !done && saved != nil {
 			response["saved"] = *saved
 		}
@@ -140,6 +140,12 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 			return
 		}
 		if saved == nil {
+			if perl != "" {
+				if err := checkPortAvailable(config.Port); err != nil {
+					http.Error(w, fmt.Sprintf("La porta Telnet %d è occupata o non disponibile. Scegli un'altra porta.", config.Port), http.StatusConflict)
+					return
+				}
+			}
 			if err := writeMojoConfig(root, local, string(template), config, internalPort); err != nil {
 				log.Printf("Mojo setup: %v", err)
 				http.Error(w, "Impossibile salvare la configurazione Mojo.", http.StatusInternalServerError)

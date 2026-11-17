@@ -53,3 +53,5 @@ Con -setup-perl il backend inizializza una banca utenti nuova e avvia Mojo con l
 ## Ripartenza del nodo configurato
 
 Lo stato DXRegia viene salvato insieme ai file Mojo. Al riavvio il backend riprende la porta e avvia il motore senza ricreare il database. Se fallisce, il modulo ripropone i dati salvati per un nuovo tentativo. Build Go e Svelte riuscite. Collaudo Windows con Mojo reale: configurazione via HTTP, login Telnet di prova, spegnimento del nodo, riavvio del backend, stessa porta pronta e utente presente in SQLite. Restano autenticazione sysop definitiva, installatore e collaudo Linux.
+
+Il wizard propone la porta del listener impostata per l'anteprima. Verifica che la porta sia libera prima di generare i file di Mojo. Collaudo Windows: 7300 occupata rifiutata senza salvataggio. 7474 accettata, Mojo avviato e prompt Telnet confermato.
