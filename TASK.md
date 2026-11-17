@@ -2,6 +2,9 @@
 
 ## Stato
 
+- [x] Analizzare le [lacune operative di Mojo](docs/PRODUCT-ANALYSIS.md) e confrontarle con progetti esistenti.
+- [x] Aggiungere un controllo del prompt Telnet per il banco di prova.
+
 - [x] Clonare il ramo mojo e aprire il branch locale dxregia/main.
 - [x] Impostare struttura, architettura e passaggio di consegne.
 - [x] Definire [pagina pubblica degli spot e area sysop](docs/INTERFACES.md).

@@ -17,3 +17,7 @@
 ## Accettazione
 
 Su una macchina Linux pulita, eseguire lo script e aprire il pannello all'indirizzo stampato da un browser nella LAN. Verificare che la password temporanea richieda il cambio, che quella precedente venga rifiutata dopo il cambio, e che riavvio e riesecuzione conservino dati e credenziali. Provare anche un download fallito e un servizio che non risponde.
+
+## Controllo base di Telnet
+
+Eseguire python3 dxregia/deploy/check_telnet.py HOST PORTA dal sistema che deve raggiungere il nodo. Verifica il prompt di login senza inviare credenziali o comandi. La compatibilità con login, logger e collegamenti tra nodi va provata separatamente.
