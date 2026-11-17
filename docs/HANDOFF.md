@@ -1,0 +1,11 @@
+# Passaggio di consegne
+
+## 2026-11-17 — Avvio del progetto
+
+- Directory: D:/progetti/dxregia.
+- Branch di lavoro: dxregia/main.
+- Baseline upstream: mojo, commit 9b55f03ff870d50a9d3e57090dc7408035a4a2b1.
+- Documentazione e struttura iniziali create. Il motore e i file di licenza del clone sono conservati.
+- Su questo host il controllo iniziale ha trovato Node, ma go, npm e docker non risultavano disponibili nel PATH. Nessuna verifica runtime Linux è stata eseguita.
+- Requisiti visivi e flussi per pagina pubblica e area sysop: docs/INTERFACES.md.
+- Primo passo operativo: predisporre un ambiente Linux riproducibile per avviare Mojo e verificare la console locale. I criteri di accettazione sono in TASK.md.
