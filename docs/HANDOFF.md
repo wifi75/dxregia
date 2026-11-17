@@ -21,3 +21,5 @@ Priorità e criteri di verifica in [Analisi prodotto](PRODUCT-ANALYSIS.md). Il c
 Controllo verificato con socket locali per prompt frammentato, risposta estranea e porta chiusa. Prova su Mojo reale in sospeso.
 
 Direzione visiva registrata in docs/INTERFACES.md. Le prime schermate di riferimento sono Spot pubblici e Nodi partner con un errore di connessione. La resa visiva resta da implementare e verificare.
+
+La home GitHub e la guida docs/INSTALLATION.md descrivono il controllo Telnet disponibile e il flusso previsto per installatore e pannello. Il prossimo passo tecnico resta il collaudo con Mojo su Linux.
