@@ -2,18 +2,18 @@
 
 ## Direzione visiva
 
-DXRegia usa una sola identità visiva per pagina pubblica e area sysop. Fondo ardesia profondo nel tema scuro, superfici chiare neutre nel tema chiaro e teal per l'azione primaria. Ambra e rosso segnalano stati operativi e sono accompagnati da testo. Frequenze e orari usano cifre tabellari per rimanere allineati mentre arrivano nuovi dati.
+DXRegia usa una sola identità visiva per pagina pubblica e area sysop. Entrambe le aree usano esclusivamente un tema chiaro, con fondo bianco, separatori grigio chiaro e blu per i comandi. Il layout riprende la densità di uno strumento radio: barra operativa compatta, titoli sobri, tabelle e moduli ben allineati. Evitare gradienti, effetti vetro, grandi riquadri decorativi e titoli promozionali. Ambra e rosso segnalano stati operativi e sono accompagnati da testo. Frequenze e orari usano cifre tabellari per rimanere allineati mentre arrivano nuovi dati.
 
 - **Spot pubblici.** La tabella è il centro della pagina. Ricerca, filtri e pausa del feed sono raggiungibili sopra le righe. Frequenza e modo si distinguono a colpo d'occhio, con aggiornamenti che preservano la posizione di lettura.
 - **Area sysop.** Navigazione laterale su desktop e menu compatto su mobile. Nodi partner apre una vista con elenco e dettaglio. Selezionando un nodo si vedono stato, ultima attività ed eventi recenti, con le azioni principali vicino al nominativo.
 - **Wizard.** Una decisione per schermata, errori accanto al campo, riepilogo prima dell'applicazione e verifica del risultato nella stessa pagina.
 - **Dettagli e accessibilità.** Gerarchia tipografica coerente, focus visibile, contrasto leggibile e stati di caricamento, errore, assenza dati e riconnessione. Le animazioni rispondono alle azioni e rispettano la preferenza di movimento ridotto.
 
-Prima di estendere il pannello, verificare due schermate con dati rappresentativi: Spot pubblici e Nodi partner con un errore di connessione. Esaminarle a 390 e 1440 pixel, nei due temi e con navigazione da tastiera. Per valutare il layout usare nominativi lunghi, commenti estesi e almeno un aggiornamento mentre l'operatore legge una riga.
+Prima di estendere il pannello, verificare due schermate con dati rappresentativi: Spot pubblici e Nodi partner con un errore di connessione. Esaminarle a 390 e 1440 pixel, nel tema chiaro e con navigazione da tastiera. Per valutare il layout usare nominativi lunghi, commenti estesi e almeno un aggiornamento mentre l'operatore legge una riga.
 
 ## Area pubblica
 
-La pagina Spot è l'ingresso pubblico, consultabile senza login. Il riferimento visivo fornito mostra una tabella ad alta densità, filtri a portata di mano e un riferimento Telnet in testata. DXRegia adotta una propria identità grafica con fondo neutro, accenti teal e tipografia tabellare per frequenze e orari.
+La pagina Spot è l'ingresso pubblico, consultabile senza login. Il riferimento visivo fornito mostra una tabella ad alta densità, filtri a portata di mano e un riferimento Telnet in testata. DXRegia adotta una propria identità grafica con fondo bianco, accenti blu e tipografia tabellare per frequenze e orari.
 
 - Barra con nome del nodo, stato del feed, orologio UTC e pulsante per copiare indirizzo e porta Telnet.
 - Filtri immediati per banda e modo, ricerca per nominativo o testo e azione per azzerare i filtri. I nuovi spot rispettano i filtri attivi.

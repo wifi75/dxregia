@@ -37,3 +37,5 @@ Mojo 1.57 build 687 avviato in una copia di laboratorio separata, con Strawberry
 Su Windows, Mojo Q1QQQ-2 (Telnet 127.0.0.1:7300) e Q3QQQ-2 (Telnet 127.0.0.1:7373) hanno completato il collegamento DXSP/PC92. Verificati links, disconnessione e riconnessione manuale. Uno spot di prova è arrivato come PC61 al ricevente ed è stato scartato dal controllo upstream di loopback/RFC1918. Nessun nodo pubblico coinvolto. La consegna dello spot al client e il collaudo Linux restano aperti.
 
 Requisito confermato: il pannello si avvia prima di Mojo e tutta la prima configurazione si completa dal browser. La generazione dei file interni spetta al backend.
+
+Direzione visiva aggiornata: solo tema chiaro per entrambe le aree. La diagnostica locale è stata ricompilata e il server HTTP serve la nuova build. Le schermate pubbliche e sysop complete restano da implementare.
