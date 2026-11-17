@@ -1,5 +1,9 @@
 # Piano di lavoro DXRegia
 
+## Prossimo passo
+
+Implementare l'autenticazione del pannello con credenziale temporanea e cambio password obbligatorio prima del wizard. Verificare anche l'accesso diretto alle API prima del cambio e l'invalidazione della credenziale iniziale. Poi integrare installatore e prova Linux.
+
 ## Stato
 
 - [x] Analizzare le [lacune operative di Mojo](docs/PRODUCT-ANALYSIS.md) e confrontarle con progetti esistenti.
@@ -16,6 +20,7 @@
 - [x] Collegare il modulo web di prima configurazione alla generazione dei file Mojo in una copia nuova.
 - [x] Provare avvio gestito di Mojo dopo il salvataggio e verificare la porta Telnet scelta su Windows.
 - [x] Verificare il riavvio gestito con la porta Telnet e la banca utenti persistenti su Windows.
+- [x] Proporre la porta Telnet configurata e rifiutare una porta occupata prima di salvare.
 - [ ] Realizzare il wizard di primo avvio e la gestione di un nodo partner interamente dal browser, dalla macchina appena installata al listener Telnet operativo, senza modifica manuale di file.
 - [ ] Verificare accesso al terminale classico via Telnet da un client esterno e da un logger. Integrare console sysop web con cronologia e aiuto, utenti e spot in diretta.
 - [ ] Distribuire OCI amd64/arm64 e realizzare lo [script di installazione Linux](dxregia/deploy/README.md) con URL del pannello, password temporanea e cambio obbligatorio al primo accesso. Verificare avvio, riavvio e riesecuzione su Linux.

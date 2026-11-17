@@ -1,5 +1,13 @@
 # Passaggio di consegne
 
+## Ripresa del lavoro
+
+- Repository condiviso: https://github.com/wifi75/dxregia, ramo main. Su un altro computer partire dal ramo main del repository e leggere TASK.md, questo file e AGENTS.md. Claude Code importa AGENTS.md tramite CLAUDE.md.
+- Punto raggiunto: il wizard locale salva, inizializza e avvia Mojo. Diagnostica e riavvio con porta e utenti persistenti sono stati collaudati con Mojo reale su Windows. Una porta occupata viene rifiutata prima di scrivere.
+- Per riprodurre, compilare il pannello e avviare il backend con una copia Mojo separata e Perl con le dipendenze richieste. I comandi e la baseline sono in dxregia/backend/README.md. Le istanze locali, i dati di prova e i codici temporanei non fanno parte del repository.
+- Prossimo intervento: autenticazione sysop con cambio obbligatorio al primo accesso. Il codice temporaneo del prototipo autorizza soltanto il setup locale. Poi installatore Linux e prova da macchina pulita.
+- Interfacce: solo tema chiaro, riferimento per il portale pubblico in docs/INTERFACES.md. Usare la skill design-taste-frontend quando disponibile. Dati della pagina pubblica e gestione dei partner ancora da integrare.
+
 ## 2026-11-17 — Avvio del progetto
 
 - Directory: D:/progetti/dxregia.
