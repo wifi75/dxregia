@@ -13,3 +13,7 @@ go run ./cmd/dxregia -telnet 127.0.0.1:7300
 ~~~
 
 Apri http://127.0.0.1:8080. Usa -port per cambiare la porta HTTP e -telnet HOST:PORTA per impostare il listener effettivo. L'anteprima HTTP ascolta solo sul loopback. Avvia DXSpider separatamente.
+
+## Configurazione iniziale locale
+
+Per mostrare il modulo, avvia il backend con -setup-root seguito dal percorso di una copia nuova di Mojo. Usa il codice temporaneo stampato dal processo. Il modulo salva DXVars.pm e Listeners.pm nella copia scelta e si disattiva dopo il salvataggio. Il listener generato è limitato al loopback. L'inizializzazione della banca utenti e l'avvio di Mojo restano da integrare.

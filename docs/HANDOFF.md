@@ -41,3 +41,7 @@ Requisito confermato: il pannello si avvia prima di Mojo e tutta la prima config
 Direzione visiva aggiornata: solo tema chiaro per entrambe le aree. La diagnostica locale è stata ricompilata e il server HTTP serve la nuova build. Le schermate pubbliche e sysop complete restano da implementare.
 
 Portale pubblico: direzione grafica approvata su anteprima statica con dati dimostrativi. Requisiti visivi in docs/INTERFACES.md. Feed reale e pannello sysop ancora da integrare.
+
+## Prima configurazione via browser
+
+Il modulo Svelte e l'endpoint Go generano la configurazione Mojo in una copia nuova. Build web e Go riuscite. Verificati codice errato, porta fuori intervallo, salvataggio con porta 7474, sintassi Perl e rifiuto del secondo invio. L'anteprima funziona sul loopback con codice temporaneo. Prossimo passo: inizializzare la banca utenti e avviare automaticamente il motore, quindi verificare la porta scelta.

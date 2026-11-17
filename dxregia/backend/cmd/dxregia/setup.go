@@ -1,0 +1,136 @@
+package main
+
+import (
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"sync"
+)
+
+type nodeConfig struct {
+	Node    string `json:"node"`
+	Sysop   string `json:"sysop"`
+	Locator string `json:"locator"`
+	Port    int    `json:"port"`
+}
+
+var callsign = regexp.MustCompile(`^[A-Z0-9]+[0-9][A-Z0-9]+(-([1-9]|1[0-5]))?$`)
+var locator = regexp.MustCompile(`^[A-R]{2}[0-9]{2}([A-X]{2})?$`)
+
+func (c *nodeConfig) validate() error {
+	c.Node = strings.ToUpper(strings.TrimSpace(c.Node))
+	c.Sysop = strings.ToUpper(strings.TrimSpace(c.Sysop))
+	c.Locator = strings.ToUpper(strings.TrimSpace(c.Locator))
+	if len(c.Node) > 12 || len(c.Sysop) > 12 || !callsign.MatchString(c.Node) || !callsign.MatchString(c.Sysop) || c.Node == c.Sysop {
+		return errors.New("Inserisci due nominativi distinti e validi per nodo e sysop.")
+	}
+	if !locator.MatchString(c.Locator) {
+		return errors.New("Il locator deve avere il formato JN55 o JN55AA.")
+	}
+	if c.Port < 1 || c.Port > 65535 {
+		return errors.New("La porta Telnet deve essere compresa tra 1 e 65535.")
+	}
+	return nil
+}
+
+func registerSetup(mux *http.ServeMux, root string) error {
+	if root == "" {
+		return nil
+	}
+	root, err := filepath.Abs(root)
+	if err != nil {
+		return err
+	}
+	template, err := os.ReadFile(filepath.Join(root, "perl", "DXVars.pm.issue"))
+	if err != nil {
+		return err
+	}
+	local := filepath.Join(root, "local")
+	if _, err := os.Lstat(local); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	key := make([]byte, 24)
+	if _, err := rand.Read(key); err != nil {
+		return err
+	}
+	token := hex.EncodeToString(key)
+	log.Printf("Codice temporaneo di configurazione: %s", token)
+	var lock sync.Mutex
+	done := false
+	mux.HandleFunc("GET /api/setup", func(w http.ResponseWriter, r *http.Request) {
+		lock.Lock()
+		defer lock.Unlock()
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]bool{"available": !done})
+	})
+	mux.HandleFunc("POST /api/setup", func(w http.ResponseWriter, r *http.Request) {
+		lock.Lock()
+		defer lock.Unlock()
+		if done {
+			http.Error(w, "Configurazione già salvata.", http.StatusConflict)
+			return
+		}
+		if subtle.ConstantTimeCompare([]byte(r.Header.Get("Authorization")), []byte("Bearer "+token)) != 1 {
+			http.Error(w, "Codice di configurazione errato.", http.StatusUnauthorized)
+			return
+		}
+		var config nodeConfig
+		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096))
+		decoder.DisallowUnknownFields()
+		if decoder.Decode(&config) != nil || decoder.Decode(new(any)) != io.EOF {
+			http.Error(w, "Configurazione non valida.", http.StatusBadRequest)
+			return
+		}
+		if err := config.validate(); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := writeMojoConfig(root, local, string(template), config); err != nil {
+			log.Printf("Mojo setup: %v", err)
+			http.Error(w, "Impossibile salvare la configurazione Mojo.", http.StatusInternalServerError)
+			return
+		}
+		done = true
+		w.WriteHeader(http.StatusNoContent)
+	})
+	return nil
+}
+
+func writeMojoConfig(root, local, template string, config nodeConfig) error {
+	const ending = "\n1;"
+	template = strings.ReplaceAll(template, "\r\n", "\n")
+	end := strings.LastIndex(template, ending)
+	if end < 0 || strings.TrimSpace(template[end:]) != "1;" {
+		return errors.New("unexpected DXVars template format")
+	}
+	stage, err := os.MkdirTemp(root, ".dxregia-setup-")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(stage)
+	values := fmt.Sprintf("\n$mycall = '%s';\n$myalias = '%s';\n$mylocator = '%s';\n$myname = '%s';\n$myqth = '%s';\n$myemail = '';\n", config.Node, config.Sysop, config.Locator, config.Sysop, config.Locator)
+	if err := os.WriteFile(filepath.Join(stage, "DXVars.pm"), []byte(template[:end]+values+template[end:]), 0600); err != nil {
+		return err
+	}
+	listeners := fmt.Sprintf("package main;\nour @listen = ([ '127.0.0.1', %d ]);\n1;\n", config.Port)
+	if err := os.WriteFile(filepath.Join(stage, "Listeners.pm"), []byte(listeners), 0600); err != nil {
+		return err
+	}
+	if _, err := os.Lstat(local); err == nil || !os.IsNotExist(err) {
+		return errors.New("Mojo local directory already exists")
+	}
+	return os.Rename(stage, local)
+}

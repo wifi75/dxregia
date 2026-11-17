@@ -52,6 +52,7 @@ func main() {
 	port := flag.Int("port", 8080, "local HTTP port")
 	target := flag.String("telnet", "127.0.0.1:7300", "DXSpider host:port")
 	web := flag.String("web", "../web/dist", "built Svelte directory")
+	setupRoot := flag.String("setup-root", "", "fresh Mojo checkout for local setup")
 	flag.Parse()
 
 	if *port < 1 || *port > 65535 {
@@ -67,6 +68,9 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	if err := registerSetup(mux, *setupRoot); err != nil {
+		log.Fatal(err)
+	}
 	mux.HandleFunc("GET /api/listener", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")
