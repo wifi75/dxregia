@@ -39,3 +39,5 @@ Su Windows, Mojo Q1QQQ-2 (Telnet 127.0.0.1:7300) e Q3QQQ-2 (Telnet 127.0.0.1:737
 Requisito confermato: il pannello si avvia prima di Mojo e tutta la prima configurazione si completa dal browser. La generazione dei file interni spetta al backend.
 
 Direzione visiva aggiornata: solo tema chiaro per entrambe le aree. La diagnostica locale è stata ricompilata e il server HTTP serve la nuova build. Le schermate pubbliche e sysop complete restano da implementare.
+
+Portale pubblico: direzione grafica approvata su anteprima statica con dati dimostrativi. Requisiti visivi in docs/INTERFACES.md. Feed reale e pannello sysop ancora da integrare.

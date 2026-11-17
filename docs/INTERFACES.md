@@ -45,3 +45,7 @@ Verificare con un client Telnet esterno e un programma di logging: login, show/d
 Provare la pagina spot su desktop e mobile, con tastiera e con feed interrotto. Provare il wizard e l'aggiunta di un partner senza dover aprire la console, compreso un tentativo di connessione fallito.
 
 Le schermate Nodi partner, Registro eventi e Backup seguono i requisiti in [Operazioni del sysop](OPERATIONS.md).
+
+## Riferimento approvato per gli spot pubblici
+
+L'anteprima del 17 novembre 2026 definisce un portale in tema chiaro con testata compatta, filtri banda a pulsante, ricerca e filtro modo. La tabella alterna righe bianche e azzurrate, usa bandierine accanto al nome dell'entità, codifica la banda nel colore della frequenza e distingue CW, SSB e FT8 con etichette testuali colorate. Usare la skill design-taste-frontend per l'implementazione delle interfacce. L'approvazione riguarda la pagina pubblica.
