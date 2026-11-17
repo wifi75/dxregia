@@ -6,6 +6,14 @@ Per ogni collegamento mostrare nominativo, host e porta, tipo di nodo, direzione
 
 Il dettaglio mostra la cronologia delle connessioni e riconduce ai relativi eventi. Quando il motore fornisce il dato, distinguere errori DNS, TCP, login, protocollo e timeout. Offrire test di connessione, connessione, disconnessione e gestione della riconnessione. Registrare le azioni con esito e operatore.
 
+### Aggiunta di un nodo partner
+
+Da **Nodi partner → Aggiungi nodo**, chiedere nominativo remoto, host e porta. Preselezionare il profilo DXSpider e proporre 7300 come porta modificabile. Mostrare tipo di cluster, credenziali del collegamento e riconnessione nelle opzioni avanzate.
+
+**Verifica indirizzo** controlla DNS e raggiungibilità TCP senza inviare credenziali. **Salva e connetti** salva la configurazione, avvia il collegamento e mostra nella stessa schermata la fase osservata. Indicare come riuscito il collegamento solo quando il motore lo conferma. Se il tentativo fallisce, conservare la definizione per correggerla o riprovare. Se il nodo remoto richiede una configurazione da parte del suo sysop, spiegarlo nel dettaglio del tentativo.
+
+Verifica di usabilità: un sysop deve poter aggiungere un partner DXSpider conoscendo nominativo, host e porta, completare il flusso senza console e correggere una porta errata dalla stessa schermata.
+
 ## Registro eventi
 
 Vista cronologica con ricerca, filtri per periodo UTC, gravità, categoria e nominativo, dettaglio evento ed esportazione. Categorie iniziali: collegamenti, protocollo, spot e filtri, utenti e accessi, modifiche amministrative, servizio, installazione e aggiornamenti, backup e ripristino.
