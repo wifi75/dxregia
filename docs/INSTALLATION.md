@@ -2,7 +2,7 @@
 
 ## Cosa puoi provare oggi
 
-Il repository contiene il codice DXSpider Mojo e un controllo del prompt Telnet. Il servizio web DXRegia e lo script di installazione sono in sviluppo.
+Il repository contiene il codice DXSpider Mojo e un controllo del prompt Telnet. Puoi [avviare la diagnostica web locale](../dxregia/backend/README.md). Lo script di installazione è in sviluppo.
 
 ### 1. Avvia un nodo Mojo di prova
 

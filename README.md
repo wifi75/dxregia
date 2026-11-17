@@ -11,7 +11,7 @@
 
 DXRegia nasce per semplificare l'installazione e la gestione di un nodo DX Cluster. Il progetto mantiene DXSpider Mojo come motore per la rete, i collegamenti Telnet e i comandi classici, e prevede un pannello web per amministrare il nodo e una pagina pubblica per seguire gli spot.
 
-**Stato del progetto:** sviluppo iniziale. Il repository contiene la base DXSpider Mojo, le specifiche e un controllo Telnet da terminale. Installatore DXRegia, backend Go e interfaccia Svelte/TypeScript sono ancora da implementare. Il controllo Telnet è stato provato con socket locali. Il collaudo con Mojo su Linux e con i logger è in programma.
+**Stato del progetto:** sviluppo iniziale. Il repository contiene la base DXSpider Mojo, le specifiche e un controllo Telnet da terminale. Una prima [schermata di diagnostica Go/Svelte](dxregia/backend/README.md) verifica il listener Telnet. Installatore, pannello completo e feed pubblico sono in sviluppo. Il controllo Telnet è stato provato con socket locali. Il collaudo con Mojo su Linux e con i logger è in programma.
 
 ## Installazione e configurazione
 
