@@ -24,3 +24,5 @@ L'area privata usa lo stesso sistema visivo e una navigazione orientata ai compi
 ## Verifiche della prima interfaccia
 
 Provare la pagina spot su desktop e mobile, con tastiera e con feed interrotto. Provare il wizard e l'aggiunta di un partner senza dover aprire la console, compreso un tentativo di connessione fallito.
+
+Le schermate Nodi partner, Registro eventi e Backup seguono i requisiti in [Operazioni del sysop](OPERATIONS.md).

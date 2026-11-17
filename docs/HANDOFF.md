@@ -10,3 +10,5 @@
 - Requisiti visivi e flussi per pagina pubblica e area sysop: docs/INTERFACES.md.
 - Installazione automatica, URL del pannello e cambio password al primo accesso specificati in dxregia/deploy/README.md. Implementazione e test Linux in sospeso.
 - Primo passo operativo: predisporre un ambiente Linux riproducibile per avviare Mojo e verificare la console locale. I criteri di accettazione sono in TASK.md.
+
+I requisiti di monitoraggio dei partner, log, backup e ripristino sono descritti in [Operazioni del sysop](OPERATIONS.md). Implementazione e prove operative in sospeso.
