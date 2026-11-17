@@ -1,5 +1,12 @@
 # DXRegia
 
+[![Stato: in sviluppo](https://img.shields.io/badge/Stato-in%20sviluppo-e0a23b)](TASK.md)
+[![Destinazione: Linux](https://img.shields.io/badge/Destinazione-Linux-334155?logo=linux&logoColor=white)](docs/INSTALLATION.md)
+[![Motore: DXSpider Mojo](https://img.shields.io/badge/Motore-DXSpider%20Mojo-147d72)](https://github.com/EA3CV/dxspider/tree/mojo)
+[![Backend: Go](https://img.shields.io/badge/Backend-Go-007d9c?logo=go&logoColor=white)](dxregia/backend/README.md)
+[![Pannello: Svelte e TypeScript](https://img.shields.io/badge/Pannello-Svelte%20%2B%20TypeScript-c94227?logo=svelte&logoColor=white)](dxregia/web/README.md)
+[![Console: Telnet](https://img.shields.io/badge/Console-Telnet-334155)](docs/INTERFACES.md)
+
 **Un nodo DX Cluster per Linux con pannello web, basato su DXSpider Mojo.**
 
 DXRegia nasce per semplificare l'installazione e la gestione di un nodo DX Cluster. Il progetto mantiene DXSpider Mojo come motore per la rete, i collegamenti Telnet e i comandi classici, e prevede un pannello web per amministrare il nodo e una pagina pubblica per seguire gli spot.
