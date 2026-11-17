@@ -27,3 +27,7 @@ La home GitHub e la guida docs/INSTALLATION.md descrivono il controllo Telnet di
 ## 2026-11-17 — Diagnostica web locale
 
 Build Go e Svelte riuscite. Server HTTP e tre stati (prompt ricevuto, prompt assente, porta chiusa) verificati con socket locali su Windows. Avvio documentato in dxregia/backend/README.md. Prossimo passo: prova con Mojo su Linux, poi adattatore per lo stato dei partner.
+
+## 2026-11-17 — Mojo reale su Windows
+
+Mojo 1.57 build 687 avviato in una copia di laboratorio separata, con Strawberry Perl portatile 5.42.3.1 e moduli Mojolicious, Data::Structure::Util, Math::Round e Digest::SHA1. Net::CIDR::Lite resta assente; la protezione CIDR è opzionale e il collaudo è ristretto al loopback. Il listener 127.0.0.1:7300 ha superato prompt, login con nominativo di prova e show/dx su archivio vuoto. L'API web sulla 8080 riporta ready. Prossimo passo: riprodurre su Linux con due nodi di prova e verificare scambio spot e riconnessione.
