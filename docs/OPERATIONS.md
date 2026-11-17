@@ -8,11 +8,11 @@ Il dettaglio mostra la cronologia delle connessioni e riconduce ai relativi even
 
 ### Aggiunta di un nodo partner
 
-Da **Nodi partner → Aggiungi nodo**, chiedere nominativo remoto, host e porta. Preselezionare il profilo DXSpider e proporre 7300 come porta modificabile. Mostrare tipo di cluster, credenziali del collegamento e riconnessione nelle opzioni avanzate.
+Da **Nodi partner → Aggiungi nodo**, chiedere nominativo remoto, host e porta. Preselezionare il profilo DXSpider. Lasciare vuoto il campo obbligatorio Porta remota e accettare qualsiasi numero intero da 1 a 65535. Il valore 7300 puo comparire come esempio. Usare la porta inserita per la verifica TCP e la connessione, indipendentemente dalla porta del listener locale. Mostrare tipo di cluster, credenziali del collegamento e riconnessione nelle opzioni avanzate.
 
 **Verifica indirizzo** controlla DNS e raggiungibilità TCP senza inviare credenziali. **Salva e connetti** salva la configurazione, avvia il collegamento e mostra nella stessa schermata la fase osservata. Indicare come riuscito il collegamento solo quando il motore lo conferma. Se il tentativo fallisce, conservare la definizione per correggerla o riprovare. Se il nodo remoto richiede una configurazione da parte del suo sysop, spiegarlo nel dettaglio del tentativo.
 
-Verifica di usabilità: un sysop deve poter aggiungere un partner DXSpider conoscendo nominativo, host e porta, completare il flusso senza console e correggere una porta errata dalla stessa schermata.
+Verifica di usabilità: un sysop deve poter aggiungere un partner DXSpider conoscendo nominativo, host e porta, completare il flusso senza console e correggere una porta errata dalla stessa schermata. Provare con un nodo di laboratorio in ascolto su una porta diversa da 7300.
 
 ## Registro eventi
 
