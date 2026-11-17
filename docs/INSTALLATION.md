@@ -24,6 +24,8 @@ Se lo script riceve il prompt di accesso, stampa `OK: DXSpider login prompt rece
 
 ## Come funzionerà il pannello DXRegia
 
+L'installatore avvia il pannello anche prima che DXSpider sia configurato. Dopo il cambio password, il sysop completa tutte le impostazioni del nodo dal browser. DXRegia genera e aggiorna i file interni richiesti da Mojo.
+
 1. **Installazione.** Lo script Linux scarica la release, installa le dipendenze, prepara i dati persistenti e verifica l'avvio del servizio. Stampa URL del pannello, utente e password temporanea.
 2. **Primo accesso.** Apri l'URL e accedi con le credenziali mostrate. Imposta una nuova password prima di proseguire.
 3. **Configurazione del nodo.** Nel wizard inserisci nominativo del nodo, nominativo del sysop, locator e porta Telnet. Controlla il riepilogo e applica la configurazione.

@@ -21,3 +21,9 @@ Su una macchina Linux pulita, eseguire lo script e aprire il pannello all'indiri
 ## Controllo base di Telnet
 
 Eseguire python3 dxregia/deploy/check_telnet.py HOST PORTA dal sistema che deve raggiungere il nodo. Verifica il prompt di login senza inviare credenziali o comandi. La compatibilità con login, logger e collegamenti tra nodi va provata separatamente.
+
+## Avvio del pannello prima di Mojo
+
+L'installatore avvia e verifica il pannello anche con una directory dati nuova, senza configurazione Mojo. Il wizard raccoglie i valori dal browser. Il backend valida i dati, genera la configurazione interna e inizializza il nodo, poi avvia Mojo e verifica il listener Telnet. Se un passaggio fallisce, mostra l'errore e consente di correggere e riprovare dal browser. Il wizard deve poter riprendere dopo un riavvio e non deve reinizializzare una banca utenti esistente.
+
+Verifica di accettazione: dopo lo script, completare cambio password e wizard dal browser, verificare Telnet e riavviare. Nessun passaggio richiede di creare o modificare file a mano.

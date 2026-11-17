@@ -13,7 +13,7 @@
 - [ ] Verificare la baseline con due nodi locali e una sessione Telnet. Annotare gli scambi attesi e i criteri per spot, riconnessione e persistenza.
 - [x] Implementare la diagnostica locale Go/Svelte sul listener Telnet.
 - [ ] Verificare la diagnostica web contro Mojo reale su Linux.
-- [ ] Realizzare il wizard di primo avvio e la gestione di un nodo partner.
+- [ ] Realizzare il wizard di primo avvio e la gestione di un nodo partner interamente dal browser, dalla macchina appena installata al listener Telnet operativo, senza modifica manuale di file.
 - [ ] Verificare accesso al terminale classico via Telnet da un client esterno e da un logger. Integrare console sysop web con cronologia e aiuto, utenti e spot in diretta.
 - [ ] Distribuire OCI amd64/arm64 e realizzare lo [script di installazione Linux](dxregia/deploy/README.md) con URL del pannello, password temporanea e cambio obbligatorio al primo accesso. Verificare avvio, riavvio e riesecuzione su Linux.
 - [ ] Chiarire l'applicabilità di COPYING e LICENSE e censire le dipendenze prima della prima distribuzione.
