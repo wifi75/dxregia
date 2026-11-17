@@ -19,3 +19,5 @@ L'accesso esterno alla console classica via Telnet e i relativi test con un logg
 
 Priorità e criteri di verifica in [Analisi prodotto](PRODUCT-ANALYSIS.md). Il controllo del prompt Telnet è in dxregia/deploy/check_telnet.py. Prossimo passo: eseguirlo contro Mojo nel banco Linux, quindi verificare login, show/dx e scambio di spot. Questo host non ha WSL o un runtime container disponibile.
 Controllo verificato con socket locali per prompt frammentato, risposta estranea e porta chiusa. Prova su Mojo reale in sospeso.
+
+Direzione visiva registrata in docs/INTERFACES.md. Le prime schermate di riferimento sono Spot pubblici e Nodi partner con un errore di connessione. La resa visiva resta da implementare e verificare.
