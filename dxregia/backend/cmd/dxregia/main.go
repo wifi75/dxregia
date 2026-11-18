@@ -55,7 +55,6 @@ func checkListener(ctx context.Context, address string) listenerStatus {
 func main() {
 	port := flag.Int("port", 8080, "HTTP port")
 	httpBind := flag.String("http-bind", "127.0.0.1", "HTTP bind address")
-	telnetBind := flag.String("setup-telnet-bind", "127.0.0.1", "IPv4 address for the generated Mojo listener")
 	target := flag.String("telnet", "127.0.0.1:7300", "DXSpider host:port")
 	web := flag.String("web", "../web/dist", "built Svelte directory")
 	bootstrapFile := flag.String("bootstrap-password-file", "", "private file for the temporary sysop password")
@@ -67,8 +66,8 @@ func main() {
 	webPortFile := flag.String("web-port-file", "", "persistent HTTP port settings for native installations")
 	flag.Parse()
 
-	if net.ParseIP(*httpBind) == nil || net.ParseIP(*telnetBind).To4() == nil {
-		log.Fatal("Invalid HTTP or Telnet bind IP")
+	if net.ParseIP(*httpBind) == nil {
+		log.Fatal("Invalid HTTP bind IP")
 	}
 	if *port < 1 || *port > 65535 {
 		log.Fatal("HTTP port must be between 1 and 65535")
@@ -105,7 +104,7 @@ func main() {
 	}
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
-	if err := registerSetup(service, &children, mux, *setupRoot, *setupPerl, *setupInternal, number, *telnetBind, *setupFixedPort, auth, func(port int) {
+	if err := registerSetup(service, &children, mux, *setupRoot, *setupPerl, *setupInternal, number, *setupFixedPort, auth, func(port int) {
 		activeTarget.Store(net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
 	}); err != nil {
 		log.Fatal(err)

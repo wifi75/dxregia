@@ -27,9 +27,11 @@ engine_change() {
         case "$2" in
             install)
                 mkdir -m 700 "$backup"
-                if [ -f /data/mojo/local/Local.pm ]; then
-                    cp -p /data/mojo/local/Local.pm "$backup/Local.pm"
-                fi
+                for config in Local.pm Listeners.pm; do
+                    if [ -f "/data/mojo/local/$config" ]; then
+                        cp -p "/data/mojo/local/$config" "$backup/$config"
+                    fi
+                done
                 mkdir "$backup/stage"
                 for part in $parts; do
                     test -e "/data/mojo/$part"
@@ -50,9 +52,11 @@ engine_change() {
                         mv "$backup/$part" "/data/mojo/$part"
                     fi
                 done
-                if [ -f "$backup/Local.pm" ]; then
-                    cp -p "$backup/Local.pm" /data/mojo/local/Local.pm
-                fi
+                for config in Local.pm Listeners.pm; do
+                    if [ -f "$backup/$config" ]; then
+                        cp -p "$backup/$config" "/data/mojo/local/$config"
+                    fi
+                done
                 ;;
         esac
     ' sh "$engine_backup" "$1"
@@ -114,7 +118,8 @@ for port, values in sorted(ports.items(), key=lambda entry: entry[0] != "8080/tc
             or values[0]["HostIp"] not in {"127.0.0.1", "0.0.0.0"}
             or not re.fullmatch(r"[0-9]+", values[0]["HostPort"])):
         sys.exit("Configurazione delle porte non supportata.")
-    bindings.append(f'{values[0]["HostIp"]}:{values[0]["HostPort"]}:{port.split("/")[0]}')
+    bind = values[0]["HostIp"] if port == "8080/tcp" else "0.0.0.0"
+    bindings.append(f'{bind}:{values[0]["HostPort"]}:{port.split("/")[0]}')
 policy = host["RestartPolicy"]
 restart = policy["Name"] or "no"
 if restart == "on-failure" and policy["MaximumRetryCount"]:

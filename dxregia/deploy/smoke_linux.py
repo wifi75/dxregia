@@ -342,7 +342,7 @@ def main():
     assert request(client, "/api/setup", config) == (200, {"started": True, "port": TELNET_PORT})
     portal_traffic(client)
     telnet_presence(client)
-    if NATIVE and os.environ.get("DXREGIA_TELNET_BIND") == "0.0.0.0":
+    if NATIVE:
         # The loopback Telnet check alone also passes with a loopback-only listener.
         listeners = subprocess.check_output(["ss", "-H4ltn", f"sport = :{TELNET_PORT}"], text=True)
         assert any(row.split()[3] in {f"0.0.0.0:{TELNET_PORT}", f"*:{TELNET_PORT}"}

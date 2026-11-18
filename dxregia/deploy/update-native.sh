@@ -94,9 +94,11 @@ cleanup() {
             fi
         done
         as_root cp -a "$rollback/dxregia.service" "$unit"
-        if as_root test -f "$rollback/Local.pm"; then
-            as_root cp -a "$rollback/Local.pm" "$engine/local/Local.pm"
-        fi
+        for config in Local.pm Listeners.pm; do
+            if as_root test -f "$rollback/$config"; then
+                as_root cp -a "$rollback/$config" "$engine/local/$config"
+            fi
+        done
         as_root systemctl daemon-reload
         as_root systemctl start "$service"
         printf 'File di ripristino: %s e %s\n' "$rollback" "$engine_rollback" >&2
@@ -155,9 +157,11 @@ for part in $parts; do
 done
 as_root chown -hR dxregia:dxregia "$staged_engine"
 as_root cp -a "$unit" "$rollback/dxregia.service"
-if as_root test -f "$engine/local/Local.pm"; then
-    as_root cp -a "$engine/local/Local.pm" "$rollback/Local.pm"
-fi
+for config in Local.pm Listeners.pm; do
+    if as_root test -f "$engine/local/$config"; then
+        as_root cp -a "$engine/local/$config" "$rollback/$config"
+    fi
+done
 
 web_port=8080
 web_host=127.0.0.1

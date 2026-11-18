@@ -17,11 +17,6 @@ name=dxregia
 image=dxregia:local
 web_port=${DXREGIA_WEB_PORT:-8080}
 telnet_port=${DXREGIA_TELNET_PORT:-7300}
-telnet_bind=${DXREGIA_TELNET_BIND:-127.0.0.1}
-case "$telnet_bind" in
-    127.0.0.1|0.0.0.0) ;;
-    *) printf '%s\n' 'DXREGIA_TELNET_BIND accetta 127.0.0.1 o 0.0.0.0.' >&2; exit 1 ;;
-esac
 
 validate_port() {
     case "$1" in
@@ -45,11 +40,6 @@ if docker container inspect "$name" >/dev/null 2>&1; then
         printf 'Il container esistente usa web %s e Telnet %s. Riavvialo con gli stessi parametri.\n' "$current_web" "$current_telnet" >&2
         exit 1
     fi
-    current_bind=$(docker inspect --format '{{range $port, $mapping := .HostConfig.PortBindings}}{{if ne $port "8080/tcp"}}{{(index $mapping 0).HostIp}}{{end}}{{end}}' "$name")
-    if [ "$current_bind" != "$telnet_bind" ]; then
-        printf 'Il container esistente pubblica Telnet su %s. Riesegui con lo stesso indirizzo.\n' "$current_bind" >&2
-        exit 1
-    fi
     docker start "$name" >/dev/null
 else
     docker build -f "$root/dxregia/deploy/Containerfile" -t "$image" "$root"
@@ -58,7 +48,7 @@ else
         --label org.dxregia.installation=local \
         --mount type=volume,src=dxregia-data,dst=/data \
         -e DXREGIA_TELNET_PORT="$telnet_port" \
-        -p "127.0.0.1:$web_port:8080" -p "$telnet_bind:$telnet_port:$telnet_port" "$image" >/dev/null
+        -p "127.0.0.1:$web_port:8080" -p "0.0.0.0:$telnet_port:$telnet_port" "$image" >/dev/null
 fi
 
 url="http://127.0.0.1:$web_port"

@@ -70,7 +70,7 @@ func (c *nodeConfig) validate() error {
 	return nil
 }
 
-func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.ServeMux, root, perl string, internalPort, suggestedPort int, telnetBind string, fixedPort bool, auth *sysopAuth, setTarget func(int)) error {
+func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.ServeMux, root, perl string, internalPort, suggestedPort int, fixedPort bool, auth *sysopAuth, setTarget func(int)) error {
 	if root == "" {
 		return nil
 	}
@@ -204,7 +204,7 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 					return
 				}
 			}
-			if err := writeMojoConfig(root, local, string(template), config, internalPort, telnetBind); err != nil {
+			if err := writeMojoConfig(root, local, string(template), config, internalPort); err != nil {
 				log.Printf("Mojo setup: %v", err)
 				http.Error(w, "Impossibile salvare la configurazione Mojo.", http.StatusInternalServerError)
 				return
@@ -226,7 +226,7 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 	return nil
 }
 
-func writeMojoConfig(root, local, template string, config nodeConfig, internalPort int, telnetBind string) error {
+func writeMojoConfig(root, local, template string, config nodeConfig, internalPort int) error {
 	const ending = "\n1;"
 	template = strings.ReplaceAll(template, "\r\n", "\n")
 	end := strings.LastIndex(template, ending)
@@ -252,7 +252,7 @@ func writeMojoConfig(root, local, template string, config nodeConfig, internalPo
 	if err := os.WriteFile(filepath.Join(stage, "DXVars.pm"), []byte(template[:end]+values+template[end:]), 0600); err != nil {
 		return err
 	}
-	listeners := fmt.Sprintf("package main;\nour @listen = ([ '%s', %d ]);\n1;\n", telnetBind, config.Port)
+	listeners := standardMojoListener(config.Port)
 	if err := os.WriteFile(filepath.Join(stage, "Listeners.pm"), []byte(listeners), 0600); err != nil {
 		return err
 	}

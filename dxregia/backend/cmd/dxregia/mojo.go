@@ -55,6 +55,9 @@ func startMojo(service context.Context, children *sync.WaitGroup, perl, root str
 	} else if err != nil {
 		return err
 	}
+	if err := ensureMojoListener(filepath.Join(root, "local"), config.Port); err != nil {
+		return fmt.Errorf("configurazione listener Telnet: %w", err)
+	}
 	cmd := mojoCommand(service, perl, root, "cluster.pl", logFile)
 	if runtime.GOOS != "windows" {
 		cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
@@ -110,4 +113,51 @@ func mojoCommand(ctx context.Context, perl, root, script string, logs io.Writer)
 	cmd.Stdout = logs
 	cmd.Stderr = logs
 	return cmd
+}
+
+// The public listener uses every IPv4 interface. Mojo's internal port and
+// the local health check continue to use loopback.
+func standardMojoListener(port int) string {
+	return fmt.Sprintf("package main;\nour @listen = ([ '0.0.0.0', %d ]);\n1;\n", port)
+}
+
+func ensureMojoListener(local string, port int) error {
+	path := filepath.Join(local, "Listeners.pm")
+	contents := standardMojoListener(port)
+	previous, err := os.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if string(previous) == contents {
+		return nil
+	}
+	if err == nil {
+		backup := filepath.Join(local, "Listeners.pm.before-dxregia")
+		file, err := os.OpenFile(backup, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+		if err == nil {
+			_, err = file.Write(previous)
+			if closeErr := file.Close(); err == nil {
+				err = closeErr
+			}
+			if err != nil {
+				_ = os.Remove(backup)
+				return err
+			}
+		} else if !os.IsExist(err) {
+			return err
+		}
+	}
+	file, err := os.CreateTemp(local, ".dxregia-listeners-")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(file.Name())
+	_, err = file.WriteString(contents)
+	if closeErr := file.Close(); err == nil {
+		err = closeErr
+	}
+	if err != nil {
+		return err
+	}
+	return os.Rename(file.Name(), path)
 }

@@ -19,11 +19,6 @@ runtime=/opt/dxregia
 unit=/etc/systemd/system/dxregia.service
 web_port=${DXREGIA_WEB_PORT:-8080}
 telnet_port=${DXREGIA_TELNET_PORT:-7300}
-telnet_bind=${DXREGIA_TELNET_BIND:-127.0.0.1}
-case "$telnet_bind" in
-    127.0.0.1|0.0.0.0) ;;
-    *) fail 'DXREGIA_TELNET_BIND accetta 127.0.0.1 o 0.0.0.0.' ;;
-esac
 validate_port() {
     case "$1" in ''|0*|*[!0-9]*) return 1;; esac
     [ "${#1}" -le 5 ] && [ "$1" -le 65535 ]
@@ -82,7 +77,7 @@ if [ ! -f "$unit" ]; then
     as_root install -m 0755 "$root/dxregia/deploy/update-native.sh" /usr/local/bin/dxregia-update
     as_root cp -R "$root/dxregia/web/dist/." "$runtime/web/"
     if [ ! -f /etc/dxregia.env ]; then
-        printf 'DXREGIA_WEB_PORT=%s\nDXREGIA_TELNET_PORT=%s\nDXREGIA_TELNET_BIND=%s\n' "$web_port" "$telnet_port" "$telnet_bind" > "$stage/environment"
+        printf 'DXREGIA_WEB_PORT=%s\nDXREGIA_TELNET_PORT=%s\n' "$web_port" "$telnet_port" > "$stage/environment"
         as_root install -m 0600 "$stage/environment" /etc/dxregia.env
     fi
     as_root install -m 0644 "$root/dxregia/deploy/dxregia.service" "$unit"

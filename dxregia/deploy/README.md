@@ -33,7 +33,7 @@ DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-native.
 
 Lo script compila frontend e backend, installa le dipendenze Perl e avvia il servizio systemd dxregia con il suo utente dedicato. Stampa l'indirizzo del pannello e, al primo avvio, la password temporanea. Le porte predefinite sono 8080 e 7300. I dati sono in /var/lib/dxregia e il runtime è in /opt/dxregia. Una nuova esecuzione avvia il servizio già installato e conserva i dati. L'accesso iniziale è sul loopback. Per un server remoto si può accedere al pannello con un tunnel SSH dalla propria postazione.
 
-Per consentire l'accesso Telnet dalla rete, imposta `DXREGIA_TELNET_BIND=0.0.0.0` alla prima installazione nativa, prima del wizard. Il pannello resta sul loopback. Il firewall deve permettere le connessioni in ingresso sulla porta Telnet scelta. Per un nodo gia configurato, la riesecuzione dell'installatore conserva il listener esistente.
+Il listener Telnet di DXSpider ascolta su `0.0.0.0` sulla porta scelta. Il firewall regola da quali reti accettare connessioni. Il pannello web usa un indirizzo di ascolto separato. All'avvio di un nodo gestito, DXRegia applica lo stesso standard anche alle installazioni precedenti e conserva una copia dell'eventuale configurazione sostituita.
 
 Il collaudo automatico nativo è passato su Ubuntu 24.04 con systemd, su amd64 e arm64. Una LXC non privilegiata con systemd può usare lo stesso percorso; il collaudo Proxmox resta separato. Le immagini Docker rimangono disponibili.
 
@@ -53,11 +53,11 @@ Per scegliere le porte prima dell'installazione, esegui ad esempio:
 DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-local.sh
 ~~~
 
-I valori predefiniti restano 8080 e 7300. Le porte sono pubblicate sul loopback per impostazione predefinita. Per consentire Telnet dalla rete, usa `DXREGIA_TELNET_BIND=0.0.0.0` alla creazione del container. Il pannello resta sul loopback e il wizard usa la porta Telnet effettivamente mappata. Nelle riesecuzioni usa gli stessi valori: Docker assegna le porte al momento della creazione del container. La build e il primo avvio con Docker sono stati verificati in CI su Ubuntu 24.04 amd64 e arm64 con l'immagine Debian. La procedura da release firmata e l'accesso dalla LAN sono attività successive.
+I valori predefiniti restano 8080 e 7300. La porta Telnet è pubblicata su tutte le interfacce IPv4. L'aggiornamento Docker applica lo stesso indirizzo alle installazioni precedenti. Il pannello resta sul loopback e il wizard usa la porta Telnet effettivamente mappata. Nelle riesecuzioni usa gli stessi valori: Docker assegna le porte al momento della creazione del container. La build e il primo avvio con Docker sono stati verificati in CI su Ubuntu 24.04 amd64 e arm64 con l'immagine Debian. La procedura da release firmata e l'accesso dalla LAN sono attività successive.
 
 ## Aggiornare il container Docker
 
-Scarica `update-docker.sh` e lancialo sull'host Docker con `sh /percorso/update-docker.sh`, da qualunque directory. Serve un utente autorizzato a usare Docker, con Git, curl e Python 3 disponibili. Lo script e destinato al container `dxregia` creato con `install-local.sh`. Costruisce la nuova immagine prima di fermare il servizio. Conserva volume, porte, variabili DXRegia, configurazione e dati. Dopo il cambio verifica il pannello e, per un nodo configurato, Telnet. Se il controllo fallisce ripristina il vecchio container e le parti del motore sostituite.
+Scarica `update-docker.sh` e lancialo sull'host Docker con `sh /percorso/update-docker.sh`, da qualunque directory. Serve un utente autorizzato a usare Docker, con Git, curl e Python 3 disponibili. Lo script e destinato al container `dxregia` creato con `install-local.sh`. Costruisce la nuova immagine prima di fermare il servizio. Conserva volume, numeri di porta, variabili DXRegia, configurazione e dati. Dopo il cambio verifica il pannello e, per un nodo configurato, Telnet. Se il controllo fallisce ripristina il vecchio container e le parti del motore sostituite.
 
 ## Esperienza di installazione
 
