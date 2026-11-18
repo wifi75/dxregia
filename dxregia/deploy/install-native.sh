@@ -61,7 +61,7 @@ if [ ! -f "$unit" ]; then
     [ -f "$root/dxregia/web/dist/index.html" ] || fail 'Interfaccia web mancante dal pacchetto.'
     as_root apt-get update
     as_root apt-get install -y --no-install-recommends \
-        ca-certificates perl git procps libev-perl libmojolicious-perl libjson-perl \
+        ca-certificates perl python3 git procps libev-perl libmojolicious-perl libjson-perl \
         libjson-xs-perl libdata-structure-util-perl libmath-round-perl libnet-cidr-lite-perl \
         libdbd-sqlite3-perl libdbi-perl libtimedate-perl libio-socket-inet6-perl
     if ! id dxregia >/dev/null 2>&1; then
@@ -78,6 +78,7 @@ if [ ! -f "$unit" ]; then
     fi
     as_root install -d -m 0755 "$runtime/bin" "$runtime/web"
     as_root install -m 0755 "$binary" "$runtime/bin/dxregia"
+    as_root install -m 0755 "$root/dxregia/deploy/backup_node.py" "$runtime/bin/dxregia-backup"
     as_root cp -R "$root/dxregia/web/dist/." "$runtime/web/"
     if [ ! -f /etc/dxregia.env ]; then
         printf 'DXREGIA_WEB_PORT=%s\nDXREGIA_TELNET_PORT=%s\nDXREGIA_TELNET_BIND=%s\n' "$web_port" "$telnet_port" "$telnet_bind" > "$stage/environment"

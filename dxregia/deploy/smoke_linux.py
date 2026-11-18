@@ -275,6 +275,10 @@ def main():
         privileged("cat", "/var/lib/dxregia/sysop-initial")
         if NATIVE else docker("exec", CONTAINER, "cat", "/data/sysop-initial")
     )
+    if NATIVE:
+        assert "restore" in subprocess.check_output(["/opt/dxregia/bin/dxregia-backup", "--help"], text=True)
+    else:
+        assert "restore" in docker("exec", CONTAINER, "python3", "/opt/dxregia/backup_node.py", "--help")
     config = {"node": "Q1QQQ-2", "sysop": "Q1QQQ", "locator": "JN55AA", "port": TELNET_PORT}
     assert request(client, "/api/setup", config)[0] == 401
     status, login = request(client, "/api/auth/login", virgin)

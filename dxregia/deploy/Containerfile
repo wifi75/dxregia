@@ -14,7 +14,7 @@ RUN CGO_ENABLED=0 go build -trimpath -o /dxregia ./cmd/dxregia
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates perl git procps libev-perl libmojolicious-perl libjson-perl \
+    ca-certificates perl python3 git procps libev-perl libmojolicious-perl libjson-perl \
     libjson-xs-perl libdata-structure-util-perl libmath-round-perl libnet-cidr-lite-perl \
     libdbd-sqlite3-perl libdbi-perl libtimedate-perl libio-socket-inet6-perl \
     && rm -rf /var/lib/apt/lists/* \
@@ -29,6 +29,7 @@ COPY filter /opt/mojo/filter
 COPY msg /opt/mojo/msg
 COPY perl /opt/mojo/perl
 COPY COPYING LICENSE /opt/mojo/
+COPY dxregia/deploy/backup_node.py /opt/dxregia/backup_node.py
 COPY dxregia/deploy/start-container.sh /usr/local/bin/dxregia-container
 RUN chmod 0755 /usr/local/bin/dxregia-container
 USER dxregia

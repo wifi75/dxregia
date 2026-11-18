@@ -79,7 +79,7 @@ Verifica di accettazione: dopo lo script, completare cambio password e wizard da
 
 ## Backup offline del nodo
 
-Richiede Python 3.10 o successivo. Arresta DXRegia e Mojo prima di copiare il nodo. Per un container, esegui lo strumento sull'archivio persistente con il servizio arrestato.
+Richiede Python 3.10 o successivo. L'installazione nativa include il comando `/opt/dxregia/bin/dxregia-backup` e l'immagine Docker include `/opt/dxregia/backup_node.py`. Arresta DXRegia e Mojo prima di copiare il nodo. Per un container, esegui lo strumento sull'archivio persistente con il servizio arrestato.
 
 ~~~sh
 python3 dxregia/deploy/backup_node.py backup /percorso/mojo /percorso/salvataggi/nodo.zip
