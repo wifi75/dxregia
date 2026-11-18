@@ -85,3 +85,7 @@ Wizard in due passaggi con rinvio e ripresa, dati sysop estesi e riepilogo priva
 ## 2026-11-18 — Portale spot reale e prima connessione dei partner
 
 Il portale /spots interroga /api/spots ogni cinque secondi e legge fino a 100 spot recenti dall'archivio Mojo degli ultimi due giorni UTC. Verificati via HTTP la pagina, la bandiera locale e un record scritto dal vero Mojo nel laboratorio Windows. L'API restituisce solo i campi pubblici. Il modo appare quando esplicito nel commento. La mappa DXCC iniziale è parziale; PNG provenienti da Flagcdn. Il backend registra la prima sessione partner in stato normal, osservata nella fotografia privata di Mojo, e la conserva al ricollegamento. Test Go passato. Restano connessione dal pannello, analytics, migrazione completa, backup e collaudo Linux.
+
+## 2026-11-18 — Contatore e statistiche del portale
+
+Contatore pubblico di visualizzazioni su /spots e storico giornaliero privato degli ultimi 90 giorni in Statistiche del portale. Il referrer viene ridotto al dominio, senza path o query. Test HTTP passed: solo caricamenti GET del portale incrementano il totale, ricariche del feed e richieste HEAD escluse; verifica privata via TOTP e persistenza al riavvio. Restano visitatori attivi stimati e paesi di provenienza.

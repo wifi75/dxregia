@@ -3,6 +3,7 @@
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
   import Presence from './Presence.svelte'
+  import Traffic from './Traffic.svelte'
 
   type Session = { signedIn: boolean; mustChange: boolean; mustVerify?: boolean; enrollmentKey?: string }
   let session = $state<Session>()
@@ -65,6 +66,7 @@
   {#if session.signedIn && !session.mustChange && !session.mustVerify}
     <Setup {onSaved} />
     <Presence />
+    <Traffic />
     <Partners />
     <button type="button" onclick={logout}>Esci</button>
     {#if error}<p role="alert">{error}</p>{/if}

@@ -17,6 +17,7 @@
   let query = $state('')
   let paused = $state(false)
   let reading = false
+  let views = $state<number>()
   const bandFor = (frequency: number) => bands.find(([, low, high]) => frequency >= low && frequency <= high)?.[0] ?? ''
   const modeFor = (comment: string) => comment.match(/\b(FT8|FT4|SSB|CW|RTTY|PSK31|USB|LSB)\b/i)?.[1].toUpperCase() ?? ''
   const colors: Record<string, string> = {
@@ -53,6 +54,9 @@
   }
   onMount(() => {
     void refresh()
+    void fetch('/api/visits').then(async response => {
+      if (response.ok) views = (await response.json()).Views
+    }).catch(() => {})
     const timer = setInterval(refresh, 5000)
     return () => clearInterval(timer)
   })
@@ -113,6 +117,7 @@
   {:else if available}
     <p>{spots.length ? 'Nessuno spot corrisponde ai filtri.' : 'Nessuno spot recente.'}</p>
   {/if}
+  {#if views !== undefined}<p>Visite al portale: {khz.format(views)}</p>{/if}
 </main>
 
 <style>

@@ -90,6 +90,10 @@ func main() {
 	}
 	registerPresence(mux, *setupRoot, auth)
 	registerSpots(mux, *setupRoot)
+	traffic, err := registerTraffic(mux, *setupRoot, auth)
+	if err != nil {
+		log.Fatal(err)
+	}
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
 	if err := registerSetup(service, mux, *setupRoot, *setupPerl, *setupInternal, number, *telnetBind, auth, func(port int) {
@@ -105,6 +109,7 @@ func main() {
 		}
 	})
 	mux.HandleFunc("GET /spots", func(w http.ResponseWriter, r *http.Request) {
+		traffic.view(r)
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
 	mux.Handle("GET /", http.FileServer(http.Dir(*web)))
