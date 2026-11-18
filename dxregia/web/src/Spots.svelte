@@ -221,10 +221,11 @@
   input { width: min(100%, 350px); min-height: 40px; border: 1px solid #acbfce; border-radius: 6px; background: #fff; color: #173653; padding: 6px 10px; font: inherit; }
   .table-wrap { overflow: auto; }
   table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
-  th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #dce5ed; }
+  th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #c4d6e3; }
   th { background: #ffffffa3; color: #1d5d8c; border-bottom: 2px solid #2972a0; font-size: .86rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
   th small { color: #536b7d; text-transform: none; }
-  tbody tr:nth-child(even) { background: #e5f1f7ab; }
+  tbody tr:nth-child(odd) { background: #fbfdff; }
+  tbody tr:nth-child(even) { background: #d6e8f3; }
   tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: fresh 14s ease-out both; }
   @keyframes fresh { 0%, 71% { background: #fff1a0; box-shadow: inset 4px 0 #e0a020; } 100% { background: transparent; box-shadow: inset 4px 0 transparent; } }
   .sound { display: inline-grid; place-items: center; width: 40px; min-height: 40px; padding: 0; border-radius: 50%; --button-face: #fff; --button-edge: #a4bccb; --button-ink: #214e80; box-shadow: none; }
@@ -232,7 +233,7 @@
   .callcell { display: inline-flex; align-items: center; gap: 6px; }
   .lens { display: inline-grid; place-items: center; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; --button-face: transparent; --button-edge: transparent; --button-ink: #6d8798; box-shadow: none; }
   .lens:hover:not(:disabled) { --button-ink: #175c82; --button-face: #e3eef6; transform: none; filter: none; }
-  tbody tr:hover { background: #e0eff8; }
+  tbody tr:hover, tbody tr:nth-child(even):hover { background: #c3dbec; }
   .frequency, .mode { display: inline-block; padding: 2px 7px; border-radius: 4px; }
   .frequency { min-width: 7ch; text-align: right; color: #142b39; }
   .frequency, td:last-child { font-variant-numeric: tabular-nums; }
