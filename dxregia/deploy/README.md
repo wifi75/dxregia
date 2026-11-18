@@ -53,6 +53,10 @@ DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-local.s
 
 I valori predefiniti restano 8080 e 7300. Le porte sono pubblicate sul loopback per impostazione predefinita. Per consentire Telnet dalla rete, usa `DXREGIA_TELNET_BIND=0.0.0.0` alla creazione del container. Il pannello resta sul loopback e il wizard usa la porta Telnet effettivamente mappata. Nelle riesecuzioni usa gli stessi valori: Docker assegna le porte al momento della creazione del container. La build e il primo avvio con Docker sono stati verificati in CI su Ubuntu 24.04 amd64 e arm64 con l'immagine Debian. La procedura da release firmata e l'accesso dalla LAN sono attività successive.
 
+## Aggiornare il container Docker
+
+Scarica `update-docker.sh` e lancialo sull'host Docker con `sh /percorso/update-docker.sh`, da qualunque directory. Serve un utente autorizzato a usare Docker, con Git, curl e Python 3 disponibili. Lo script e destinato al container `dxregia` creato con `install-local.sh`. Costruisce la nuova immagine prima di fermare il servizio. Conserva volume, porte, variabili DXRegia, configurazione e dati. Dopo il cambio verifica il pannello e, per un nodo configurato, Telnet. Se il controllo fallisce ripristina il vecchio container e le parti del motore sostituite.
+
 ## Esperienza di installazione
 
 1. Il sysop scarica e avvia un solo script sul PC Linux. Lo script verifica architettura, sistema e privilegi, installa le dipendenze mancanti e scarica una release DXRegia verificandone l'integrità.

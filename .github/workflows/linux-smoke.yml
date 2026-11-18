@@ -42,6 +42,12 @@ jobs:
         run: python3 dxregia/deploy/smoke_linux.py
       - name: Verify installer can run again without replacing the node
         run: sh dxregia/deploy/install-local.sh
+      - name: Update Docker from outside the checkout
+        run: |
+          cd "$RUNNER_TEMP"
+          sh "$GITHUB_WORKSPACE/dxregia/deploy/update-docker.sh" --source "$GITHUB_WORKSPACE"
+          curl -fsS "http://127.0.0.1:$DXREGIA_WEB_PORT/api/visits" | python3 -c 'import json,sys; assert json.load(sys.stdin)["Views"] == 2'
+          docker port dxregia "$DXREGIA_TELNET_PORT/tcp" | grep -Fx "$DXREGIA_TELNET_BIND:$DXREGIA_TELNET_PORT"
       - name: Report container logs on failure
         if: failure()
         run: |

@@ -183,3 +183,5 @@ Il run 44295449257 ha passato l'intera matrice Linux nativa e Docker amd64/arm64
 Aggiornamento nativo da qualsiasi directory tramite update-native.sh. Compila prima di arrestare il servizio, conserva configurazioni e credenziali, sostituisce runtime e parti upstream, controlla HTTP e Telnet e ripristina i componenti precedenti se il controllo fallisce. Il workflow lo esercita da una directory esterna al checkout e verifica che il contatore persistente resti invariato.
 
 L'installatore nativo distribuisce lo script come /usr/local/bin/dxregia-update. Il collaudo lo invoca da fuori checkout. Sui server esistenti lo stesso file .sh puo essere eseguito direttamente o installato una volta nel PATH.
+
+Aggiornamento Docker tramite update-docker.sh sull'host che esegue il container standard. Conserva il volume e riusa mapping di porte, politica di riavvio e variabili DXRegia. Il collaudo esegue l'aggiornamento da una directory esterna e verifica contatore e porte.
