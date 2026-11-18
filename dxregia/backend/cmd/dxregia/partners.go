@@ -159,13 +159,18 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		var input struct {
 			partnerDetails
-			Note       string
-			ConnectNow bool
+			Note           string
+			ConnectNow     bool
+			RemotePassword string
 		}
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192))
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&input) != nil || decoder.Decode(new(any)) != io.EOF || !input.partnerDetails.validate() || len(input.Note) > 4000 {
 			http.Error(w, "Controlla indicativo, host, porta, email e lunghezza dei campi.", http.StatusBadRequest)
+			return
+		}
+		if !peerPasswordPattern.MatchString(input.RemotePassword) || (!input.ConnectNow && input.RemotePassword != "") {
+			http.Error(w, "La password del nodo remoto può contenere al massimo 72 lettere o cifre.", http.StatusBadRequest)
 			return
 		}
 		call := input.Call
@@ -189,7 +194,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		auto := input.ConnectNow && !exists
 		if auto {
-			plan := reconnectPlan{Host: entry.Host, Port: entry.Port, AutoProvision: true}
+			plan := reconnectPlan{Host: entry.Host, Port: entry.Port, AutoProvision: true, Password: input.RemotePassword}
 			if err := saveReconnect(root, call, plan); err != nil {
 				http.Error(w, "Impossibile salvare il collegamento automatico.", http.StatusInternalServerError)
 				return
@@ -214,6 +219,27 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 	mux.HandleFunc("GET /api/partners", handler)
 	mux.HandleFunc("POST /api/partners", handler)
 	mux.HandleFunc("PUT /api/partners/{call}", handler)
+	mux.HandleFunc("GET /api/partners/{call}/credential", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		call := r.PathValue("call")
+		lock.Lock()
+		defer lock.Unlock()
+		entry, ok := partners[call]
+		if !ok || !callsign.MatchString(call) {
+			http.NotFound(w, r)
+			return
+		}
+		password := ""
+		if plan, err := readReconnect(root, call); err == nil && plan.Host == entry.Host && plan.Port == entry.Port {
+			password = plan.Password
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"password": password})
+	})
 	mux.HandleFunc("POST /api/partners/{call}/enable", func(w http.ResponseWriter, r *http.Request) {
 		if !auth.allowed(r) {
 			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)

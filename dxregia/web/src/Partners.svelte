@@ -19,6 +19,7 @@
   let peerPassword = $state('')
   let enabling = $state(false)
   let outgoingPassword = $state('')
+  let credentialRequest = 0
   let remoteAuth = $state<'none' | 'password'>('none')
   let autoReconnect = $state(false)
   let sendInstructions = $state(false)
@@ -54,6 +55,18 @@
     error = ''
     message = ''
     editing = true
+    const request = ++credentialRequest
+    if (partner) {
+      void fetch('/api/partners/' + encodeURIComponent(partner.Call) + '/credential', { cache: 'no-store' })
+        .then(async response => {
+          if (!response.ok || request !== credentialRequest) return
+          const { password } = await response.json()
+          if (request === credentialRequest && password && remoteAuth === 'none' && !outgoingPassword) {
+            remoteAuth = 'password'
+            outgoingPassword = password
+          }
+        }).catch(() => {})
+    }
   }
 
   $effect(() => {
@@ -137,7 +150,6 @@
         error = (await response.text()).trim()
         return
       }
-      outgoingPassword = ''
       await refreshProvisioning()
     } catch {
       error = 'Impossibile avviare il collegamento.'
@@ -167,8 +179,12 @@
   async function save(event: SubmitEvent) {
     event.preventDefault()
     if (busy || enabling) return
-    const prepareOnly = !selected && remoteAuth === 'password' && (event.submitter as HTMLButtonElement | null)?.value !== 'directory'
-    const connectNow = !selected && !prepareOnly && (event.submitter as HTMLButtonElement | null)?.value !== 'directory'
+    const connectNow = !selected && (event.submitter as HTMLButtonElement | null)?.value !== 'directory'
+    const password = connectNow && remoteAuth === 'password' ? outgoingPassword : ''
+    if (connectNow && remoteAuth === 'password' && !/^[A-Za-z0-9]{1,72}$/.test(password)) {
+      error = 'Inserisci la password fornita dal nodo remoto.'
+      return
+    }
     busy = true
     error = ''
     message = ''
@@ -176,7 +192,7 @@
       const response = await fetch('/api/partners' + (selected ? '/' + encodeURIComponent(selected.Call) : ''), {
         method: selected ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, Note: note, ConnectNow: connectNow }),
+        body: JSON.stringify({ ...form, Note: note, ConnectNow: connectNow, RemotePassword: password }),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -185,11 +201,9 @@
       const saved: Partner = await response.json()
       partners = [...partners.filter(partner => partner.Call !== saved.Call), saved]
       open(saved)
-      if (prepareOnly) {
+      if (password) {
         remoteAuth = 'password'
-        await enable(true)
-        message = 'Nodo salvato. Quando Mojo conferma, inserisci la password fornita dal partner e premi Connetti nodo.'
-        return
+        outgoingPassword = password
       }
       message = connectNow ? 'Nodo salvato. DXRegia prepara il collegamento e riproverà anche dopo il riavvio.' : 'Anagrafica salvata.'
     } catch {
@@ -293,7 +307,7 @@
         </label>
         {#if remoteAuth === 'password'}
           <label>Password fornita dal nodo remoto
-            <input type="password" bind:value={outgoingPassword} pattern={'[A-Za-z0-9]{1,72}'} maxlength="72" autocomplete="off" required />
+            <input type="text" bind:value={outgoingPassword} pattern={'[A-Za-z0-9]{1,72}'} maxlength="72" autocomplete="off" spellcheck="false" required />
           </label>
         {/if}
         <label class="mail-opt"><input type="checkbox" bind:checked={autoReconnect} /> Riprova automaticamente dopo una caduta del collegamento</label>
@@ -321,10 +335,15 @@
             <option value="password">Con password</option>
           </select>
         </label>
+        {#if remoteAuth === 'password'}
+          <label class="remote-auth">Password del nodo remoto
+            <input type="text" bind:value={outgoingPassword} maxlength="72" autocomplete="off" spellcheck="false" />
+          </label>
+        {/if}
       {/if}
       <label class="note">Aggiungi una nota <textarea bind:value={note} maxlength="4000" rows="3" placeholder="Es. Inviata email al referente"></textarea></label>
       <button type="submit" value={selected ? 'directory' : 'connect'} disabled={busy || enabling}>
-        {busy ? 'Salvataggio…' : selected ? 'Salva anagrafica' : remoteAuth === 'password' ? 'Salva e prepara' : 'Salva e connetti'}
+        {busy ? 'Salvataggio…' : selected ? 'Salva anagrafica' : 'Salva e connetti'}
       </button>
       {#if !selected}<button class="secondary" type="submit" value="directory" disabled={busy || enabling}>Salva solo anagrafica</button>{/if}
     </form>
