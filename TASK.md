@@ -56,6 +56,8 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 
 - [x] Abilitare dal pannello un partner in ingresso con password e conferma di Mojo.
 - [x] Accodare su scelta sysop istruzioni dopo la conferma dell'account e un esito dopo cinque minuti.
-- [ ] Collaudare le due notifiche con SMTP reale e aggiungere riconnessione automatica.
+- [ ] Collaudare le due notifiche con SMTP reale.
+- [x] Aggiungere riconnessione automatica per partner con limite di frequenza e vincolo a host e porta.
+- [ ] Collaudare la riconnessione automatica con caduta del link fra due nodi reali.
 
 - [x] Collegare un partner in uscita dal pannello. Verifica Windows fra due istanze Mojo con password e porta remota dedicata.

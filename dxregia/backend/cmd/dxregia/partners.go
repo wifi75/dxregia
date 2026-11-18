@@ -33,6 +33,7 @@ type partner struct {
 	Provisioning     string
 	Connection       string
 	MailStatus       string
+	Reconnect        string
 	Notes            []partnerNote
 }
 
@@ -104,6 +105,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				lock.Lock()
 				recordFirstConnections(path, partners, snapshot)
 				readProvisioningResults(root, path, partners)
+				reconnectPartners(root, partners, snapshot, time.Now())
 				lock.Unlock()
 			}
 		}
@@ -123,6 +125,14 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			view := make(map[string]partner, len(partners))
 			for call, entry := range partners {
 				entry.Connection = currentConnection(root, call, snapshot)
+				if callsign.MatchString(call) && len(call) <= 12 {
+					if plan, err := readReconnect(root, call); err == nil {
+						entry.Reconnect = "Abilitata"
+						if plan.Host != entry.Host || plan.Port != entry.Port {
+							entry.Reconnect = "Sospesa: indirizzo modificato"
+						}
+					}
+				}
 				var job partnerMail
 				if data, err := os.ReadFile(filepath.Join(root, "local_data", "dxregia-partners", call+".mail.json")); err == nil && json.Unmarshal(data, &job) == nil {
 					entry.MailStatus = job.Status
@@ -277,6 +287,13 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Abilita prima l’account partner in Mojo.", http.StatusConflict)
 			return
 		}
+		if r.URL.Query().Get("retry") == "true" {
+			plan := reconnectPlan{Host: entry.Host, Port: entry.Port, Password: password, LastAttempt: time.Now()}
+			if err := saveReconnect(root, call, plan); err != nil {
+				http.Error(w, "Impossibile salvare la riconnessione automatica.", http.StatusInternalServerError)
+				return
+			}
+		}
 		switch currentConnection(root, call, snapshot) {
 		case "Attivo", "In coda", "Collegamento in corso":
 			w.WriteHeader(http.StatusAccepted)
@@ -288,6 +305,28 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			return
 		}
 		w.WriteHeader(http.StatusAccepted)
+	})
+	mux.HandleFunc("DELETE /api/partners/{call}/reconnect", func(w http.ResponseWriter, r *http.Request) {
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
+			return
+		}
+		call := r.PathValue("call")
+		if !callsign.MatchString(call) || len(call) > 12 {
+			http.Error(w, "Indicativo non valido.", http.StatusBadRequest)
+			return
+		}
+		lock.Lock()
+		defer lock.Unlock()
+		if err := os.Remove(reconnectPath(root, call)); err != nil && !os.IsNotExist(err) {
+			http.Error(w, "Impossibile disattivare la riconnessione.", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
 	})
 	return nil
 }

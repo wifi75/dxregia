@@ -5,7 +5,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -19,6 +19,7 @@
   let peerPassword = $state('')
   let enabling = $state(false)
   let outgoingPassword = $state('')
+  let autoReconnect = $state(false)
   let sendInstructions = $state(false)
   let emailStatus = $state('')
 
@@ -44,6 +45,7 @@
   function open(partner?: Partner) {
     peerPassword = ''
     outgoingPassword = ''
+    autoReconnect = false
     sendInstructions = false
     emailStatus = ''
     selected = partner
@@ -115,7 +117,7 @@
     enabling = true
     error = ''
     try {
-      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/connect', {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/connect' + (autoReconnect ? '?retry=true' : ''), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(outgoingPassword),
       })
@@ -127,6 +129,24 @@
       await refreshProvisioning()
     } catch {
       error = 'Impossibile avviare il collegamento.'
+    } finally {
+      enabling = false
+    }
+  }
+
+  async function disableReconnect() {
+    const call = selected?.Call
+    if (!call || enabling) return
+    enabling = true
+    error = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/reconnect', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      })
+      if (!response.ok) throw new Error()
+      await refreshProvisioning()
+    } catch {
+      error = 'Impossibile disattivare la riconnessione automatica.'
     } finally {
       enabling = false
     }
@@ -205,10 +225,15 @@
     {/if}
     {#if selected?.Provisioning === 'Abilitato in Mojo'}
       <p>Collegamento: {selected.Connection || 'Aggiorna lo stato per verificare'}</p>
+      {#if selected.Reconnect}
+        <p>Riconnessione automatica: {selected.Reconnect}</p>
+        <button type="button" disabled={enabling} onclick={disableReconnect}>Disattiva riconnessione</button>
+      {/if}
       <form onsubmit={connect}>
         <label>Password impostata dal nodo remoto, se richiesta
           <input type="password" bind:value={outgoingPassword} pattern="[A-Za-z0-9]{0,72}" maxlength="72" autocomplete="off" />
         </label>
+        <label class="mail-opt"><input type="checkbox" bind:checked={autoReconnect} /> Riprova automaticamente dopo una caduta del collegamento</label>
         <button disabled={enabling || busy}>Connetti nodo</button>
       </form>
     {/if}
