@@ -107,16 +107,17 @@
     }
   }
 
-  async function enable(outgoingOnly = false, mail = false) {
+  async function enable(outgoingOnly = false, mail = false, unlock = false) {
     const call = selected?.Call
     if (!call || enabling) return
+    if (unlock && !confirm(tr('Sbloccare {} in Mojo e preparare il collegamento? Se il nodo ha già una password locale, potrà usarla per collegarsi.', call))) return
     enabling = true
     error = ''
     message = ''
     try {
       const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/enable', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ SendMail: !outgoingOnly && mail, OutgoingOnly: outgoingOnly }),
+        body: JSON.stringify({ SendMail: !outgoingOnly && mail, OutgoingOnly: outgoingOnly, Unlock: unlock }),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -209,6 +210,7 @@
   function inboundInfo(provisioning?: string) {
     if (provisioning === 'Abilitato in Mojo') return { tone: 'green', text: 'Abilitato: il partner può collegarsi al tuo nodo.' }
     if (provisioning === 'In attesa di Mojo') return { tone: 'amber', text: 'Operazione in corso: attendi qualche secondo.' }
+    if (provisioning === 'Nodo bloccato in Mojo') return { tone: 'red', text: 'Nodo bloccato in Mojo' }
     if (provisioning?.includes('verificare')) return { tone: 'red', text: 'Esiste già un account con questo indicativo: va verificato prima di abilitare.' }
     return { tone: 'neutral', text: 'Non abilitato: il partner non può collegarsi al tuo nodo.' }
   }
@@ -364,7 +366,8 @@
   {#if editing}
     {@const inbound = inboundInfo(selected?.Provisioning)}
     {@const incoming = incomingInfo(selected)}
-    {@const canEnableInbound = selected && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '') && !selected.Provisioning?.includes('verificare')}
+    {@const lockedInMojo = selected?.Provisioning === 'Nodo bloccato in Mojo'}
+    {@const canEnableInbound = selected && !lockedInMojo && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '') && !selected.Provisioning?.includes('verificare')}
     {@const outgoingReady = selected?.Provisioning === 'Abilitato in Mojo' || selected?.Provisioning === 'Pronto in uscita'}
     <div class="detail">
       <header class="detail-head">
@@ -417,6 +420,9 @@
               <div class="actions">
                 {#if outgoingReady}
                   <button disabled={enabling || busy}>Connetti ora</button>
+                {:else if lockedInMojo}
+                  <button type="button" disabled={enabling || busy} onclick={() => enable(true, false, true)}>Sblocca questo nodo</button>
+                  <span class="hint">Mojo blocca questo indicativo. Sbloccalo se riconosci il nodo partner.</span>
                 {:else}
                   <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
                     onclick={() => enable(true)}>Prepara il collegamento</button>

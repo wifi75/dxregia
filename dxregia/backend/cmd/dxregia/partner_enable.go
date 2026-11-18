@@ -10,6 +10,8 @@ import (
 
 var inboundPasswordPattern = regexp.MustCompile(`^[0-9a-f]{48}$`)
 
+const lockedPartnerStatus = "Nodo bloccato in Mojo"
+
 func queuePartner(root, call string) (string, error) {
 	password, err := randomToken()
 	if err != nil {
@@ -38,11 +40,15 @@ func readInboundPassword(root, call string) string {
 }
 
 func queueOutgoingPartner(root, call string) error {
+	return queueOutgoingPartnerProvision(root, call, "outgoing-only:")
+}
+
+func queueOutgoingPartnerProvision(root, call, prefix string) error {
 	token, err := randomToken()
 	if err != nil {
 		return err
 	}
-	return queuePartnerProvision(root, call, "outgoing-only:"+token)
+	return queuePartnerProvision(root, call, prefix+token)
 }
 
 func queuePartnerProvision(root, call, value string) error {

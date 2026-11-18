@@ -294,16 +294,21 @@ sub provision_partners {
         my $result;
         open(my $request, '<:raw', "$dir/$file") or next;
         my $password = '';
-        read($request, $password, 63);
+        read($request, $password, 65);
         close($request);
+        my $unlock = $password =~ s/\Aunlock-outgoing:(?=[0-9a-f]{48}\z)/outgoing-only:/;
         my $outgoing = $password =~ /\Aoutgoing-only:[0-9a-f]{48}\z/;
         if (!$outgoing && $password !~ /\A[0-9a-f]{48}\z/) {
             $result = 'Richiesta non valida';
         } elsif (length($call) > 12 || $call eq $main::mycall || $call eq $main::myalias) {
             $result = 'Indicativo riservato';
         } else {
-            my $user = DXUser::get($call);
-            if ($user && ($user->lockout || $user->sort ne 'S' || (!$user->passwd && !$outgoing))) {
+            my $user = DXUser::get_current($call);
+            if ($unlock && (!$user || $user->sort ne 'S' || ($user->priv || 0) > 1 || !$user->lockout)) {
+                $result = 'Account Mojo esistente da verificare';
+            } elsif ($user && $user->sort eq 'S' && ($user->priv || 0) <= 1 && $user->lockout && !$unlock) {
+                $result = 'Nodo bloccato in Mojo';
+            } elsif ($user && (($user->lockout && !$unlock) || $user->sort ne 'S' || (!$user->passwd && !$outgoing))) {
                 $result = 'Account Mojo esistente da verificare';
             } else {
                 if (!$user) {
@@ -317,11 +322,12 @@ sub provision_partners {
                     $result = $outgoing ? 'Pronto in uscita' : 'Abilitato in Mojo';
                 } else {
                     if ($outgoing) {
+                        $user->lockout(0) if $unlock;
                         # Account senza password (es. creato con set/register): resta valido
                         # per il solo collegamento in uscita, senza abilitare l'accesso in ingresso.
                         $user->passwd('{DXREGIA-BCRYPT}' . $password) unless $user->passwd;
                         register_partner_account($user, $call) unless $user->registered;
-                        $user->put if $user->passwd eq ('{DXREGIA-BCRYPT}' . $password);
+                        $user->put if $unlock || $user->passwd eq ('{DXREGIA-BCRYPT}' . $password);
                         $result = $user->passwd =~ /\A\{DXREGIA-BCRYPT\}outgoing-only:/ ? 'Pronto in uscita' : 'Abilitato in Mojo';
                     } elsif ($user->passwd =~ /\A\{DXREGIA-BCRYPT\}outgoing-only:/) {
                         $user->passwd($password);

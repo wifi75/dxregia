@@ -96,3 +96,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Distinguere nel log DXSpider i timeout Telnet in ingresso dai timeout dei partner in uscita.
 - [x] Indicare nel modulo partner che il nominativo remoto include il suffisso SSID se presente.
 - [x] Salvare la riconnessione dei partner al cambio della spunta, anche con il collegamento gia attivo.
+- [x] Sbloccare dal pannello un singolo nodo partner confermato come bloccato da Mojo.

@@ -289,7 +289,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
 			return
 		}
-		var options struct{ SendMail, OutgoingOnly bool }
+		var options struct{ SendMail, OutgoingOnly, Unlock bool }
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256))
 		decoder.DisallowUnknownFields()
 		if err := decoder.Decode(&options); err != io.EOF && (err != nil || decoder.Decode(new(any)) != io.EOF) {
@@ -304,6 +304,10 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Nodo non trovato.", http.StatusNotFound)
 			return
 		}
+		if options.Unlock && (!options.OutgoingOnly || options.SendMail || entry.Provisioning != lockedPartnerStatus) {
+			http.Error(w, "Lo sblocco richiede un nodo partner bloccato e una richiesta di preparazione in uscita.", http.StatusConflict)
+			return
+		}
 		if entry.Provisioning == "In attesa di Mojo" || entry.Provisioning == "Abilitato in Mojo" {
 			w.WriteHeader(http.StatusAccepted)
 			return
@@ -313,7 +317,11 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				w.WriteHeader(http.StatusAccepted)
 				return
 			}
-			if err := queueOutgoingPartner(root, call); err != nil {
+			prefix := "outgoing-only:"
+			if options.Unlock {
+				prefix = "unlock-outgoing:"
+			}
+			if err := queueOutgoingPartnerProvision(root, call, prefix); err != nil {
 				http.Error(w, "Impossibile preparare il collegamento in uscita.", http.StatusServiceUnavailable)
 				return
 			}
