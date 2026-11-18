@@ -49,6 +49,12 @@
   let unread = $derived(Math.max(0, requestsTotal - seen))
   let inPanel = $derived(Boolean(session?.signedIn && !session.mustChange && !session.mustVerify))
 
+  // Nella scheda di accesso il logo grande è già al centro: il logo piccolo nell'intestazione si nasconde.
+  $effect(() => {
+    document.documentElement.classList.toggle('auth-card-view', Boolean(session) && !inPanel)
+    return () => document.documentElement.classList.remove('auth-card-view')
+  })
+
   $effect(() => {
     if (page === 'richieste' && seen !== requestsTotal) {
       seen = requestsTotal
@@ -278,7 +284,6 @@
           <label>
             Utente
             <input type="text" required bind:value={user} autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="64" />
-            <span class="hint">Il tuo indicativo da sysop. Se non l’hai ancora impostato: sysop.</span>
           </label>
         {/if}
         <label>
@@ -308,7 +313,6 @@
   .auth-card form { display: grid; gap: 18px; text-align: left; max-width: 340px; margin: 0 auto; }
   .auth-card label { display: grid; gap: 8px; font-weight: 650; }
   .auth-card input { width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; }
-  .auth-card .hint { margin: 0; font-size: .86rem; line-height: 1.4; font-weight: 450; color: #5b6e80; }
   .auth-card form button { justify-self: center; width: auto; min-width: 120px; min-height: 40px; padding: 0 28px; margin-top: 4px; }
   .auth-card > button { margin-top: 14px; }
   .auth-card img { display: block; margin: 10px auto; }

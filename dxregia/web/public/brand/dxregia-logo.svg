@@ -1,8 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 399 120" width="399" height="120">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 22 394 76" width="394" height="76">
   <title>DXRegia</title>
-  <rect width="120" height="120" rx="26" fill="#143a60"/>
-  <path d="M24 34h20a26 26 0 0 1 0 52H24z M36 45v30h8a15 15 0 0 0 0-30z" fill="#ffffff" fill-rule="evenodd"/>
-  <path d="M72 34l24 52M96 34L72 86" stroke="#f0a23a" stroke-width="12" stroke-linecap="round" fill="none"/>
-  <rect x="24" y="96" width="72" height="5" rx="2.5" fill="#3a82c0"/>
-  <g fill="none" stroke="#143a60" stroke-width="12" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="2.5"><path transform="translate(156 0)" d="M0 86V34M0 40H14A10 10 0 0 1 14 60H0M13 60L29 86"/><path transform="translate(207 0)" d="M26 40H0V80H26M0 60H20"/><path transform="translate(251 0)" d="M36.4 48.5A20 20 0 1 0 40 60H25"/><path transform="translate(316 0)" d="M0 34V86"/><path transform="translate(332 0)" d="M0 86L21 40H35L56 86M10 70H46"/></g>
+  <defs><clipPath id="cap"><rect x="0" y="34" width="394" height="52"/></clipPath></defs>
+  <g clip-path="url(#cap)" fill="none" stroke-width="12" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="2.5">
+    <path transform="translate(14.0 0)" d="M0 34V86M0 40H14A20 20 0 0 1 14 80H0" stroke="#143a60"/>
+    <path transform="translate(74.0 0)" d="M-1.7 28L37.7 92M37.7 28L-1.7 92" stroke="#f0a23a"/>
+    <path transform="translate(134.0 0)" d="M0 86V34M0 40H13A12 12 0 0 1 13 64H0M15 64L31.8 92" stroke="#143a60"/>
+    <path transform="translate(188.0 0)" d="M26 40H0V80H26M0 60H20" stroke="#143a60"/>
+    <path transform="translate(233.0 0)" d="M36.4 48.5A20 20 0 1 0 40 60H25" stroke="#143a60"/>
+    <path transform="translate(298.0 0)" d="M0 34V86" stroke="#143a60"/>
+    <path transform="translate(323.5 0)" d="M-2.7 92L21 40H35L58.7 92M7.3 70H48.7" stroke="#143a60"/>
+  </g>
 </svg>
