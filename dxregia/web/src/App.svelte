@@ -134,13 +134,13 @@
   .lang-menu button:hover:not(:disabled) { background: #e7f0f7; transform: none; filter: none; }
   .lang-menu button[aria-checked=true] { background: #dcebf6; color: #143a60; }
   .lang-menu img { border: 1px solid #15263826; border-radius: 2px; object-fit: cover; }
-  header .brand { display: inline-flex; gap: 9px; align-items: center; padding-inline: 0; font-size: 1.25rem; font-weight: 800; color: #143a60; }
+  header .brand { display: inline-flex; gap: 9px; align-items: center; padding: 0; font-size: 1.25rem; font-weight: 800; line-height: 1; color: #143a60; }
   .brand-icon { display: block; width: 32px; height: 32px; border-radius: 8px; }
   header { justify-content: space-between; align-items: center; flex-wrap: wrap; }
   header nav { display: flex; flex-wrap: wrap; gap: .35rem; }
-  .brandline { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-  .sep { color: #8aa3b5; font-size: 1.25rem; }
-  .page { margin: 0; font-size: 1.25rem; font-weight: 650; color: #2a516f; white-space: nowrap; }
+  .brandline { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .sep { color: #8aa3b5; font-size: 1.25rem; line-height: 1; }
+  .page { margin: 0; font-size: 1.25rem; font-weight: 650; line-height: 1; color: #2a516f; white-space: nowrap; }
   .tools { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
   @media (max-width: 640px) {
     header { gap: 4px; padding: 6px 12px; }
