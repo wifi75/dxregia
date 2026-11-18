@@ -15,6 +15,7 @@ sub process {
     apply_telnet_options();
     apply_hops();
     reload_lists();
+    provision_users();
     provision_partners();
     connect_partners();
     remove_partners();
@@ -132,6 +133,72 @@ sub reload_lists {
         next if $stamp eq $list_stamp{$path};
         $list_stamp{$path} = $stamp;
         eval { $jobs{$path}->(); 1 } or DXDebug::dbg("DXRegia list reload $path: $@");
+    }
+}
+
+# Utenti registrati dal portale: l'email di conferma ha già verificato l'indirizzo, qui si crea o si
+# aggiorna l'account Mojo con la password scelta (solo hash bcrypt) e lo si segna come registrato.
+sub provision_users {
+    my $dir = "$main::local_data/dxregia-users";
+    opendir(my $dh, $dir) or return;
+    my @pending = grep { /\A[A-Z0-9]{3,10}[.](?:register|revoke)\z/ } readdir($dh);
+    closedir($dh);
+    for my $file (@pending) {
+        my ($call, $kind) = $file =~ /\A([A-Z0-9]+)[.](register|revoke)\z/;
+        my $result;
+        my $channel = DXChannel::get($call);
+        if ($call eq $main::mycall || $call eq $main::myalias) {
+            $result = 'Indicativo riservato';
+        } elsif ($kind eq 'revoke') {
+            my $user = DXUser::get_current($call);
+            if ($user && ($user->passwd // '') =~ /\A\{DXREGIA-BCRYPT\}\$2a/ && $user->sort eq 'U' && !$user->priv) {
+                $user->registered(0);
+                $user->passwd('');
+                $user->put;
+                $channel->registered(0) if $channel;
+            }
+            unlink "$dir/$file";
+            next;
+        } else {
+            my $hash = '';
+            if (open(my $request, '<:raw', "$dir/$file")) {
+                read($request, $hash, 80);
+                close($request);
+            }
+            if ($hash !~ /\A\$2a\$10\$[.\/A-Za-z0-9]{53}\z/ || !ExtMsg::supports_dxregia_bcrypt($hash)) {
+                $result = 'Richiesta non valida';
+            } else {
+                my $stored = '{DXREGIA-BCRYPT}' . $hash;
+                my $user = DXUser::get_current($call);
+                if ($user && ($user->lockout || $user->priv || $user->sort ne 'U')) {
+                    $result = 'Account Mojo esistente da verificare';
+                } elsif ($user && $user->passwd && $user->passwd !~ /\A\{DXREGIA-BCRYPT\}/) {
+                    $result = 'Account Mojo esistente da verificare';
+                } elsif ($user && $user->passwd && $user->passwd ne $stored) {
+                    $result = 'Indicativo gia registrato';
+                } elsif ($user) {
+                    $user->passwd($stored);
+                    $user->registered(1);
+                    $user->put;
+                    $channel->registered(1) if $channel;
+                    $result = 'Registrato';
+                } else {
+                    $user = DXUser->new($call);
+                    $user->sort('U');
+                    $user->priv(0);
+                    $user->passwd($stored);
+                    $user->registered(1);
+                    $user->close();
+                    $result = 'Registrato';
+                }
+            }
+        }
+        my $target = "$dir/$call.result";
+        open(my $ack, '>:raw', "$target.tmp") or next;
+        print $ack $result or next;
+        close($ack) or next;
+        rename("$target.tmp", $target) or next;
+        unlink "$dir/$file";
     }
 }
 

@@ -29,6 +29,7 @@ type mailBlocks struct {
 	Checks                          []string
 	AfterTitle, After               string
 	Notice                          string
+	ButtonLabel, ButtonURL          string
 	Tone                            string // "info" (azzurro), "ok" (verde), "warn" (arancio)
 	Footer, Auto, Lang              string
 }
@@ -84,6 +85,10 @@ func renderMail(subject string, b mailBlocks) mailContent {
 	}
 	if b.Intro != "" {
 		t.WriteString(b.Intro + "\n\n")
+	}
+	if b.ButtonURL != "" {
+		fmt.Fprintf(&h, `<tr><td style="padding:22px 28px 6px;"><a href="%s" style="display:inline-block;padding:14px 28px;background:%s;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:8px;">%s</a><p style="margin:12px 0 0;font-size:12.5px;line-height:1.5;color:%s;word-break:break-all;">%s</p></td></tr>`, esc(b.ButtonURL), accent, esc(b.ButtonLabel), colMuted, esc(b.ButtonURL))
+		t.WriteString(b.ButtonLabel + ":\n" + b.ButtonURL + "\n\n")
 	}
 	// Riquadro dati
 	if len(b.Rows) > 0 {

@@ -3,6 +3,8 @@
   import Auth from './Auth.svelte'
   import Dashboard from './Dashboard.svelte'
   import { languages, lang, setLang, t } from './i18n.svelte'
+  import Register from './Register.svelte'
+  import RegisterConfirm from './RegisterConfirm.svelte'
   import { startAdminTranslation, translate } from './adminI18n'
   import { canInstall, needsManualInstall, installApp } from './install.svelte'
   import { soundOn, toggleSound } from './sound.svelte'
@@ -12,6 +14,13 @@
   import Contact from './Contact.svelte'
   import { trackPortalPresence } from './portalPresence'
   const contactPage = window.location.pathname === '/contatti'
+  const registerPage = window.location.pathname === '/registrazione'
+  const confirmPage = window.location.pathname === '/registrazione/conferma'
+  const toolPage = contactPage || registerPage || confirmPage
+  let registrationOpen = $state(false)
+  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
+    fetch('/api/register/status').then(async response => { if (response.ok) registrationOpen = (await response.json()).Enabled === true }).catch(() => {})
+  }
   // Il pannello sysop è solo su /admin; ogni altra pagina è il portale pubblico.
   const publicPortal = !(window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'))
   if (publicPortal) trackPortalPresence()
@@ -48,7 +57,7 @@
   $effect(() => { adminTranslator?.setLanguage(lang()) })
 
   $effect(() => {
-    document.title = 'DXRegia – ' + (!publicPortal ? translate('Amministrazione', lang() as never) : contactPage ? t('cTitle') : t('spotsTitle'))
+    document.title = 'DXRegia – ' + (!publicPortal ? translate('Amministrazione', lang() as never) : contactPage ? t('cTitle') : registerPage ? t('regTitle') : confirmPage ? t('confTitle') : t('spotsTitle'))
   })
 </script>
 
@@ -57,17 +66,18 @@
 <header>
   <div class="brandline">
     <a class="brand" href="/spots"><img class="brand-logo" src={currentTheme() === 'dark' ? '/brand/dxregia-logo-dark.svg' : '/brand/dxregia-logo.svg'} alt="DXRegia" width="112" height="34"></a>
-    {#if publicPortal && !contactPage}
+    {#if publicPortal && !toolPage}
       <span class="sep" aria-hidden="true">–</span>
       <h1 id="spots-title" class="page">{t('spotsTitle')}</h1>
     {/if}
   </div>
   <div class="tools">
   <nav aria-label="Portale">
-    <a href="/spots" aria-current={publicPortal && !contactPage ? 'page' : undefined}>{publicPortal ? t('navSpots') : 'Spot in diretta'}</a>
+    <a href="/spots" aria-current={publicPortal && !toolPage ? 'page' : undefined}>{publicPortal ? t('navSpots') : 'Spot in diretta'}</a>
     <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>{publicPortal ? t('navContact') : 'Contatti'}</a>
+    {#if publicPortal && registrationOpen}<a href="/registrazione" aria-current={registerPage || confirmPage ? 'page' : undefined}>{t('navRegister')}</a>{/if}
   </nav>
-  {#if publicPortal && !contactPage}
+  {#if publicPortal && !toolPage}
     <button class="tool" type="button" aria-pressed={soundOn()} title={soundOn() ? t('soundOn') : t('soundOff')} aria-label={soundOn() ? t('soundOn') : t('soundOff')} onclick={toggleSound}>
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor" stroke="none"/>
@@ -114,7 +124,11 @@
   <p class="install-hint" role="status">{t('installIos')}</p>
 {/if}
 
-{#if contactPage}
+{#if confirmPage}
+  <RegisterConfirm />
+{:else if registerPage}
+  <Register />
+{:else if contactPage}
   <Contact />
 {:else if publicPortal}
   <Spots />

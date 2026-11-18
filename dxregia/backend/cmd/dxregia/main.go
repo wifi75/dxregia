@@ -98,6 +98,7 @@ func main() {
 	registerNodeFiles(mux, *setupRoot, auth)
 	registerNodeLists(mux, *setupRoot, auth)
 	registerConnections(mux, *setupRoot, auth)
+	registerUsers(mux, *setupRoot, auth)
 	registerAutoPartner(mux, *setupRoot, auth)
 	registerLive(mux, *setupRoot, auth)
 	registerMojoLog(mux, auth, *setupRoot)
@@ -129,6 +130,11 @@ func main() {
 			log.Print(err)
 		}
 	})
+	for _, route := range []string{"GET /registrazione", "GET /registrazione/conferma"} {
+		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, filepath.Join(*web, "index.html"))
+		})
+	}
 	mux.HandleFunc("GET /contatti", func(w http.ResponseWriter, r *http.Request) {
 		traffic.view(r)
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
