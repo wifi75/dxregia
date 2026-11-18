@@ -53,6 +53,9 @@ func (m *contactMailer) notify(config string, request contactRequest) string {
 		{"Email", request.Email, false}, {"Paese", request.Country, false}, {"Lingua del portale", strings.ToUpper(normalizeLang(request.Lang)), false}}
 	if request.Kind == "partner" {
 		rows = append(rows, mailRow{"Nodo", request.Name, false}, mailRow{"Host e porta", fmt.Sprintf("%s:%d", request.Host, request.Port), false})
+		if request.Auto {
+			rows = append(rows, mailRow{"Configurazione", "Automatica: il nodo è stato registrato e il partner riceve le istruzioni", false})
+		}
 	}
 	content := mailForSysop("DXRegia · nuova richiesta da "+request.Call, "Nuova richiesta da "+request.Call,
 		"Hai ricevuto una richiesta dal portale. Puoi rispondere direttamente a questa email.", rows, request.Message)

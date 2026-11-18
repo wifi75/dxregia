@@ -117,6 +117,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
 				lock.Lock()
 				recordFirstConnections(path, partners, snapshot)
+				processAutoPartners(root, path, partners, mailer() != nil, time.Now())
 				readProvisioningResults(root, path, partners)
 				reconnectPartners(root, partners, snapshot, time.Now())
 				lock.Unlock()

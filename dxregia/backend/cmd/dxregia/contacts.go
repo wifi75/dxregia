@@ -28,6 +28,7 @@ type contactRequest struct {
 	ID         string
 	ReceivedAt time.Time
 	MailStatus string
+	Auto       bool `json:",omitempty"`
 }
 
 func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth *sysopAuth) error {
@@ -113,6 +114,9 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 		item := contactRequest{contactInput: input, ID: id, ReceivedAt: now, MailStatus: "SMTP non configurato"}
 		if mailer() != nil {
 			item.MailStatus = "In coda"
+			if input.Kind == "partner" && readAutoPartner(root).Enabled && queueAutoPartner(root, input.partnerDetails) == nil {
+				item.Auto = true
+			}
 		}
 		if err := saveContacts(path, append(requests, item)); err != nil {
 			http.Error(w, "Richiesta non registrata. Riprova.", http.StatusInternalServerError)
