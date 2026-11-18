@@ -2,10 +2,10 @@
 
 All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/). The upstream engine keeps its own history in `Changes`.
 
-## [Unreleased]
+## [0.3.0] - 2026-11-18
 
 ### Added
-- New logo: the word DXREGIA drawn by hand in heavy blocks with an amber X, plus the DX icon for the favicon, phone and installable-site icons, in high definition (SVG and PNG, light and dark).
+- New logo: the word DXREGIA drawn by hand in very heavy blocks with an amber X and a pointed A, plus the DX icon for the favicon, phone and installable-site icons, in high definition (SVG and PNG, light and dark).
 - Analytics center in the admin panel: portal audience (visits, unique visitors without cookies, language, devices, hours) and cluster activity (spots per day and hour, bands, modes, entities, callsigns).
 - Rebuilt public spots page: multi-select filters on one row, search, a lens on callsigns, new spots highlighted with an optional sound, mode inferred from the frequency, light and dark theme, phone and tablet layout, a slim footer with the visit count and a project link.
 - Announced DX operations (public NG3K ADXO feed) with a popup next to the callsign.

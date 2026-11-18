@@ -258,3 +258,5 @@ Verifiche: go vet e test del pacchetto sul server; build Svelte; controlli a sch
 Limiti: la configurazione automatica non verifica l'indirizzo email, quindi un indicativo non proprio può ottenere l'accesso con un'email qualsiasi; il modo dedotto è una stima; il pannello è solo in italiano.
 
 Prossimi passi: decidere il bordo del modo dedotto; verificare l'email del richiedente prima dell'accesso automatico; tradurre il pannello; preparare la 0.3.0 con le novità; correggere l'IP di docker-vps nella skill SSH (192.168.1.124).
+
+Versione 0.3.0 (tag v0.3.0, 2026-11-18): raccoglie tutto il lavoro della sezione precedente. Il logo definitivo è il disegno «Blocchi pesanti» scelto dall'utente (lettere molto spesse, X ambra, A appuntita): non sostituirlo con una versione più leggera. Il server di prova esegue la stessa revisione dopo l'aggiornamento.
