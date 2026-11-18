@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-// Messaggio del giorno (file «motd») e pianificazione (local_cmd/crontab) di DXSpider.
+// Banner Telnet prima del login (file issue) e pianificazione (local_cmd/crontab) di DXSpider.
 // Il crontab di DXSpider valuta la colonna del comando come codice Perl: qui si accetta solo la forma
 // run_cmd("<comando>") con un testo semplice, mai codice libero.
 
@@ -99,7 +99,7 @@ func registerNodeFiles(mux *http.ServeMux, root string, auth *sysopAuth) {
 		return
 	}
 	var lock sync.Mutex
-	motdPath := filepath.Join(root, "motd")
+	issuePath := filepath.Join(root, "local_data", "issue")
 	cronPath := filepath.Join(root, "local_cmd", "crontab")
 	guard := func(w http.ResponseWriter, r *http.Request, write bool) bool {
 		w.Header().Set("Cache-Control", "no-store")
@@ -132,7 +132,18 @@ func registerNodeFiles(mux *http.ServeMux, root string, auth *sysopAuth) {
 		}
 		lock.Lock()
 		defer lock.Unlock()
-		data, _ := os.ReadFile(motdPath)
+		data, err := os.ReadFile(issuePath)
+		if os.IsNotExist(err) {
+			data, err = os.ReadFile(filepath.Join(root, "data", "issue"))
+		}
+		if os.IsNotExist(err) {
+			// Earlier versions stored the panel's banner outside Mojo's data directories.
+			data, err = os.ReadFile(filepath.Join(root, "motd"))
+		}
+		if err != nil && !os.IsNotExist(err) {
+			http.Error(w, "Impossibile leggere il messaggio.", http.StatusInternalServerError)
+			return
+		}
 		reply(w, map[string]any{"Text": string(data), "MaxBytes": motdMaxBytes})
 	})
 	mux.HandleFunc("PUT /api/motd", func(w http.ResponseWriter, r *http.Request) {
@@ -149,12 +160,14 @@ func registerNodeFiles(mux *http.ServeMux, root string, auth *sysopAuth) {
 		}
 		lock.Lock()
 		defer lock.Unlock()
-		if strings.TrimSpace(change.Text) == "" {
-			if err := os.Remove(motdPath); err != nil && !os.IsNotExist(err) {
-				http.Error(w, "Impossibile rimuovere il messaggio.", http.StatusInternalServerError)
-				return
-			}
-		} else if err := writeNodeFile(motdPath, []byte(strings.TrimRight(change.Text, "\r\n")+"\n")); err != nil {
+		// An empty issue also overrides the old banner in the panel.
+		var banner []byte
+		if strings.TrimSpace(change.Text) != "" {
+			normalized := strings.ReplaceAll(change.Text, "\r\n", "\n")
+			normalized = strings.ReplaceAll(normalized, "\r", "\n")
+			banner = []byte(strings.TrimRight(normalized, "\n") + "\n")
+		}
+		if err := writeNodeFile(issuePath, banner); err != nil {
 			http.Error(w, "Impossibile salvare il messaggio.", http.StatusInternalServerError)
 			return
 		}

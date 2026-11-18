@@ -270,3 +270,8 @@ Nodo → Messaggio e pianificazione scrive `motd` e `local_cmd/crontab` (API /ap
 Nodo → Script di avvio, Liste di blocco, Hop e filtri: API /api/startup, /api/badlists, /api/hops, /api/filters (solo sysop con TOTP), descritte in docs/NODE-SETTINGS.md. presence.pm applica gli hop (local/dxregia-hops.json) e ricarica le liste quando il file cambia: l'hash precedente di presence.pm è stato aggiunto in presence.go. Ogni campo ha un tooltip (Hint.svelte). Le liste nodx/noann/nowwv di DXProtVars non sono lette da questo motore e non sono esposte. Non verificato su un nodo avviato. Prossimo passo: traduzione del pannello admin.
 
 Pannello admin tradotto: i testi restano scritti in italiano nei componenti e adminI18n.ts li sostituisce nel DOM (nodi di testo e title/placeholder/aria-label) cercandoli in adminTranslations.ts (riga = it, en, es, de, fr, pt; «{}» = valore variabile). Per i testi costruiti dal codice (confirm) si usa tr(). Un testo senza riga resta in italiano: `python scripts/missing_admin_strings.py` dalla cartella web/ elenca quelli mancanti. Date e numeri restano formattati it-IT. Verificato in browser su pagine con API simulate (tedesco); non su un nodo reale. Scheda partner: nuova riga sullo stato in ingresso (FirstInboundAt). Piè di pagina del portale: versione DXSpider da /api/engine.
+
+## Banner Telnet prima del login
+
+Il pannello legge il testo salvato dalla vecchia versione in `motd` se manca `issue`. Salvando una volta lo scrive in `local_data/issue`. Mojo lo legge a ogni nuovo collegamento prima del prompt `login:`. Salvare il campo vuoto disattiva il banner.
+Verifica locale: test Go e build Vite riusciti. Prova in produzione: aggiornare, risalvare il banner dal pannello e aprire una nuova sessione PuTTY.

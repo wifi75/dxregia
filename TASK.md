@@ -87,3 +87,5 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [ ] Portare nel pannello le opzioni Mojo con inventario di variabili e comandi, includendo filtri, protocolli e funzioni a configurazione avanzata. Il primo menu Opzioni Telnet gestisce accesso, registrazione, sessioni e riconnessioni. Messaggio e pianificazione gestisce motd e local_cmd/crontab (solo run_cmd validato). Pagine Script di avvio, Liste di blocco e Hop e filtri (hop predefiniti e per PC, elenco e rimozione dei filtri; la creazione resta ai comandi accept/reject). Restano la creazione guidata dei filtri e la localizzazione di date e numeri del pannello (oggi sempre it-IT).
 - [x] Pannello admin tradotto in sei lingue con selettore nell’intestazione; dizionario in dxregia/web/src/adminTranslations.ts.
 - [x] Sessione sysop: ritorno alla pagina di accesso alla scadenza e durata configurabile (Password).
+
+- [x] Salvare il banner Telnet in `local_data/issue` per mostrarlo prima di `login:`. Il pannello recupera il vecchio testo, che va risalvato una volta.

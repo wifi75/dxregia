@@ -36,7 +36,7 @@
   }
   const saveMotd = async (event: SubmitEvent) => {
     event.preventDefault()
-    motdStatus = await save('/api/motd', { Text: text }, text.trim() ? 'Messaggio salvato: lo vedranno i prossimi collegamenti.' : 'Messaggio rimosso.')
+    motdStatus = await save('/api/motd', { Text: text }, text.trim() ? 'Banner salvato. Riapri la connessione Telnet per vederlo prima del login.' : 'Messaggio rimosso.')
   }
   const saveCron = async (event: SubmitEvent) => {
     event.preventDefault()
@@ -47,9 +47,9 @@
 <section class="glass-panel" aria-labelledby="motd-title">
   <h1 id="motd-title">Messaggio del giorno</h1>
   <form onsubmit={saveMotd}>
-    <p>Appare agli utenti subito dopo il collegamento Telnet. Lascialo vuoto per non mostrare nulla.</p>
+    <p>Il banner appare appena ci si collega via Telnet, prima del prompt login. Salva un testo vuoto per nasconderlo.</p>
     <label>Testo<Hint text="Si mostra a chi si collega via Telnet, prima del prompt. Puoi andare a capo. Massimo 2000 byte: le lettere accentate ne occupano 2." />
-      <textarea bind:value={text} rows="6" disabled={busy}></textarea>
+      <textarea bind:value={text} rows="6" disabled={busy} class="telnet-banner"></textarea>
     </label>
     <small class:over={size > maxBytes}>{size} / {maxBytes} byte</small>
     <button disabled={busy || size > maxBytes}>Salva messaggio</button>
@@ -85,6 +85,7 @@
 </section>
 
 <style>
+  .telnet-banner { font-family: ui-monospace, monospace; }
   section { padding: 22px; }
   h1 { margin: 0 0 1rem; }
   h2 { margin: 1.8rem 0 .8rem; font-size: 1.1rem; }
