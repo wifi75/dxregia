@@ -171,3 +171,7 @@ Il test del rifiuto senza autenticazione invia ora un corpo minimo: il backend r
 La scheda del partner con riconnessione automatica mostra l'ultimo tentativo e l'orario UTC a partire dal quale e consentito riprovare, se l'endpoint e invariato e Mojo conferma uno stato gestibile. Il collaudo di riconnessione registrera gli stessi dati in caso di errore.
 
 Il run 44279134901 mostra che il TCP della riconnessione raggiunge il partner e il suo listener risponde; la fotografia Mojo del nodo primario non si aggiorna. La diagnosi ora raccoglie anche listener primario, mtime della fotografia e stato del processo. Il test di verifica ZIP corretto e passato sui due job nativi del run 44279401543.
+
+Il feed aggiunge il nome dell'entita DXCC ricavato dalla stessa tabella dei prefissi di Mojo, caricata all'avvio. Il collaudo di propagazione verifica il nome Japan per JA1ABC. Le bandiere e le traduzioni gia presenti rimangono disponibili per le rispettive entita.
+
+Nel run 44280015487 entrambi i listener rispondono e la fotografia locale continua a essere scritta, ma il backend non la espone. L'hook ora serializza esplicitamente indicativo e stato come stringhe e orari come interi, anche quando gli scalari Perl hanno cambiato tipo durante la sessione. Il nuovo collaudo stampera la fotografia sintetica se la riconnessione fallisce ancora.

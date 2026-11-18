@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -21,9 +23,11 @@ type publicSpot struct {
 	Comment   string
 	Spotter   string
 	DXCC      int
+	Entity    string `json:",omitempty"`
 }
 
 func registerSpots(mux *http.ServeMux, root string) {
+	entities := spotEntities(root)
 	mux.HandleFunc("GET /api/spots", func(w http.ResponseWriter, r *http.Request) {
 		var spots = make([]publicSpot, 0, 100)
 		available := false
@@ -43,10 +47,52 @@ func registerSpots(mux *http.ServeMux, root string) {
 				}
 			}
 		}
+		for i := range spots {
+			spots[i].Entity = entities[spots[i].DXCC]
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")
 		json.NewEncoder(w).Encode(map[string]any{"Available": available, "Spots": spots})
 	})
+}
+
+var prefixEntity = regexp.MustCompile(`^\s*[0-9]+\s*=>\s*bless\(\s*\{\s*name\s*=>\s*'([^']+)',\s*dxcc\s*=>\s*([0-9]+),`)
+
+func spotEntities(root string) map[int]string {
+	if root == "" {
+		return nil
+	}
+	source := filepath.Join(root, "data", "prefix_data.pl")
+	local := filepath.Join(root, "local_data", "prefix_data.pl")
+	if info, err := os.Stat(local); err == nil {
+		if bundled, err := os.Stat(source); err != nil || !bundled.ModTime().After(info.ModTime()) {
+			source = local
+		}
+	}
+	f, err := os.Open(source)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	names := make(map[int]string)
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		fields := prefixEntity.FindStringSubmatch(scanner.Text())
+		if fields == nil {
+			continue
+		}
+		code, err := strconv.Atoi(fields[2])
+		if err != nil || code == 0 || code == 666 || names[code] != "" {
+			continue
+		}
+		// The canonical entity precedes regional variants in Mojo's data.
+		name := fields[1]
+		if suffix := strings.LastIndexByte(name, '-'); suffix > 0 {
+			name = name[:suffix]
+		}
+		names[code] = strings.ReplaceAll(name, "-", " ")
+	}
+	return names
 }
 
 func recentSpots(path string, limit int) ([]publicSpot, error) {

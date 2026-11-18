@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
 
-  type Spot = { Frequency: number; Call: string; At: number; Comment: string; Spotter: string; DXCC: number }
+  type Spot = { Frequency: number; Call: string; At: number; Comment: string; Spotter: string; DXCC: number; Entity?: string }
   const bands = [
     ['160 m', 1800, 2000], ['80 m', 3500, 4000], ['60 m', 5250, 5450],
     ['40 m', 7000, 7300], ['30 m', 10100, 10150], ['20 m', 14000, 14350],
@@ -105,7 +105,7 @@
                   <img src={'/flags/' + entities[spot.DXCC][1] + '.png'} alt="" width="26" height="17" />
                   {entities[spot.DXCC][0]}
                 {:else}
-                  {spot.DXCC > 0 && spot.DXCC !== 666 ? 'DXCC ' + spot.DXCC : '—'}
+                  {spot.Entity || (spot.DXCC > 0 && spot.DXCC !== 666 ? 'DXCC ' + spot.DXCC : '—')}
                 {/if}
               </td>
               <td>{spot.Comment}</td>

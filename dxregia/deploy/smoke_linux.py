@@ -221,6 +221,7 @@ def spot_delivery(primary, remote, peer, peer_port):
                 for name in (CONTAINER, peer):
                     subprocess.run(["docker", "exec", name, "sh", "-c",
                                     "stat -c 'presence modified at %y' /data/mojo/local_data/dxregia-presence.json; "
+                                "cat /data/mojo/local_data/dxregia-presence.json; echo; "
                                 "ps -o pid,stat,pcpu,comm -C perl; "
                                 "grep -aEi 'undefined|died at|redefined|failed at|recursion|DBD::|fatal' "
                                 "/data/mojo/local_data/dxregia-startup.log | tail -20; "
@@ -236,7 +237,7 @@ def spot_delivery(primary, remote, peer, peer_port):
         def contains_spot(response):
             status, feed = response
             assert status == 200 and feed["Available"]
-            return any(spot["Call"] == "JA1ABC" and spot["Comment"].strip() == marker
+            return any(spot["Call"] == "JA1ABC" and spot["Comment"].strip() == marker and spot["Entity"] == "Japan"
                        for spot in feed["Spots"])
 
         wait_for("spot in both public feeds", lambda: (
@@ -308,6 +309,7 @@ def peer_link(primary):
             for name in (CONTAINER, peer):
                 subprocess.run(["docker", "exec", name, "sh", "-c",
                                 "stat -c 'presence modified at %y' /data/mojo/local_data/dxregia-presence.json; "
+                                "cat /data/mojo/local_data/dxregia-presence.json; echo; "
                                 "ps -o pid,stat,pcpu,comm -C perl; "
                                 "grep -aEi 'undefined|died at|redefined|failed at|recursion|DBD::|fatal' "
                                 "/data/mojo/local_data/dxregia-startup.log | tail -20; "

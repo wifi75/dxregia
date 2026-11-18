@@ -24,16 +24,16 @@ sub process {
                  : '';
         next unless $kind;
         push @channels, {
-            Call => $channel->call,
+            Call => "" . $channel->call,
             Kind => $kind,
-            State => $channel->state,
-            Since => $channel->startt,
+            State => "" . ($channel->state // ""),
+            Since => int($channel->startt || 0),
         };
     }
     my $target = "$main::local_data/dxregia-presence.json";
     my $tmp = "$target.tmp";
     open(my $file, '>:raw', $tmp) or die "DXRegia snapshot: $!";
-    print $file JSON::encode_json({ At => $now, PartnerConnect => JSON::true, Channels => \@channels }) or die "DXRegia snapshot: $!";
+    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, Channels => \@channels }) or die "DXRegia snapshot: $!";
     close($file) or die "DXRegia snapshot: $!";
     rename($tmp, $target) or die "DXRegia snapshot: $!";
 }
