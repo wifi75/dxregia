@@ -37,6 +37,10 @@ Per consentire l'accesso Telnet dalla rete, imposta `DXREGIA_TELNET_BIND=0.0.0.0
 
 Il collaudo automatico nativo è passato su Ubuntu 24.04 con systemd, su amd64 e arm64. Una LXC non privilegiata con systemd può usare lo stesso percorso; il collaudo Proxmox resta separato. Le immagini Docker rimangono disponibili.
 
+## Aggiornare un'installazione nativa
+
+Scarica `update-native.sh` da `main` e avvialo da qualsiasi directory. Servono Git, Go, Node.js con npm, curl, Python 3, flock e privilegi sudo o root. Lo script scarica `main`, compila backend e frontend, aggiorna il motore Mojo e lo strumento di backup e riavvia il servizio. Conserva dati, credenziali, porte e personalizzazioni in `local`, `local_cmd` e `local_data`. Le directory upstream distribuite con il programma vengono sostituite. Lo script conserva le copie precedenti e le ripristina se il pannello o il listener Telnet non risponde.
+
 ## Installazione di prova da sorgente
 
 Da Linux con Docker e curl già disponibili, clonare il repository e lanciare `sh dxregia/deploy/install-local.sh` dalla sua radice. Lo script costruisce l'immagine, avvia un container con volume persistente e stampa URL e password temporanea. La riesecuzione conserva il container e il volume. La password temporanea è custodita nel volume fino al cambio obbligatorio.

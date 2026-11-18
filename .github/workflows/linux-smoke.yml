@@ -92,6 +92,11 @@ jobs:
         run: python3 dxregia/deploy/smoke_linux.py
       - name: Verify the native installer preserves existing data
         run: sh "$RUNNER_TEMP/bundle/dxregia-linux-$DXREGIA_ARCH/dxregia/deploy/install-native.sh"
+      - name: Update the native install from outside the checkout
+        run: |
+          cd "$RUNNER_TEMP"
+          sh "$GITHUB_WORKSPACE/dxregia/deploy/update-native.sh" --source "$GITHUB_WORKSPACE"
+          curl -fsS "http://127.0.0.1:$DXREGIA_WEB_PORT/api/visits" | python3 -c 'import json,sys; assert json.load(sys.stdin)["Views"] == 2'
       - name: Publish the verified native test bundle
         if: github.event_name == 'push'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

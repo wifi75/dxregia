@@ -179,3 +179,5 @@ Nel run 44280015487 entrambi i listener rispondono e la fotografia locale contin
 Per l'assistenza 2FA il backend distingue i codici già usati da quelli che non corrispondono alla chiave e all'ora corrente. Accetta gli spazi inseriti dall'app quando si copia un codice. La finestra di tolleranza e il blocco del riutilizzo restano attivi. Su Proxmox LXC controllare l'orologio sul nodo host.
 
 Il run 44295449257 ha passato l'intera matrice Linux nativa e Docker amd64/arm64 con la modifica alla diagnosi TOTP. Il commit e3591bab e stato promosso su main. La procedura per l'orologio host Proxmox e il recupero 2FA e nella guida di installazione.
+
+Aggiornamento nativo da qualsiasi directory tramite update-native.sh. Compila prima di arrestare il servizio, conserva configurazioni e credenziali, sostituisce runtime e parti upstream, controlla HTTP e Telnet e ripristina i componenti precedenti se il controllo fallisce. Il workflow lo esercita da una directory esterna al checkout e verifica che il contatore persistente resti invariato.
