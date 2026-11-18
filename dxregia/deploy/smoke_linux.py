@@ -55,9 +55,36 @@ def request(client, path, body=None, method=None):
     )
     try:
         with client.open(req, timeout=30) as response:
-            return response.status, json.load(response)
+            data = response.read()
+            return response.status, json.loads(data) if data else None
     except urllib.error.HTTPError as error:
         return error.code, None
+
+
+
+def portal_traffic(client):
+    public = urllib.request.build_opener()
+    assert request(public, "/api/traffic")[0] == 401
+    assert request(public, "/api/visits") == (200, {"Views": 0})
+    for page in ("/spots", "/contatti"):
+        visit = urllib.request.Request(BASE + page, headers={"Referer": "https://radio.example.org/path?private=1"})
+        with public.open(visit, timeout=10) as response:
+            assert response.status == 200
+    token = secrets.token_hex(16)
+    for _ in range(2):
+        assert request(public, "/api/visits/heartbeat", token) == (204, None)
+    assert request(public, "/api/visits") == (200, {"Views": 2})
+    status, traffic = request(client, "/api/traffic")
+    assert status == 200 and traffic["Active"] == 1
+    for field, expected in [
+        ("Pages", {"/spots": 1, "/contatti": 1}),
+        ("Referrers", {"radio.example.org": 2}),
+    ]:
+        totals = {}
+        for day in traffic["Days"].values():
+            for label, count in day[field].items():
+                totals[label] = totals.get(label, 0) + count
+        assert totals == expected, (field, totals)
 
 
 def totp(secret):
@@ -119,6 +146,7 @@ def main():
     assert request(client, "/api/setup", config)[0] == 401
     assert request(client, "/api/auth/totp", totp(enroll["enrollmentKey"]))[0] == 200
     assert request(client, "/api/setup", config) == (200, {"started": True, "port": TELNET_PORT})
+    portal_traffic(client)
     telnet_login(b"Q7QQQ")
     edited = dict(config, name="Lab sysop", qth="Profilo Linux", email="lab@example.org", advertisedHost="node.example.org")
     assert request(client, "/api/node-settings", dict(edited, port=TELNET_PORT + 1), method="PUT")[0] == 409
@@ -147,6 +175,7 @@ def main():
         assert (adopted / "local_data/dxusers.db").read_bytes() == (source / "local_data/dxusers.db").read_bytes()
     service("start")
     ready(client)
+    assert request(client, "/api/visits") == (200, {"Views": 2})
     time.sleep(6)
     telnet_login(b"Q7QQQ", b"Profilo Linux")
     print("Linux installer, setup with TOTP, Telnet, offline backup and persistent restart passed")

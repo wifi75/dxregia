@@ -130,6 +130,8 @@ L'installatore Docker ora accetta porte host web e Telnet distinte tramite ambie
 
 ## Installazione nativa systemd
 
-Il percorso install-native.sh affianca Docker. Collaudo GitHub Actions 44272109256 passato su Ubuntu 24.04 con porte personalizzate, installazione da sorgente, setup 2FA, Telnet, backup, riavvio e riesecuzione senza sostituire il nodo. L'installatore nativo da release precompilata e la prova su LXC Proxmox restano aperti.
+Il percorso install-native.sh affianca Docker. Collaudo GitHub Actions 44272109256 passato su Ubuntu 24.04 con porte personalizzate, installazione da sorgente, setup 2FA, Telnet, backup, riavvio e riesecuzione senza sostituire il nodo. Il collaudo 44272892467 ha verificato anche l'installazione da archivio nativo precompilato su amd64 e arm64. Restano la pubblicazione degli archivi di release e la prova su LXC Proxmox.
 
 L'analytics sysop mostra le visualizzazioni per pagina e una stima delle schede attive del portale. Una scheda visibile invia un segnale ogni 30 secondi e scade dopo 90 secondi dall'ultimo segnale. Gli identificativi casuali delle schede restano in memoria e il contatore pubblico mostra solo il totale delle visualizzazioni.
+
+Il test Linux controlla anche il contatore pubblico, l'accesso riservato agli analytics, il conteggio per pagina e dominio, i segnali duplicati della stessa scheda e la persistenza delle visualizzazioni dopo il riavvio.
