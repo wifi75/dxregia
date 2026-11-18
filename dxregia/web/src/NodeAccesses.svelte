@@ -3,8 +3,9 @@
   import Hint from './Hint.svelte'
   import { lang } from './i18n.svelte'
 
-  type Session = { Call: string; Kind: 'user' | 'node'; Host: string; Start: number; End?: number; Seconds?: number; Open?: boolean }
-  type Caller = { Call: string; Kind: 'user' | 'node'; Count: number; Last: number; Host: string }
+  type Origin = { Call: string; Kind: 'user' | 'node'; Host: string; Country?: string }
+  type Session = Origin & { Start: number; End?: number; Seconds?: number; Open?: boolean }
+  type Caller = Origin & { Count: number; Last: number }
   let days = $state(7)
   let kind = $state<'user' | 'node' | 'all'>('user')
   let sessions = $state<Session[]>([])
@@ -16,6 +17,12 @@
   const shown = $derived(sessions.filter(item => kind === 'all' || item.Kind === kind))
   const people = $derived(callers.filter(item => kind === 'all' || item.Kind === kind))
   const stamp = (at: number) => date.format(new Date(at * 1000))
+  const regionNames = $derived(new Intl.DisplayNames([lang()], { type: 'region' }))
+  const local = (host: string) => /^127\.|^::1$|^::ffff:127\./.test(host)
+  const testLogin = (item: Origin) => item.Kind === 'user' && item.Call === 'TE5TA' && local(item.Host)
+  const testLogins = $derived(sessions.filter(testLogin).length)
+  const accessType = (item: Origin, count = 1) => item.Kind === 'node' ? 'Nodo'
+    : testLogin(item) && (!('Count' in item) || count === testLogins) ? 'Accesso di collaudo' : 'Radioamatore'
   function length(seconds?: number) {
     if (seconds === undefined) return '—'
     if (seconds < 60) return seconds + ' s'
@@ -39,6 +46,15 @@
   }
   onMount(load)
 </script>
+
+{#snippet origin(item: Origin)}
+  <span class="origin">
+    {#if item.Country && /^[A-Z]{2}$/.test(item.Country)}
+      <img src={'/flags/' + item.Country.toLowerCase() + '.svg'} alt={regionNames.of(item.Country) ?? item.Country} title={regionNames.of(item.Country)} width="22" height="16" loading="lazy" />
+    {/if}
+    {item.Host}{#if local(item.Host)} <small>Locale</small>{/if}
+  </span>
+{/snippet}
 
 <section class="glass-panel" aria-labelledby="access-title">
   <h1 id="access-title">Accessi al nodo<Hint text="Chi si è collegato al nodo via Telnet o dal web, con il nominativo, l'indirizzo di provenienza e la durata. I dati vengono dal registro di DXSpider." /></h1>
@@ -72,7 +88,7 @@
         <thead><tr><th>Nominativo</th><th>Tipo</th><th>N. accessi</th><th>Ultimo accesso (UTC)</th><th>Da</th></tr></thead>
         <tbody>
           {#each people as caller (caller.Kind + caller.Call)}
-            <tr><td><strong>{caller.Call}</strong></td><td>{caller.Kind === 'node' ? 'Nodo' : 'Radioamatore'}</td><td>{caller.Count}</td><td>{stamp(caller.Last)}</td><td>{caller.Host}</td></tr>
+            <tr><td><strong>{caller.Call}</strong></td><td>{accessType(caller, caller.Count)}</td><td>{caller.Count}</td><td>{stamp(caller.Last)}</td><td>{@render origin(caller)}</td></tr>
           {/each}
         </tbody>
       </table>
@@ -87,14 +103,17 @@
             <tr>
               <td>{stamp(session.Start)}</td>
               <td><strong>{session.Call}</strong></td>
-              <td>{session.Kind === 'node' ? 'Nodo' : 'Radioamatore'}</td>
-              <td>{session.Host}</td>
+              <td>{accessType(session)}</td>
+              <td>{@render origin(session)}</td>
               <td>{#if session.Open}<span class="live">Collegato ora</span>{:else if session.End}{length(session.Seconds)}{:else}—{/if}</td>
             </tr>
           {/each}
         </tbody>
       </table>
     </div>
+    {#if shown.some(item => item.Country) || people.some(item => item.Country)}
+      <p class="note"><a href="https://db-ip.com/" target="_blank" rel="noreferrer">IP Geolocation by DB-IP</a></p>
+    {/if}
   {/if}
 </section>
 
@@ -112,4 +131,5 @@
   th { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #1d5d8c; }
   tbody tr:nth-child(even) { background: #0000000a; }
   .live { color: #1a7a4a; font-weight: 700; }
+  .origin { display: inline-flex; align-items: center; gap: .4rem; }
 </style>

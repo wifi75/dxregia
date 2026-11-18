@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/oschwald/maxminddb-golang"
 )
 
 // Storico degli accessi: chi si è collegato al nodo (utenti Telnet/Web e nodi in ingresso), da dove e per quanto tempo.
@@ -21,6 +24,7 @@ type accessSession struct {
 	Call    string
 	Kind    string // user | node
 	Host    string
+	Country string `json:",omitempty"`
 	Start   int64
 	End     int64 `json:",omitempty"`
 	Seconds int64 `json:",omitempty"`
@@ -28,11 +32,12 @@ type accessSession struct {
 }
 
 type accessCaller struct {
-	Call  string
-	Kind  string
-	Count int
-	Last  int64
-	Host  string
+	Call    string
+	Kind    string
+	Count   int
+	Last    int64
+	Host    string
+	Country string `json:",omitempty"`
 }
 
 var (
@@ -179,7 +184,41 @@ func registerConnections(mux *http.ServeMux, root string, auth *sysopAuth) {
 		if callers == nil {
 			callers = []accessCaller{}
 		}
+		if db, err := maxminddb.Open(filepath.Join(root, "dbip-country.mmdb")); err == nil {
+			defer db.Close()
+			countries := make(map[string]string)
+			countryFor := func(host string) string {
+				if code, ok := countries[host]; ok {
+					return code
+				}
+				code := accessCountry(db, host)
+				countries[host] = code
+				return code
+			}
+			for i := range sessions {
+				sessions[i].Country = countryFor(sessions[i].Host)
+			}
+			for i := range callers {
+				callers[i].Country = countryFor(callers[i].Host)
+			}
+		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"Days": days, "Sessions": sessions, "Callers": callers})
 	})
+}
+
+func accessCountry(db *maxminddb.Reader, host string) string {
+	ip := net.ParseIP(host)
+	if ip == nil || !ip.IsGlobalUnicast() || ip.IsPrivate() {
+		return ""
+	}
+	var record struct {
+		Country struct {
+			Code string `maxminddb:"iso_code"`
+		} `maxminddb:"country"`
+	}
+	if db.Lookup(ip, &record) != nil {
+		return ""
+	}
+	return record.Country.Code
 }

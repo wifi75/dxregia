@@ -147,6 +147,10 @@ step 3 'Compilo il backend Go. Questa fase può restare silenziosa per qualche m
     CGO_ENABLED=0 go build -trimpath -o "$work/dxregia" ./cmd/dxregia
 ) || fail 'Compilazione del backend Go non riuscita.'
 indicator 32 'Backend compilato.'
+if sh "$source/dxregia/deploy/download-country-db.sh" "$work/dbip-country.mmdb" 2>/dev/null; then
+    as_root install -m 0644 -o dxregia -g dxregia "$work/dbip-country.mmdb" "$engine/dbip-country.mmdb.new"
+    as_root mv -fT "$engine/dbip-country.mmdb.new" "$engine/dbip-country.mmdb"
+fi
 printf '%s\n' "$revision" > "$work/revision"
 
 rollback=$(as_root mktemp -d /opt/.dxregia-update-XXXXXX)

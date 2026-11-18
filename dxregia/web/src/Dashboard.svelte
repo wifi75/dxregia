@@ -19,6 +19,7 @@
   let again = false
   let liveState = $state<'live' | 'reconnecting' | 'polling'>('polling')
   let updatedAt = $state<number>()
+  let publicTelnet = $state('')
   let freshKeys = $state<Set<string>>(new Set())
   let knownKeys: Set<string> | undefined
   const spotKey = (spot: Spot) => spot.At + '|' + spot.Call + '|' + spot.Frequency
@@ -114,6 +115,13 @@
 
   onMount(() => {
     void load()
+    void fetch('/api/node-settings', { cache: 'no-store' }).then(async response => {
+      if (response.status !== 200) return
+      const { advertisedHost, port } = await response.json()
+      if (advertisedHost && port) {
+        publicTelnet = `${advertisedHost.includes(':') ? `[${advertisedHost}]` : advertisedHost}:${port}`
+      }
+    }).catch(() => {})
     // Flusso live: il server avvisa appena arriva uno spot o cambia la presenza. Senza flusso si interroga ogni 5 secondi.
     let source: EventSource | undefined
     if (typeof EventSource !== 'undefined') {
@@ -149,7 +157,12 @@
     <article class="tile glass-panel" data-tone={tile.tone}>
       <p class="label"><span class="led" data-tone={tile.tone} aria-hidden="true"></span>{tile.label}</p>
       <p class="value">{tile.title}</p>
-      <p class="detail">{tile.detail}</p>
+      {#if tile.label === 'Listener Telnet'}
+        <p class="detail"><span>Indirizzo pubblico</span> · {publicTelnet || 'Non configurato'}</p>
+        <p class="detail"><span>Controllo locale</span> · {tile.detail}</p>
+      {:else}
+        <p class="detail">{tile.detail}</p>
+      {/if}
     </article>
   {/each}
 </section>

@@ -76,6 +76,9 @@ if [ ! -f "$unit" ]; then
         as_root mv -T "$engine_stage" "$state/mojo"
     fi
     as_root install -d -m 0755 "$runtime/bin" "$runtime/web"
+    if sh "$root/dxregia/deploy/download-country-db.sh" "$stage/dbip-country.mmdb" 2>/dev/null; then
+        as_root install -m 0644 -o dxregia -g dxregia "$stage/dbip-country.mmdb" "$state/mojo/dbip-country.mmdb"
+    fi
     as_root install -m 0755 "$binary" "$runtime/bin/dxregia"
     as_root install -m 0755 "$root/dxregia/deploy/backup_node.py" "$runtime/bin/dxregia-backup"
     as_root install -m 0755 "$root/dxregia/deploy/update-native.sh" /usr/local/bin/dxregia-update

@@ -286,3 +286,4 @@ Versione 0.4.0 (tag v0.4.0, 2026-11-18): impostazioni di DXSpider nel pannello (
 - Il modulo partner distingue il nominativo remoto completo (SSID incluso se presente) dal nome descrittivo. Build Vite riuscita.
 - Nodi partner: la spunta salva subito la riconnessione tramite PUT o DELETE. La disattivazione ferma i nuovi tentativi automatici; una richiesta gia accodata puo concludersi. Test Go e build Vite riusciti.
 - Nodi partner: Mojo distingue il blocco di un nodo Spider e il sysop puo sbloccarlo con conferma, conservando la password locale. Test Go, build Vite e sintassi Perl verificati.
+- Accessi al nodo: geolocalizzazione indicativa con DB-IP Lite locale, scaricato nelle installazioni e negli aggiornamenti nativi. Gli IP non vengono inviati a DB-IP. TE5TA su loopback e indicato come test. Riquadro Listener Telnet: recapito pubblico dal profilo, con esito riferito al controllo locale. Test Go, build Vite e sintassi shell verificati.
