@@ -357,6 +357,31 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		w.WriteHeader(http.StatusAccepted)
 		json.NewEncoder(w).Encode(map[string]string{"Password": password, "MailStatus": mailStatus})
 	})
+	mux.HandleFunc("DELETE /api/partners/{call}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		call := r.PathValue("call")
+		lock.Lock()
+		defer lock.Unlock()
+		entry, ok := partners[call]
+		if !ok || !callsign.MatchString(call) || len(call) > 12 {
+			http.Error(w, "Nodo non trovato.", http.StatusNotFound)
+			return
+		}
+		delete(partners, call)
+		if err := savePartners(path, partners); err != nil {
+			partners[call] = entry
+			http.Error(w, "Impossibile eliminare il nodo.", http.StatusInternalServerError)
+			return
+		}
+		if err := removePartnerFiles(root, call); err != nil {
+			log.Printf("Remove partner %s: %v", call, err)
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("GET /api/partners/{call}/inbound-password", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		if !auth.allowed(r) {

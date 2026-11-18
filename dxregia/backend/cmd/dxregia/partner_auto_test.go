@@ -87,3 +87,30 @@ func TestAutoPartnerLeavesExistingDisabledAndLimitedRequestsToTheSysop(t *testin
 		t.Fatalf("daily limit not enforced: %d automatic partners", auto)
 	}
 }
+
+func TestRemovePartnerFilesCleansUpAndAsksMojoToRevokeAccess(t *testing.T) {
+	root := autoRoot(t)
+	dir := filepath.Join(root, "local_data", "dxregia-partners")
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"N2KI.inbound", "N2KI.reconnect.json", "N2KI.mail.json", "N2KI.result", "N2KI-2.inbound"} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("x"), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := removePartnerFiles(root, "N2KI"); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"N2KI.inbound", "N2KI.reconnect.json", "N2KI.mail.json", "N2KI.result"} {
+		if _, err := os.Stat(filepath.Join(dir, name)); err == nil {
+			t.Errorf("%s was not removed", name)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(dir, "N2KI-2.inbound")); err != nil {
+		t.Error("another node with a similar callsign must not be touched")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "N2KI.remove")); err != nil {
+		t.Error("Mojo was not asked to revoke the account")
+	}
+}

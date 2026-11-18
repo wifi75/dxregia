@@ -15,6 +15,7 @@ sub process {
     apply_telnet_options();
     provision_partners();
     connect_partners();
+    remove_partners();
     my @channels;
     foreach my $channel (DXChannel::get_all()) {
         next if $channel->call eq $main::mycall;
@@ -228,6 +229,26 @@ sub provision_partners {
         close($ack) or next;
         rename("$target.tmp", $target) or next;
         unlink "$dir/$file";
+    }
+}
+
+# Un nodo eliminato dal pannello viene scollegato e il suo account Mojo viene cancellato,
+# così la vecchia password non permette più di entrare.
+sub remove_partners {
+    my $dir = "$main::local_data/dxregia-partners";
+    opendir(my $dh, $dir) or return;
+    my @pending = grep { /\A[A-Z0-9]+(?:-[0-9]+)?[.]remove\z/ } readdir($dh);
+    closedir($dh);
+    for my $file (@pending) {
+        my ($call) = $file =~ /\A([A-Z0-9-]+)[.]remove\z/;
+        next unless unlink "$dir/$file";    # ogni richiesta si esegue una sola volta
+        next if length($call) > 12 || $call eq $main::mycall || $call eq $main::myalias;
+        eval {
+            my $channel = DXChannel::get($call);
+            $channel->disconnect if $channel;
+            my $user = DXUser::get($call);
+            $user->del if $user && $user->sort eq 'S';
+        };
     }
 }
 

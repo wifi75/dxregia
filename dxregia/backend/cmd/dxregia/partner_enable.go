@@ -104,3 +104,24 @@ func readProvisioningResults(root, path string, partners map[string]partner) {
 		}
 	}
 }
+
+// removePartnerFiles cancella i file del nodo e chiede a Mojo di scollegarlo e di cancellarne l'account.
+func removePartnerFiles(root, call string) error {
+	if !callsign.MatchString(call) || len(call) > 12 {
+		return errors.New("invalid partner callsign")
+	}
+	dir := filepath.Join(root, "local_data", "dxregia-partners")
+	files, err := filepath.Glob(filepath.Join(dir, call+".*"))
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		if err := os.Remove(file); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+	}
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, call+".remove"), []byte("remove"), 0600)
+}

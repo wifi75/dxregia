@@ -154,6 +154,30 @@
     }
   }
 
+  async function removePartner() {
+    const call = selected?.Call
+    if (!call || enabling) return
+    if (!confirm('Eliminare il nodo ' + call + '?\n\nIl nodo viene scollegato, il suo accesso al tuo cluster viene rimosso (la sua password smette di funzionare) e la scheda viene cancellata. Non si può annullare.')) return
+    enabling = true
+    error = ''
+    message = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call), { method: 'DELETE' })
+      if (!response.ok) {
+        error = (await response.text()).trim()
+        return
+      }
+      partners = partners.filter(partner => partner.Call !== call)
+      editing = false
+      selected = undefined
+      message = 'Nodo ' + call + ' eliminato.'
+    } catch {
+      error = 'Impossibile eliminare il nodo.'
+    } finally {
+      enabling = false
+    }
+  }
+
   async function resend() {
     const call = selected?.Call
     if (!call || enabling) return
@@ -330,7 +354,10 @@
             <span class="muted">· Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'non ancora rilevata'}</span>
           </p>
         {/if}
-        <button class="secondary close" type="button" onclick={() => { editing = false; selected = undefined }}>Chiudi</button>
+        <div class="head-actions">
+          {#if selected}<button class="danger" type="button" disabled={enabling || busy} onclick={removePartner}>Elimina nodo</button>{/if}
+          <button class="secondary" type="button" onclick={() => { editing = false; selected = undefined }}>Chiudi</button>
+        </div>
       </header>
 
       {#if selected}
@@ -431,10 +458,7 @@
             <label>Indicativo <input bind:value={form.Call} maxlength="12" readonly={Boolean(selected)} required /></label>
             <label>Nome del nodo <input bind:value={form.Name} maxlength="120" /></label>
             <label>Nome del referente <input bind:value={form.Contact} maxlength="120" /></label>
-            <label>Nome della persona
-              <input bind:value={form.Person} maxlength="120" autocomplete="off" placeholder="Es. Anthony" />
-              <span class="hint">Solo per la nostra anagrafica: non entra nella configurazione del nodo.</span>
-            </label>
+            <label>Nome della persona <input bind:value={form.Person} maxlength="120" autocomplete="off" placeholder="Es. Anthony" /></label>
             <label>Email del referente <input type="email" bind:value={form.Email} maxlength="254" /></label>
             <label>Lingua delle email
               <select bind:value={form.Lang}>
@@ -446,6 +470,7 @@
             <label>Host del nodo <input bind:value={form.Host} maxlength="253" required /></label>
             <label>Porta <input type="number" bind:value={form.Port} min="1" max="65535" required /></label>
           </div>
+          <p class="hint">«Nome della persona» serve solo per la nostra anagrafica: non entra nella configurazione del nodo.</p>
           {#if !selected}
             <label class="remote-auth">Il nodo remoto richiede una password?
               <select bind:value={remoteAuth}>
@@ -499,7 +524,8 @@
   .detail { margin-top: 18px; display: grid; gap: 14px; }
   .detail-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; }
   .detail-head p { margin: 0; }
-  .close { margin-left: auto; }
+  .head-actions { display: flex; gap: 10px; margin-left: auto; }
+  button.danger { --button-face: #fff1f1; --button-edge: #d99a9d; --button-ink: #9b2424; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }
   .cards { align-items: stretch; }
   .cards .card { display: flex; flex-direction: column; }
@@ -513,7 +539,9 @@
   .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
   .check { display: flex; align-items: center; gap: 8px; font-weight: 450; }
   .check input { min-height: auto; }
-  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px 16px; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px 16px; align-items: start; }
+  .fields label { align-content: start; }
+  .fields input, .fields select { width: 100%; }
   label { display: grid; min-width: 0; gap: 5px; font-weight: 600; }
   .note { margin: 12px 0; }
   .observed-state { display: flex; align-items: center; flex-wrap: wrap; gap: .55rem; }
