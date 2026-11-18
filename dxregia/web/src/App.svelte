@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import Setup from './Setup.svelte'
+  import Auth from './Auth.svelte'
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
   const labels = {
@@ -62,7 +62,7 @@
       <div><dt>Ultima risposta</dt><dd>{status ? utc(status.checkedAt) + ' UTC' : '—'}</dd></div>
     </dl>
   </article>
-  <Setup onSaved={refresh} />
+  <Auth onSaved={refresh} />
 </main>
 
 <style>

@@ -52,14 +52,20 @@ func checkListener(ctx context.Context, address string) listenerStatus {
 }
 
 func main() {
-	port := flag.Int("port", 8080, "local HTTP port")
+	port := flag.Int("port", 8080, "HTTP port")
+	httpBind := flag.String("http-bind", "127.0.0.1", "HTTP bind address")
+	telnetBind := flag.String("setup-telnet-bind", "127.0.0.1", "IPv4 address for the generated Mojo listener")
 	target := flag.String("telnet", "127.0.0.1:7300", "DXSpider host:port")
 	web := flag.String("web", "../web/dist", "built Svelte directory")
+	bootstrapFile := flag.String("bootstrap-password-file", "", "private file for the temporary sysop password")
 	setupRoot := flag.String("setup-root", "", "fresh Mojo checkout for local setup")
 	setupPerl := flag.String("setup-perl", "", "Perl executable for starting Mojo during setup")
 	setupInternal := flag.Int("setup-internal-port", 27754, "Mojo internal loopback port")
 	flag.Parse()
 
+	if net.ParseIP(*httpBind) == nil || net.ParseIP(*telnetBind).To4() == nil {
+		log.Fatal("Invalid HTTP or Telnet bind IP")
+	}
 	if *port < 1 || *port > 65535 {
 		log.Fatal("HTTP port must be between 1 and 65535")
 	}
@@ -75,9 +81,13 @@ func main() {
 	service, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	mux := http.NewServeMux()
+	auth, err := registerAuth(mux, *setupRoot, *bootstrapFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
-	if err := registerSetup(service, mux, *setupRoot, *setupPerl, *setupInternal, number, func(port int) {
+	if err := registerSetup(service, mux, *setupRoot, *setupPerl, *setupInternal, number, *telnetBind, auth, func(port int) {
 		activeTarget.Store(net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
 	}); err != nil {
 		log.Fatal(err)
@@ -90,7 +100,7 @@ func main() {
 		}
 	})
 	mux.Handle("GET /", http.FileServer(http.Dir(*web)))
-	address := net.JoinHostPort("127.0.0.1", strconv.Itoa(*port))
+	address := net.JoinHostPort(*httpBind, strconv.Itoa(*port))
 	log.Printf("DXRegia: http://%s", address)
 	server := &http.Server{Addr: address, Handler: mux, ReadHeaderTimeout: 5 * time.Second, WriteTimeout: 25 * time.Second}
 	go func() {

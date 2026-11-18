@@ -1,0 +1,6 @@
+.git
+**/node_modules
+**/dist
+**/.dxregia-sysop
+**/local
+**/local_data

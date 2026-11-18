@@ -5,7 +5,7 @@
 - Repository condiviso: https://github.com/wifi75/dxregia, ramo main. Su un altro computer partire dal ramo main del repository e leggere TASK.md, questo file e AGENTS.md. Claude Code importa AGENTS.md tramite CLAUDE.md.
 - Punto raggiunto: il wizard locale salva, inizializza e avvia Mojo. Diagnostica e riavvio con porta e utenti persistenti sono stati collaudati con Mojo reale su Windows. Una porta occupata viene rifiutata prima di scrivere.
 - Per riprodurre, compilare il pannello e avviare il backend con una copia Mojo separata e Perl con le dipendenze richieste. I comandi e la baseline sono in dxregia/backend/README.md. Le istanze locali, i dati di prova e i codici temporanei non fanno parte del repository.
-- Prossimo intervento: autenticazione sysop con cambio obbligatorio al primo accesso. Il codice temporaneo del prototipo autorizza soltanto il setup locale. Poi installatore Linux e prova da macchina pulita.
+- Prossimo intervento: build del container e collaudo su Linux pulito. Il cambio obbligatorio della password sysop è implementato e verificato via API su Windows. Istruzioni della build locale in dxregia/deploy/README.md.
 - Interfacce: solo tema chiaro, riferimento per il portale pubblico in docs/INTERFACES.md. Usare la skill design-taste-frontend quando disponibile. Dati della pagina pubblica e gestione dei partner ancora da integrare.
 
 ## 2026-11-17 — Avvio del progetto
@@ -63,3 +63,7 @@ Con -setup-perl il backend inizializza una banca utenti nuova e avvia Mojo con l
 Lo stato DXRegia viene salvato insieme ai file Mojo. Al riavvio il backend riprende la porta e avvia il motore senza ricreare il database. Se fallisce, il modulo ripropone i dati salvati per un nuovo tentativo. Build Go e Svelte riuscite. Collaudo Windows con Mojo reale: configurazione via HTTP, login Telnet di prova, spegnimento del nodo, riavvio del backend, stessa porta pronta e utente presente in SQLite. Restano autenticazione sysop definitiva, installatore e collaudo Linux.
 
 Il wizard propone la porta del listener impostata per l'anteprima. Verifica che la porta sia libera prima di generare i file di Mojo. Collaudo Windows: 7300 occupata rifiutata senza salvataggio. 7474 accettata, Mojo avviato e prompt Telnet confermato.
+
+## 2026-11-18 — Accesso sysop e pacchetto Linux
+
+Build Go e Svelte riuscite. Verificati blocco del wizard prima del cambio password, invalidazione della password temporanea, logout e accesso con password salvata dopo riavvio. Aggiunti Containerfile e script di installazione da sorgente per Linux con Docker. Verificare build ed esecuzione Docker su Linux. Funzioni restanti in TASK.md.

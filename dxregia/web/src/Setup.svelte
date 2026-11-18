@@ -11,7 +11,6 @@
   let sysop = $state('')
   let locator = $state('')
   let port = $state<number | undefined>(7300)
-  let code = $state('')
 
   onMount(async () => {
     try {
@@ -38,7 +37,7 @@
     try {
       const response = await fetch('/api/setup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + code.trim() },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ node, sysop, locator, port }),
       })
       if (!response.ok) {
@@ -46,7 +45,6 @@
         error = (await response.text()).trim() || 'Salvataggio non riuscito.'
         return
       }
-      code = ''
       result = await response.json()
       onSaved()
       available = false
@@ -70,7 +68,6 @@
           <label>Nominativo del sysop <input bind:value={sysop} maxlength="12" readonly={alreadySaved} required placeholder="IU3ABC" /></label>
           <label>Locator <input bind:value={locator} maxlength="6" readonly={alreadySaved} required placeholder="JN55AA" /></label>
           <label>Porta Telnet <input type="number" bind:value={port} min="1" max="65535" readonly={alreadySaved} required /></label>
-          <label class="code">Codice temporaneo <input type="password" bind:value={code} autocomplete="off" maxlength="48" required /></label>
         </div>
         {#if error}<p class="error" role="alert">{error}</p>{/if}
         <button disabled={pending}>{pending ? 'Configurazione in corso…' : alreadySaved ? 'Riprova avvio' : 'Applica configurazione'}</button>

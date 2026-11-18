@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/subtle"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -44,7 +41,7 @@ func (c *nodeConfig) validate() error {
 	return nil
 }
 
-func registerSetup(service context.Context, mux *http.ServeMux, root, perl string, internalPort, suggestedPort int, setTarget func(int)) error {
+func registerSetup(service context.Context, mux *http.ServeMux, root, perl string, internalPort, suggestedPort int, telnetBind string, auth *sysopAuth, setTarget func(int)) error {
 	if root == "" {
 		return nil
 	}
@@ -90,15 +87,13 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 			return err
 		}
 	}
-	key := make([]byte, 24)
-	if _, err := rand.Read(key); err != nil {
-		return err
-	}
-	token := hex.EncodeToString(key)
-	log.Printf("Codice temporaneo di configurazione: %s", token)
 	var lock sync.Mutex
 	done := false
 	mux.HandleFunc("GET /api/setup", func(w http.ResponseWriter, r *http.Request) {
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop e cambio password richiesti.", http.StatusUnauthorized)
+			return
+		}
 		lock.Lock()
 		defer lock.Unlock()
 		w.Header().Set("Cache-Control", "no-store")
@@ -110,14 +105,18 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 		json.NewEncoder(w).Encode(response)
 	})
 	mux.HandleFunc("POST /api/setup", func(w http.ResponseWriter, r *http.Request) {
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop e cambio password richiesti.", http.StatusUnauthorized)
+			return
+		}
 		lock.Lock()
 		defer lock.Unlock()
 		if done {
 			http.Error(w, "Configurazione già salvata.", http.StatusConflict)
 			return
 		}
-		if subtle.ConstantTimeCompare([]byte(r.Header.Get("Authorization")), []byte("Bearer "+token)) != 1 {
-			http.Error(w, "Codice di configurazione errato.", http.StatusUnauthorized)
+		if r.Header.Get("Content-Type") != "application/json" {
+			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
 			return
 		}
 		var config nodeConfig
@@ -146,7 +145,7 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 					return
 				}
 			}
-			if err := writeMojoConfig(root, local, string(template), config, internalPort); err != nil {
+			if err := writeMojoConfig(root, local, string(template), config, internalPort, telnetBind); err != nil {
 				log.Printf("Mojo setup: %v", err)
 				http.Error(w, "Impossibile salvare la configurazione Mojo.", http.StatusInternalServerError)
 				return
@@ -168,7 +167,7 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 	return nil
 }
 
-func writeMojoConfig(root, local, template string, config nodeConfig, internalPort int) error {
+func writeMojoConfig(root, local, template string, config nodeConfig, internalPort int, telnetBind string) error {
 	const ending = "\n1;"
 	template = strings.ReplaceAll(template, "\r\n", "\n")
 	end := strings.LastIndex(template, ending)
@@ -184,7 +183,7 @@ func writeMojoConfig(root, local, template string, config nodeConfig, internalPo
 	if err := os.WriteFile(filepath.Join(stage, "DXVars.pm"), []byte(template[:end]+values+template[end:]), 0600); err != nil {
 		return err
 	}
-	listeners := fmt.Sprintf("package main;\nour @listen = ([ '127.0.0.1', %d ]);\n1;\n", config.Port)
+	listeners := fmt.Sprintf("package main;\nour @listen = ([ '%s', %d ]);\n1;\n", telnetBind, config.Port)
 	if err := os.WriteFile(filepath.Join(stage, "Listeners.pm"), []byte(listeners), 0600); err != nil {
 		return err
 	}

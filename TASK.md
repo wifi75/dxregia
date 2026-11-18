@@ -2,7 +2,7 @@
 
 ## Prossimo passo
 
-Implementare l'autenticazione del pannello con credenziale temporanea e cambio password obbligatorio prima del wizard. Verificare anche l'accesso diretto alle API prima del cambio e l'invalidazione della credenziale iniziale. Poi integrare installatore e prova Linux.
+Collaudare l'immagine e lo script locale su un host Linux con Docker, poi completare la distribuzione da release e la gestione dei nodi partner. La procedura è in dxregia/deploy/README.md.
 
 ## Stato
 
@@ -12,6 +12,7 @@ Implementare l'autenticazione del pannello con credenziale temporanea e cambio p
 - [x] Clonare il ramo mojo e aprire il branch locale dxregia/main.
 - [x] Impostare struttura, architettura e passaggio di consegne.
 - [x] Definire [pagina pubblica degli spot e area sysop](docs/INTERFACES.md).
+- [x] Autenticazione sysop con cambio obbligatorio della password temporanea e protezione del wizard lato API.
 - [ ] Implementare pagina spot pubblica con feed, filtri e layout mobile.
 - [ ] Riprodurre l'avvio di Mojo su Linux e registrare dipendenze, configurazione minima e accesso locale alla console.
 - [ ] Verificare la baseline con due nodi locali e una sessione Telnet. Annotare gli scambi attesi e i criteri per spot, riconnessione e persistenza.
