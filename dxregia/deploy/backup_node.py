@@ -52,8 +52,11 @@ def paths(root):
             if not allowed(relative):
                 continue
             if file.is_symlink():
-                raise ValueError(f"Collegamento simbolico non supportato: {file}")
-            if file.is_file():
+                target = file.resolve(strict=True)
+                if not target.is_relative_to(root) or not target.is_file() or not allowed(target.relative_to(root).as_posix()):
+                    raise ValueError(f"Collegamento simbolico non supportato: {file}")
+                yield relative, target
+            elif file.is_file():
                 yield relative, file
 
 
