@@ -1,4 +1,4 @@
-import { locales, languages, type Key } from './locales'
+import { locales, languages, type Key } from './translations'
 
 export { languages }
 const storageKey = 'dxregia-lang'
