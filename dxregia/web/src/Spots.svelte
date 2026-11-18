@@ -116,7 +116,6 @@
         <input type="search" bind:value={query} aria-label={t('searchLabel')} placeholder={t('searchShort')} title={t('searchPlaceholder')} />
         {#if query}<button class="clear" type="button" aria-label={t('clear')} title={t('clear')} onclick={() => query = ''}>×</button>{/if}
       </span>
-      <span class="count">{t(filtered.length === 1 ? 'shownOne' : 'shownMany', { n: filtered.length })}</span>
     </div>
   </section>
   <div class="desk glass-enter">
@@ -173,7 +172,6 @@
   .search { position: relative; flex: 0 0 15ch; min-width: 0; }
   .search input { width: 100%; min-height: 28px; padding: 3px 26px 3px 9px; font-size: .85rem; }
   .clear { position: absolute; right: 2px; top: 2px; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; font-size: 1.1rem; line-height: 1; --button-face: transparent; --button-edge: transparent; --button-ink: #4c6374; box-shadow: none; }
-  .count { margin-left: auto; color: #2a4558; font-size: .85rem; font-weight: 600; white-space: nowrap; }
   .desk { min-width: 0; }
   .log { min-width: 0; padding: 0; overflow: hidden; }
   .log > p { margin: 14px 16px; }
@@ -213,8 +211,7 @@
     .chip { flex: 0 0 auto; min-height: 38px; font-size: .88rem; }
     .search { flex: 1 1 auto; }
     .search input { min-height: 38px; }
-    .count { margin-left: 0; }
-      .table-wrap { overflow: visible; }
+        .table-wrap { overflow: visible; }
     table, tbody { display: block; white-space: normal; }
     thead { display: none; }
     tbody tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "freq dx utc" "mode entity entity" "de comment comment"; align-items: center; gap: 3px 10px; padding: 10px 12px; border-bottom: 1px solid #dce5ed; }
