@@ -180,8 +180,17 @@ def spot_delivery(primary, remote, peer, peer_port):
                 connection.sendall(call + b"\r\n")
                 read_until(connection, b"dxspider >")
             spotter.sendall(f"dx 14025 JA1ABC {marker}\r\n".encode())
-            read_until(spotter, b"dxspider >")
-            delivered = read_until(logger, marker.encode())
+            reply = read_until(spotter, b"dxspider >")
+            try:
+                delivered = read_until(logger, marker.encode())
+            except (TimeoutError, RuntimeError):
+                print(f"Spot command reply: {reply!r}", flush=True)
+                for name in (CONTAINER, peer):
+                    subprocess.run(["docker", "exec", name, "sh", "-c",
+                                    "find /data/mojo/local_data/debug -type f -name '*.dat' "
+                                    "-exec grep -aE 'DXREGIA-SMOKE|JA1ABC|PC61 .* dropped' {} +"],
+                                   check=False)
+                raise
             assert any(
                 line.startswith(b"DX de Q7QQQ") and b"JA1ABC" in line and marker.encode() in line
                 for line in delivered.splitlines()

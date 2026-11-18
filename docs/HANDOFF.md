@@ -147,3 +147,5 @@ Il collaudo dell'installer da release usa asset locali su ciascuna architettura:
 Il run Linux 44274300277 ha verificato su amd64 e arm64 provisioning, stato su entrambi i nodi, data di prima connessione e riconnessione dopo il riavvio del partner. La versione successiva del test controlla anche che una sessione Telnet compaia nella fotografia sysop e sparisca dopo la chiusura.
 
 L'installatore nativo accetta DXREGIA_TELNET_BIND=0.0.0.0 prima del primo avvio per consentire logger e partner esterni. Il pannello resta sul loopback. I listener dei nodi gia configurati restano da modificare mediante migrazione coordinata.
+
+Le notifiche SMTP supportano TLS implicito e STARTTLS obbligatorio tramite DXREGIA_SMTP_TLS. Entrambe le modalita verificano il certificato prima dell'invio. Resta da collaudare la consegna con un provider reale.

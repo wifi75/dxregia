@@ -15,6 +15,7 @@ import (
 
 type contactMailer struct {
 	address, host, from, user, password string
+	startTLS                            bool
 }
 
 func loadContactMailer() (*contactMailer, error) {
@@ -28,8 +29,12 @@ func loadContactMailer() (*contactMailer, error) {
 	if err != nil || host == "" || fromErr != nil || sender.Address != from {
 		return nil, errors.New("invalid DXRegia SMTP address or sender")
 	}
+	mode := os.Getenv("DXREGIA_SMTP_TLS")
+	if mode != "" && mode != "implicit" && mode != "starttls" {
+		return nil, errors.New("DXREGIA_SMTP_TLS must be implicit or starttls")
+	}
 	return &contactMailer{
-		address: address, host: host, from: from,
+		address: address, host: host, from: from, startTLS: mode == "starttls",
 		user: os.Getenv("DXREGIA_SMTP_USER"), password: os.Getenv("DXREGIA_SMTP_PASSWORD"),
 	}, nil
 }
@@ -51,8 +56,15 @@ func (m *contactMailer) notify(config string, request contactRequest) string {
 }
 
 func (m *contactMailer) send(to, message string) error {
-	conn, err := tls.DialWithDialer(&net.Dialer{Timeout: 8 * time.Second}, "tcp", m.address,
-		&tls.Config{ServerName: m.host, MinVersion: tls.VersionTLS12})
+	config := &tls.Config{ServerName: m.host, MinVersion: tls.VersionTLS12}
+	dialer := &net.Dialer{Timeout: 8 * time.Second}
+	var conn net.Conn
+	var err error
+	if m.startTLS {
+		conn, err = dialer.Dial("tcp", m.address)
+	} else {
+		conn, err = tls.DialWithDialer(dialer, "tcp", m.address, config)
+	}
 	if err != nil {
 		return err
 	}
@@ -65,6 +77,11 @@ func (m *contactMailer) send(to, message string) error {
 		return err
 	}
 	defer client.Close()
+	if m.startTLS {
+		if err := client.StartTLS(config); err != nil {
+			return err
+		}
+	}
 	if m.user != "" {
 		if err := client.Auth(smtp.PlainAuth("", m.user, m.password, m.host)); err != nil {
 			return err
