@@ -501,6 +501,10 @@
   .detail-head p { margin: 0; }
   .close { margin-left: auto; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+  .cards { align-items: stretch; }
+  .cards .card { display: flex; flex-direction: column; }
+  .cards .card form { flex: 1; display: flex; flex-direction: column; }
+  .cards .card form .actions, .cards .card > .actions { margin-top: auto; padding-top: 10px; }
   .card { padding: 14px 16px; border: 1px solid #cdd9e4; border-radius: 8px; background: #ffffffb8; }
   .card p { margin: 6px 0; }
   .card form { display: grid; gap: 10px; margin-top: 8px; }
