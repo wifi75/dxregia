@@ -40,6 +40,7 @@ type partner struct {
 	partnerDetails
 	RegisteredAt     time.Time
 	FirstConnectedAt *time.Time
+	FirstInboundAt   *time.Time
 	Provisioning     string
 	Connection       string
 	MailStatus       string
@@ -529,28 +530,40 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 }
 
 func recordFirstConnections(path string, partners map[string]partner, snapshot presence) {
-	changed := make([]string, 0)
+	type before struct{ first, inbound *time.Time }
+	changed := map[string]before{}
 	for _, channel := range snapshot.Channels {
 		if channel.Kind != "node" || channel.State != "normal" || channel.Since <= 0 || channel.Since > snapshot.At {
 			continue
 		}
 		entry, ok := partners[channel.Call]
-		if !ok || entry.FirstConnectedAt != nil {
+		if !ok {
 			continue
 		}
 		since := time.Unix(channel.Since, 0).UTC()
-		entry.FirstConnectedAt = &since
-		partners[channel.Call] = entry
-		changed = append(changed, channel.Call)
+		old := before{entry.FirstConnectedAt, entry.FirstInboundAt}
+		touched := false
+		if entry.FirstConnectedAt == nil {
+			entry.FirstConnectedAt, touched = &since, true
+		}
+		if !channel.Outbound && entry.FirstInboundAt == nil {
+			entry.FirstInboundAt, touched = &since, true
+		}
+		if touched {
+			partners[channel.Call] = entry
+			if _, seen := changed[channel.Call]; !seen {
+				changed[channel.Call] = old
+			}
+		}
 	}
 	if len(changed) == 0 {
 		return
 	}
 	if err := savePartners(path, partners); err != nil {
 		log.Printf("Save first partner connections: %v", err)
-		for _, call := range changed {
+		for call, old := range changed {
 			entry := partners[call]
-			entry.FirstConnectedAt = nil
+			entry.FirstConnectedAt, entry.FirstInboundAt = old.first, old.inbound
 			partners[call] = entry
 		}
 	}

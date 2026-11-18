@@ -5,7 +5,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -206,6 +206,14 @@
     return { tone: 'neutral', text: 'Non abilitato: il partner non può collegarsi al tuo nodo.' }
   }
 
+  // Stato reale del collegamento verso di te: il canale di DXSpider è uno solo, quindi si distingue chi l'ha aperto.
+  function incomingInfo(partner?: Partner) {
+    if (!partner) return { tone: 'neutral', text: '' }
+    if (partner.Connection === 'Attivo' && partner.Direction === 'Ingresso') return { tone: 'green', text: 'Il partner è collegato al tuo nodo adesso.' }
+    if (partner.Connection === 'Attivo') return { tone: 'amber', text: 'Il collegamento attivo l’hai aperto tu: il partner non ha ancora una connessione sua verso di te.' }
+    return { tone: 'neutral', text: 'Il partner non è collegato al tuo nodo in questo momento.' }
+  }
+
   function directionLabel(direction?: string) {
     if (direction === 'Uscita') return 'In uscita ↗ (avviato da te)'
     if (direction === 'Ingresso') return 'In ingresso ↙ (avviato dal partner)'
@@ -341,6 +349,7 @@
 
   {#if editing}
     {@const inbound = inboundInfo(selected?.Provisioning)}
+    {@const incoming = incomingInfo(selected)}
     {@const canEnableInbound = selected && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '') && !selected.Provisioning?.includes('verificare')}
     {@const outgoingReady = selected?.Provisioning === 'Abilitato in Mojo' || selected?.Provisioning === 'Pronto in uscita'}
     <div class="detail">
@@ -419,6 +428,11 @@
             <p class="observed-state" role="status">
               <span class="led" data-tone={inbound.tone} aria-hidden="true"></span>
               {inbound.text}
+            </p>
+            <p class="observed-state" role="status">
+              <span class="led" data-tone={incoming.tone} aria-hidden="true"></span>
+              {incoming.text}
+              <span class="muted">· Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</span>
             </p>
             {#if selected.MailStatus || emailStatus}<p class="muted">Email: {selected.MailStatus || emailStatus}</p>{/if}
             {#if peerPassword && selected.Provisioning === 'Abilitato in Mojo'}

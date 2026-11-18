@@ -136,6 +136,16 @@
       reading = false
     }
   }
+  let engine = $state('')
+  onMount(async () => {
+    try {
+      const response = await fetch('/api/engine')
+      if (response.ok) {
+        const info = await response.json()
+        if (info.Version) engine = info.Version + (info.Build ? ' (build ' + info.Build + ')' : '')
+      }
+    } catch { /* il piè di pagina funziona anche senza */ }
+  })
   onMount(() => {
     const unlock = () => unlockAudio()
     window.addEventListener('pointerdown', unlock, { once: true })
@@ -223,6 +233,10 @@
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
         <strong>{khz.format(views)}</strong> {t('visitsShort')}
       </span>
+      <span class="dot" aria-hidden="true"></span>
+    {/if}
+    {#if engine}
+      <span class="stat" title="DXSpider Mojo">DXSpider <strong>{engine}</strong></span>
       <span class="dot" aria-hidden="true"></span>
     {/if}
     <a class="project" href="https://github.com/wifi75/dxregia" target="_blank" rel="noopener noreferrer" title={t('projectNote')}>

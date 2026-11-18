@@ -104,6 +104,7 @@ func main() {
 	registerTelnetOptions(mux, auth, *setupRoot)
 	registerSpots(mux, *setupRoot)
 	registerADXO(service, mux, *setupRoot)
+	registerEngineVersion(mux, *setupRoot)
 	if err := registerContacts(service, mux, *setupRoot, auth); err != nil {
 		log.Fatal(err)
 	}
