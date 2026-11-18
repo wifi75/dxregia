@@ -122,18 +122,19 @@
 </main>
 
 <style>
-  main { max-width: 1210px; margin: auto; padding: 22px clamp(14px, 3vw, 30px); }
+  main { width: 100%; padding: 22px clamp(14px, 2vw, 36px); }
   .heading, .filters { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
   .heading { justify-content: space-between; }
   h1 { margin: 0; font-size: 1.65rem; }
-  button, input, select { border: 1px solid #aebfcc; border-radius: 4px; background: white; color: #173653; padding: 6px 10px; min-height: 38px; font: inherit; }
-  button { cursor: pointer; }
-  button[aria-pressed=true] { color: white; background: #175586; border-color: #175586; }
+  input, select { border: 1px solid #aebfcc; border-radius: 4px; background: white; color: #173653; padding: 6px 10px; min-height: 38px; font: inherit; }
+  .filters button { min-height: 36px; padding: .3rem .75rem; border-radius: 9px; }
+  .filters button[aria-pressed=false] { --button-face: #fff; --button-edge: #a7bdcd; --button-ink: #234968; }
+  .filters button[aria-pressed=true] { --button-face: #17648e; --button-edge: #103f61; }
   :focus-visible { outline: 2px solid #175586; outline-offset: 2px; }
   .table-wrap { overflow: auto; margin-top: 16px; }
   table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
   th, td { padding: 7px 10px; border-bottom: 1px solid #d7e2ed; }
-  th { background: #e0eaf4; color: #174e7a; border-bottom: 2px solid #4078a6; font-size: .85rem; }
+  th { background: #dce9f5; color: #174e7a; border-bottom: 2px solid #4078a6; font-size: .85rem; }
   tbody tr:nth-child(odd) { background: white; }
   tbody tr:nth-child(even) { background: #eaf0f6; }
   .frequency, .mode { padding: 2px 6px; border-radius: 4px; }

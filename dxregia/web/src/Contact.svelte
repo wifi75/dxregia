@@ -72,7 +72,7 @@
 </main>
 
 <style>
-  main { max-width: 840px; margin: auto; padding: 22px clamp(14px, 4vw, 34px); }
+  main { width: 100%; padding: 22px clamp(14px, 2vw, 36px); }
   h1 { margin: 0 0 16px; font-size: 1.65rem; }
   h2 { margin: 6px 0 0; font-size: 1.12rem; }
   p { margin: 0; }
@@ -80,7 +80,7 @@
   .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 195px), 1fr)); gap: 12px; }
   label { display: grid; gap: 5px; font-weight: 600; min-width: 0; }
   input, select, textarea { padding: 8px; min-height: 44px; border: 1px solid #aab8c5; border-radius: 4px; font: inherit; min-width: 0; }
-  button { justify-self: start; min-height: 44px; border: 1px solid #214e80; border-radius: 4px; background: #214e80; color: white; padding: 7px 14px; font: inherit; font-weight: 650; cursor: pointer; }
+  button { justify-self: start; }
   :focus-visible { outline: 2px solid #214e80; outline-offset: 2px; }
   [role=alert] { color: #9b2424; }
 </style>

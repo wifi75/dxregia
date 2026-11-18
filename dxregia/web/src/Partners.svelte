@@ -279,8 +279,8 @@
   label { display: grid; min-width: 0; gap: 5px; font-weight: 600; }
   .note { margin: 12px 0; }
   input, textarea { min-width: 0; padding: 8px; border: 1px solid #aab8c5; border-radius: 4px; font: inherit; min-height: 44px; }
-  button { min-height: 44px; padding: 7px 13px; border: 1px solid #214e80; border-radius: 4px; background: #214e80; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
-  .call { background: none; color: #214e80; border: 0; padding: 4px; min-height: 34px; text-decoration: underline; }
+
+  .call { background: none; color: #214e80; border: 0; padding: 4px; min-height: 34px; text-decoration: underline; box-shadow: none; }
   :is(button,input,textarea):focus-visible { outline: 2px solid #214e80; outline-offset: 2px; }
   [role=alert] { color: #9b2424; }
   ul { padding: 0; list-style: none; }

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import type { Snippet } from 'svelte'
   import { toDataURL } from 'qrcode'
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
@@ -12,7 +13,34 @@
 
   type Session = { signedIn: boolean; mustChange: boolean; mustVerify?: boolean; enrollmentKey?: string; recoveryCodes?: string[] }
   let session = $state<Session>()
-  let { onSaved }: { onSaved: () => void } = $props()
+  let { onSaved, nodeStatus }: { onSaved: () => void; nodeStatus: Snippet } = $props()
+  const groups = [
+    { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['configurazione', 'Configurazione']] },
+    { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['richieste', 'Richieste ricevute']] },
+    { label: 'Gestione', items: [['statistiche', 'Statistiche del portale'], ['backup', 'Backup']] },
+  ] as const
+  type Page = typeof groups[number]['items'][number][0]
+  let page = $state<Page>('stato')
+
+  function selectPage(event: MouseEvent, next: Page) {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    if (location.hash !== '#' + next) location.hash = next
+    page = next
+  }
+
+  function readPage() {
+    const target = location.hash.slice(1)
+    for (const group of groups) {
+      for (const [id] of group.items) {
+        if (id === target) {
+          page = id
+          return
+        }
+      }
+    }
+    page = 'stato'
+  }
   let password = $state('')
   let error = $state('')
   let busy = $state(false)
@@ -40,6 +68,7 @@
   }
 
   onMount(async () => {
+    readPage()
     try {
       const response = await fetch('/api/auth')
       if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
@@ -92,9 +121,11 @@
   }
 </script>
 
+<svelte:window onhashchange={readPage} />
+
 {#if session}
   {#if codes.length}
-    <section>
+    <section class="auth-card">
       <h2>Salva i codici di recupero</h2>
       <p>Conserva questi codici in un posto sicuro. Un codice e la password permettono di configurare una nuova app di autenticazione.</p>
       <ul class="recovery-codes">
@@ -103,16 +134,47 @@
       <button type="button" onclick={() => { codes = []; if (session) session.recoveryCodes = undefined }}>Ho salvato i codici</button>
     </section>
   {:else if session.signedIn && !session.mustChange && !session.mustVerify}
-    <Setup {onSaved} />
-    <Presence />
-    <Traffic />
-    <BackupVerify />
-    <ContactRequests onDraft={request => { draft = { ...request } }} />
-    <Partners {draft} />
-    <button type="button" onclick={logout}>Esci</button>
-    {#if error}<p role="alert">{error}</p>{/if}
+    <div class="workspace">
+      <aside class="sidebar">
+        <nav aria-label="Amministrazione DXRegia">
+          {#each groups as group}
+            <div class="nav-group">
+              <h2>{group.label}</h2>
+              <ul>
+                {#each group.items as [id, label]}
+                  <li><a href={'#' + id} aria-current={page === id ? 'page' : undefined}
+                    onclick={(event) => selectPage(event, id)}>{label}</a></li>
+                {/each}
+              </ul>
+            </div>
+          {/each}
+        </nav>
+        <button class="secondary" type="button" onclick={logout}>Esci</button>
+        {#if error}<p role="alert">{error}</p>{/if}
+      </aside>
+      <div class="workspace-content">
+        {#if page === 'stato'}
+          {@render nodeStatus()}
+          <Presence />
+        {:else if page === 'configurazione'}
+          <Setup {onSaved} />
+        {:else if page === 'partner'}
+          <Partners {draft} />
+        {:else if page === 'richieste'}
+          <ContactRequests onDraft={request => {
+            draft = { ...request }
+            location.hash = 'partner'
+            page = 'partner'
+          }} />
+        {:else if page === 'statistiche'}
+          <Traffic />
+        {:else if page === 'backup'}
+          <BackupVerify />
+        {/if}
+      </div>
+    </div>
   {:else}
-    <section>
+    <section class="auth-card">
       <h2>{session.mustChange ? 'Cambia la password temporanea' : session.mustVerify ? 'Verifica in due passaggi' : 'Accesso sysop'}</h2>
       {#if session.enrollmentKey}
         <p>Aggiungi DXRegia alla tua app di autenticazione.</p>
@@ -142,13 +204,27 @@
 {/if}
 
 <style>
-  section { margin-top: 20px; padding: 16px; background: #fff; border: 1px solid #d7dfe7; }
+  .auth-card { max-width: 560px; margin: 24px auto; padding: clamp(18px, 4vw, 32px); background: #fff; border: 1px solid #d7dfe7; border-radius: 12px; }
+  .workspace { display: grid; grid-template-columns: clamp(190px, 19vw, 264px) minmax(0, 1fr); align-items: start; gap: clamp(14px, 2vw, 28px); }
+  .workspace-content { min-width: 0; }
+  .sidebar { position: sticky; top: 18px; padding: 14px 12px; border: 1px solid #cbd9e4; border-radius: 12px; background: #fff; box-shadow: 0 2px 9px #12354f0c; }
+  .sidebar ul { margin: 0; padding: 0; list-style: none; }
+  .nav-group + .nav-group { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2eaf0; }
+  .nav-group h2 { margin: 0 0 .25rem; padding-left: .7rem; color: #425d70; font-size: .8rem; }
+  .nav-group a { display: flex; align-items: center; min-height: 40px; padding: .45rem .65rem; text-decoration: none; color: #244662; border-inline-start: 3px solid transparent; border-radius: 5px; }
+  .nav-group a:hover { background: #eef4f8; }
+  .nav-group a[aria-current=page] { border-inline-start-color: #176c98; background: #e2eef7; color: #113e64; font-weight: 700; }
+  @media (max-width: 650px) {
+    .workspace { grid-template-columns: minmax(0, 1fr); }
+    .sidebar { position: static; }
+    .sidebar nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(145px, 100%), 1fr)); gap: .5rem; }
+    .nav-group + .nav-group { margin-top: 0; padding-top: 0; border: 0; }
+  }
   h2 { margin: 0 0 12px; font-size: 1.15rem; }
   label { display: grid; max-width: 330px; gap: 5px; font-weight: 600; }
   input { border: 1px solid #aab8c5; border-radius: 4px; min-height: 44px; padding: 8px; font: inherit; }
-  button { margin-top: 14px; min-height: 44px; padding: 7px 13px; border: 1px solid #214e80; border-radius: 4px; background: #214e80; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
+  button { margin-top: 14px; }
   :is(button, input):focus-visible { outline: 2px solid #214e80; outline-offset: 3px; }
-  .secondary { margin-left: 8px; background: #fff; color: #214e80; }
   .recovery-codes { padding-left: 20px; }
   code { overflow-wrap: anywhere; }
   summary { cursor: pointer; color: #214e80; }

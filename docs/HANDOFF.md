@@ -185,3 +185,5 @@ Aggiornamento nativo da qualsiasi directory tramite update-native.sh. Compila pr
 L'installatore nativo distribuisce lo script come /usr/local/bin/dxregia-update. Il collaudo lo invoca da fuori checkout. Sui server esistenti lo stesso file .sh puo essere eseguito direttamente o installato una volta nel PATH.
 
 Aggiornamento Docker tramite update-docker.sh sull'host che esegue il container standard. Conserva il volume e riusa mapping di porte, politica di riavvio e variabili DXRegia. Il collaudo esegue l'aggiornamento da una directory esterna e verifica contatore e porte.
+
+Navigazione sysop con menu e sottomenu a sinistra per Nodo, Collegamenti e Gestione. A destra si monta la sola pagina attiva, con link hash per cronologia e accesso diretto. La preselezione da una richiesta apre la pagina partner. Portale spot a larghezza piena, pulsanti condivisi con stati di clic, focus e movimento ridotto. Build Svelte verificata; il collaudo grafico sul server resta al sysop.

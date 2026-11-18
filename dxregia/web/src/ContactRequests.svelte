@@ -51,6 +51,6 @@
   details { border-top: 1px solid #d7dfe7; padding: 8px 0; }
   summary { cursor: pointer; font-weight: 650; }
   .message { white-space: pre-wrap; overflow-wrap: anywhere; }
-  button { min-height: 44px; padding: 6px 12px; border: 1px solid #214e80; background: white; color: #214e80; border-radius: 4px; font: inherit; cursor: pointer; }
+
   :focus-visible { outline: 2px solid #214e80; outline-offset: 2px; }
 </style>

@@ -47,7 +47,11 @@
 
 <header>
   <div class="brand">DXRegia</div>
-  <a class="section" href={publicPortal ? "/" : "/spots"}>{publicPortal ? "Pannello sysop" : "Portale spot"}</a>
+  <nav aria-label="Portale">
+    <a href="/spots" aria-current={publicPortal && !contactPage ? 'page' : undefined}>Spot in diretta</a>
+    <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>Contatti</a>
+    <a href="/" aria-current={!publicPortal ? 'page' : undefined}>Pannello sysop</a>
+  </nav>
 </header>
 
 {#if contactPage}
@@ -56,6 +60,7 @@
   <Spots />
 {:else}
 <main>
+  {#snippet nodeStatus()}
   <div class="heading">
     <h1>Stato del nodo</h1>
     <button onclick={refresh} disabled={busy}>{busy ? 'Verifica in corso…' : 'Verifica ora'}</button>
@@ -73,7 +78,8 @@
       <div><dt>Ultima risposta</dt><dd>{status ? utc(status.checkedAt) + ' UTC' : '—'}</dd></div>
     </dl>
   </article>
-  <Auth onSaved={refresh} />
+  {/snippet}
+  <Auth onSaved={refresh} {nodeStatus} />
 </main>
 {/if}
 
@@ -97,9 +103,12 @@
     padding: 12px clamp(16px, 4vw, 48px);
   }
   .brand { font-size: 1.15rem; font-weight: 750; color: #143a60; }
-  .section, p, dt { color: #485b6d; }
-  .section { font-size: 0.85rem; }
-  main { max-width: 1000px; margin: auto; padding: 30px clamp(16px, 4vw, 40px); }
+  p, dt { color: #485b6d; }
+  header { justify-content: space-between; align-items: center; flex-wrap: wrap; }
+  header nav { display: flex; flex-wrap: wrap; gap: .35rem; }
+  header a { color: #234968; font-weight: 650; padding: .55rem .8rem; border-radius: .5rem; text-decoration: none; }
+  header a:hover, header a[aria-current=page] { background: #e7f0f7; color: #143a60; }
+  main { width: 100%; padding: 24px clamp(14px, 2vw, 36px); }
   .heading {
     display: flex;
     flex-wrap: wrap;
@@ -109,18 +118,6 @@
     margin-bottom: 16px;
   }
   h1 { margin: 0; font-size: 1.65rem; line-height: 1.2; }
-  button {
-    padding: 7px 13px;
-    border: 1px solid #214e80;
-    border-radius: 4px;
-    background: #214e80;
-    color: #fff;
-    font: inherit;
-    font-weight: 650;
-    cursor: pointer;
-  }
-  button:disabled { opacity: 0.72; cursor: wait; }
-  button:focus-visible { outline: 2px solid #214e80; outline-offset: 3px; }
   article { background: #fff; border: 1px solid #d7dfe7; }
   .summary { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; }
   .signal { margin-top: 8px; width: 8px; height: 8px; flex: 0 0 8px; background: #9a5600; border-radius: 50%; }

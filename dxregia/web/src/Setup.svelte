@@ -224,13 +224,13 @@
   .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px 16px; }
   label { display: grid; gap: 5px; font-weight: 600; }
   input { color: #182636; border: 1px solid #aab8c5; border-radius: 4px; min-height: 44px; padding: 8px; font: inherit; }
-  button { margin-top: 14px; min-height: 44px; padding: 7px 13px; border: 1px solid #214e80; border-radius: 4px; background: #214e80; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
+  button { margin-top: 14px; }
   :is(button, input):focus-visible { outline: 2px solid #214e80; outline-offset: 3px; }
   button:disabled { opacity: .7; cursor: wait; }
   details { margin-bottom: 14px; padding: 10px; border: 1px solid #d7dfe7; }
   summary { cursor: pointer; font-weight: 650; }
   details label { margin-top: 8px; }
-  .secondary { margin-inline: 4px; color: #214e80; background: #fff; }
+  .secondary { margin-inline: 4px; }
   dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px),1fr)); gap: 12px; }
   dt { color: #485b6d; font-size: .85rem; }
   dd { margin: 0; overflow-wrap: anywhere; }
