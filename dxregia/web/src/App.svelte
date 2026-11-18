@@ -3,8 +3,10 @@
   import Auth from './Auth.svelte'
   import Spots from './Spots.svelte'
   import Contact from './Contact.svelte'
+  import { trackPortalPresence } from './portalPresence'
   const contactPage = window.location.pathname === '/contatti'
   const publicPortal = contactPage || window.location.pathname === '/spots'
+  if (publicPortal) trackPortalPresence()
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
   const labels = {

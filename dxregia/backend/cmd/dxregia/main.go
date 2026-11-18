@@ -115,6 +115,7 @@ func main() {
 		}
 	})
 	mux.HandleFunc("GET /contatti", func(w http.ResponseWriter, r *http.Request) {
+		traffic.view(r)
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
 	mux.HandleFunc("GET /spots", func(w http.ResponseWriter, r *http.Request) {
