@@ -137,3 +137,5 @@ L'analytics sysop mostra le visualizzazioni per pagina e una stima delle schede 
 Il test Linux controlla anche il contatore pubblico, l'accesso riservato agli analytics, il conteggio per pagina e dominio, i segnali duplicati della stessa scheda e la persistenza delle visualizzazioni dopo il riavvio.
 
 Il workflow Linux carica gli archivi nativi e i checksum come artefatti GitHub Actions al termine del collaudo dell'architettura corrispondente. Gli artefatti di prova durano 14 giorni e permettono il collaudo su server e LXC prima della release.
+
+La matrice Docker ora prova due nodi Mojo isolati, ciascuno configurato tramite le API sysop con TOTP. Il test verifica abilitazione, collegamento, prima connessione e riconnessione. La propagazione di uno spot a un logger resta da verificare: la validazione upstream esclude gli spot PC61 con sorgente privata o loopback.

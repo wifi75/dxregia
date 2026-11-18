@@ -46,9 +46,9 @@ def copy_node(destination):
         docker("cp", CONTAINER + ":/data/mojo", str(destination))
 
 
-def request(client, path, body=None, method=None):
+def request(client, path, body=None, method=None, base=BASE):
     req = urllib.request.Request(
-        BASE + path,
+        base + path,
         data=None if body is None else json.dumps(body).encode(),
         headers={"Content-Type": "application/json"},
         method=method,
@@ -130,6 +130,72 @@ def ready(client):
     raise RuntimeError("Mojo did not become ready after restart")
 
 
+def wait_for(description, check, timeout=40):
+    until = time.monotonic() + timeout
+    while time.monotonic() < until:
+        try:
+            result = check()
+            if result:
+                return result
+        except OSError:
+            pass
+        time.sleep(1)
+    raise RuntimeError(f"Timed out waiting for {description}")
+
+
+def peer_link(primary):
+    peer = "dxregia-peer-smoke"
+    peer_port, peer_web = 7393, 18808
+    peer_base = f"http://{HOST}:{peer_web}"
+    docker("run", "-d", "--name", peer, "-e", f"DXREGIA_TELNET_PORT={peer_port}",
+           "-p", f"{HOST}:{peer_web}:8080", "dxregia:local")
+    try:
+        secondary = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+
+        def remote(path, body=None):
+            return request(secondary, path, body, base=peer_base)
+
+        wait_for("secondary web service", lambda: remote("/api/auth")[0] == 200)
+        virgin = docker("exec", peer, "cat", "/data/sysop-initial")
+        assert remote("/api/auth/login", virgin)[1]["mustChange"]
+        status, enrollment = remote("/api/auth/password", secrets.token_hex(24))
+        assert status == 200 and enrollment["mustVerify"]
+        assert remote("/api/auth/totp", totp(enrollment["enrollmentKey"]))[0] == 200
+        config = {"node": "Q3QQQ-2", "sysop": "Q3QQQ", "locator": "JN55AA", "port": peer_port}
+        assert remote("/api/setup", config) == (200, {"started": True, "port": peer_port})
+
+        def ip(name):
+            return docker("inspect", "--format", '{{(index .NetworkSettings.Networks "bridge").IPAddress}}', name).strip()
+
+        local_call, peer_call = "Q1QQQ-2", "Q3QQQ-2"
+        assert remote("/api/partners", {"Call": local_call, "Host": ip(CONTAINER), "Port": TELNET_PORT})[0] == 200
+        assert request(primary, "/api/partners", {"Call": peer_call, "Host": ip(peer), "Port": peer_port})[0] == 200
+        status, incoming = remote(f"/api/partners/{local_call}/enable", {})
+        assert status == 202 and incoming["Password"]
+        assert request(primary, f"/api/partners/{peer_call}/enable", {})[0] == 202
+
+        def local_partner():
+            return request(primary, "/api/partners")[1][peer_call]
+
+        wait_for("partner account provisioning", lambda: (
+            local_partner()["Provisioning"] == "Abilitato in Mojo"
+            and remote("/api/partners")[1][local_call]["Provisioning"] == "Abilitato in Mojo"
+        ))
+        assert request(primary, f"/api/partners/{peer_call}/connect?retry=true", incoming["Password"])[0] == 202
+        wait_for("Mojo link on both dashboards", lambda: (
+            local_partner()["Connection"] == "Attivo"
+            and remote("/api/partners")[1][local_call]["Connection"] == "Attivo"
+        ))
+        wait_for("first connection timestamp", lambda: local_partner()["FirstConnectedAt"])
+        docker("stop", peer)
+        wait_for("disconnected partner status", lambda: local_partner()["Connection"] != "Attivo")
+        docker("start", peer)
+        # Automatic reconnect is throttled, so allow more than the retry interval.
+        wait_for("automatic peer reconnect", lambda: local_partner()["Connection"] == "Attivo", timeout=150)
+    finally:
+        docker("rm", "-fv", peer)
+
+
 def main():
     client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
     virgin = (
@@ -144,7 +210,8 @@ def main():
     status, enroll = request(client, "/api/auth/password", password)
     assert status == 200 and enroll["mustVerify"]
     assert request(client, "/api/setup", config)[0] == 401
-    assert request(client, "/api/auth/totp", totp(enroll["enrollmentKey"]))[0] == 200
+    first_code = totp(enroll["enrollmentKey"])
+    assert request(client, "/api/auth/totp", first_code)[0] == 200
     assert request(client, "/api/setup", config) == (200, {"started": True, "port": TELNET_PORT})
     portal_traffic(client)
     telnet_login(b"Q7QQQ")
@@ -179,6 +246,15 @@ def main():
     time.sleep(6)
     telnet_login(b"Q7QQQ", b"Profilo Linux")
     print("Linux installer, setup with TOTP, Telnet, offline backup and persistent restart passed")
+    if not NATIVE:
+        # HTTP sessions are held in memory, so authenticate again after restarting.
+        assert request(client, "/api/auth/login", password)[0] == 200
+        def next_code():
+            code = totp(enroll["enrollmentKey"])
+            return code if code != first_code else None
+
+        assert request(client, "/api/auth/totp", wait_for("next TOTP window", next_code))[0] == 200
+        peer_link(client)
 
 
 if __name__ == "__main__":
