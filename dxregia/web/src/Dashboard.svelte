@@ -16,6 +16,12 @@
   let views = $state<number>()
   let now = $state(Date.now())
   let loading = false
+  let again = false
+  let liveState = $state<'live' | 'reconnecting' | 'polling'>('polling')
+  let updatedAt = $state<number>()
+  let freshKeys = $state<Set<string>>(new Set())
+  let knownKeys: Set<string> | undefined
+  const spotKey = (spot: Spot) => spot.At + '|' + spot.Call + '|' + spot.Frequency
 
   const time = new Intl.DateTimeFormat('it-IT', { timeStyle: 'medium' })
   const utc = new Intl.DateTimeFormat('it-IT', { timeZone: 'UTC', timeStyle: 'medium' })
@@ -71,7 +77,7 @@
   }
 
   async function load() {
-    if (loading) return
+    if (loading) { again = true; return }
     loading = true
     try {
       const [presence, partners, spotRows, traffic] = await Promise.all([
@@ -82,7 +88,17 @@
       if (partners.ok) directory = await partners.json()
       if (spotRows.ok) {
         const data = await spotRows.json()
-        spots = data.Spots ?? []
+        const rows: Spot[] = data.Spots ?? []
+        const keys = new Set(rows.map(spotKey))
+        if (knownKeys) {
+          const added = [...keys].filter(key => !knownKeys!.has(key))
+          if (added.length) {
+            freshKeys = new Set([...freshKeys, ...added])
+            setTimeout(() => { freshKeys = new Set([...freshKeys].filter(key => !added.includes(key))) }, 4500)
+          }
+        }
+        knownKeys = keys
+        spots = rows
         spotsAvailable = data.Available !== false
       }
       if (traffic.ok) views = (await traffic.json()).Active
@@ -90,21 +106,37 @@
       snapshot = undefined
     } finally {
       now = Date.now()
+      updatedAt = now
       loading = false
+      if (again) { again = false; void load() }
     }
   }
 
   onMount(() => {
     void load()
-    const timer = setInterval(load, 5000)
+    // Flusso live: il server avvisa appena arriva uno spot o cambia la presenza. Senza flusso si interroga ogni 5 secondi.
+    let source: EventSource | undefined
+    if (typeof EventSource !== 'undefined') {
+      source = new EventSource('/api/live')
+      source.onopen = () => { liveState = 'live' }
+      source.addEventListener('tick', () => { liveState = 'live'; void load() })
+      source.onerror = () => { liveState = source?.readyState === EventSource.CLOSED ? 'polling' : 'reconnecting' }
+    }
+    const timer = setInterval(() => { if (liveState !== 'live') void load() }, 5000)
+    const safety = setInterval(load, 20000)
     const probe = setInterval(refresh, 30000)
     const clock = setInterval(() => { now = Date.now() }, 1000)
-    return () => { clearInterval(timer); clearInterval(probe); clearInterval(clock) }
+    return () => { source?.close(); clearInterval(timer); clearInterval(safety); clearInterval(probe); clearInterval(clock) }
   })
 </script>
 
 <div class="heading">
   <h1>Stato del nodo</h1>
+  <p class="live" data-state={liveState} role="status">
+    <span class="pulse" aria-hidden="true"></span>
+    <strong>{liveState === 'live' ? 'LIVE' : liveState === 'reconnecting' ? 'Riconnessione…' : 'Aggiornamento ogni 5 s'}</strong>
+    {#if updatedAt}<span class="muted">· aggiornato {time.format(new Date(updatedAt))}</span>{/if}
+  </p>
 </div>
 
 <section class="health" aria-label="Salute del nodo">
@@ -123,9 +155,9 @@
 </section>
 
 <section class="counters" aria-label="Numeri">
-  <div class="glass-panel counter"><strong>{sessions.length}</strong><span>Radioamatori collegati</span></div>
-  <div class="glass-panel counter"><strong>{nodes.length}</strong><span>Nodi con sessione aperta</span></div>
-  <div class="glass-panel counter"><strong>{lastHour.length >= 100 ? '100+' : lastHour.length}</strong><span>Spot nell’ultima ora</span></div>
+  <div class="glass-panel counter">{#key sessions.length}<strong class="pop">{sessions.length}</strong>{/key}<span>Radioamatori collegati</span></div>
+  <div class="glass-panel counter">{#key nodes.length}<strong class="pop">{nodes.length}</strong>{/key}<span>Nodi con sessione aperta</span></div>
+  <div class="glass-panel counter">{#key lastHour.length}<strong class="pop">{lastHour.length >= 100 ? '100+' : lastHour.length}</strong>{/key}<span>Spot nell’ultima ora</span></div>
   <div class="glass-panel counter"><strong>{views ?? '—'}</strong><span>Visitatori attivi sul portale</span></div>
 </section>
 
@@ -189,8 +221,8 @@
         <table>
           <thead><tr><th>UTC</th><th>DX</th><th>kHz</th><th>Da</th></tr></thead>
           <tbody>
-            {#each spots.slice(0, 8) as spot (spot.At + spot.Call + spot.Frequency)}
-              <tr><td>{utc.format(new Date(spot.At * 1000))}</td><td><strong>{spot.Call}</strong></td><td>{spot.Frequency.toFixed(1)}</td><td>{spot.Spotter}</td></tr>
+            {#each spots.slice(0, 10) as spot (spotKey(spot))}
+              <tr class:new={freshKeys.has(spotKey(spot))}><td>{utc.format(new Date(spot.At * 1000))}</td><td><strong>{spot.Call}</strong></td><td>{spot.Frequency.toFixed(1)}</td><td>{spot.Spotter}</td></tr>
             {/each}
           </tbody>
         </table>
@@ -233,7 +265,20 @@
   .bars li { display: grid; grid-template-columns: 52px 1fr 34px; align-items: center; gap: 10px; padding: 4px 0; }
   .band { font-weight: 650; }
   .bar { height: 14px; border-radius: 7px; background: #dde8f1; overflow: hidden; }
-  .bar i { display: block; height: 100%; border-radius: 7px; background: linear-gradient(90deg, #2f78b3, #1fa86b); }
+  .bar i { display: block; height: 100%; border-radius: 7px; background: linear-gradient(90deg, #2f78b3, #1fa86b); transition: width .7s ease; }
+  .live { display: flex; align-items: center; gap: 8px; margin: 0; padding: 5px 12px; border-radius: 16px; background: #ffffffa6; border: 1px solid #cdd9e4; font-size: .9rem; }
+  .live strong { letter-spacing: .06em; color: #167b50; }
+  .live[data-state=reconnecting] strong { color: #b8650d; }
+  .live[data-state=polling] strong { color: #485b6d; letter-spacing: 0; }
+  .pulse { width: 10px; height: 10px; border-radius: 50%; background: #1fa86b; animation: beat 1.6s ease-out infinite; }
+  .live[data-state=reconnecting] .pulse { background: #e08a1a; }
+  .live[data-state=polling] .pulse { background: #708391; animation: none; }
+  @keyframes beat { 0% { box-shadow: 0 0 0 0 #1fa86b88; } 70%, 100% { box-shadow: 0 0 0 9px #1fa86b00; } }
+  .pop { animation: pop .5s ease-out; }
+  @keyframes pop { 0% { transform: scale(1.35); color: #1fa86b; } 100% { transform: scale(1); } }
+  tr.new { animation: arrive 4.5s ease-out; }
+  @keyframes arrive { 0% { background: #bff0d6; transform: translateY(-6px); opacity: .2; } 12% { transform: none; opacity: 1; } 100% { background: transparent; } }
+  @media (prefers-reduced-motion: reduce) { .pulse, .pop, tr.new { animation: none; } .bar i { transition: none; } }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
   .overflow { overflow: auto; }
   table { width: 100%; text-align: left; border-collapse: collapse; white-space: nowrap; font-variant-numeric: tabular-nums; }

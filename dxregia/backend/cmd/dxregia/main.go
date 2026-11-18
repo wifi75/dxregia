@@ -96,6 +96,7 @@ func main() {
 	registerPresence(mux, *setupRoot, auth)
 	registerSMTP(mux, *setupRoot, auth)
 	registerAutoPartner(mux, *setupRoot, auth)
+	registerLive(mux, *setupRoot, auth)
 	registerMojoLog(mux, auth, *setupRoot)
 	registerTelnetPassword(mux, auth, *setupRoot)
 	registerTelnetOptions(mux, auth, *setupRoot)
