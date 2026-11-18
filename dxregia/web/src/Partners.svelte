@@ -21,6 +21,7 @@
   let outgoingPassword = $state('')
   let credentialRequest = 0
   let remoteAuth = $state<'none' | 'password'>('none')
+  let storedPassword = false
   let autoReconnect = $state(false)
   let sendInstructions = $state(false)
   let emailStatus = $state('')
@@ -44,6 +45,7 @@
     peerPassword = ''
     outgoingPassword = ''
     remoteAuth = 'none'
+    storedPassword = false
     autoReconnect = partner?.Reconnect === 'Abilitata'
     sendInstructions = false
     emailStatus = ''
@@ -61,6 +63,7 @@
         .then(async response => {
           if (!response.ok || request !== credentialRequest) return
           const { password } = await response.json()
+          if (request === credentialRequest && password) storedPassword = true
           if (request === credentialRequest && password && remoteAuth === 'none' && !outgoingPassword) {
             remoteAuth = 'password'
             outgoingPassword = password
@@ -180,8 +183,8 @@
     event.preventDefault()
     if (busy || enabling) return
     const connectNow = !selected && (event.submitter as HTMLButtonElement | null)?.value !== 'directory'
-    const password = connectNow && remoteAuth === 'password' ? outgoingPassword : ''
-    if (connectNow && remoteAuth === 'password' && !/^[A-Za-z0-9]{1,72}$/.test(password)) {
+    const password = remoteAuth === 'password' ? outgoingPassword : ''
+    if (remoteAuth === 'password' && (connectNow || password) && !/^[A-Za-z0-9]{1,72}$/.test(password)) {
       error = 'Inserisci la password fornita dal nodo remoto.'
       return
     }
@@ -192,7 +195,11 @@
       const response = await fetch('/api/partners' + (selected ? '/' + encodeURIComponent(selected.Call) : ''), {
         method: selected ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, Note: note, ConnectNow: connectNow, RemotePassword: password }),
+        body: JSON.stringify({
+          ...form, Note: note, ConnectNow: connectNow,
+          // Omesso = lascia invariata la password salvata; stringa vuota = rimuovila.
+          ...(remoteAuth === 'password' ? (password ? { RemotePassword: password } : {}) : storedPassword ? { RemotePassword: '' } : {}),
+        }),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
