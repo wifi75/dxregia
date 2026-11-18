@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -80,6 +81,7 @@ func main() {
 
 	service, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	var children sync.WaitGroup
 	mux := http.NewServeMux()
 	auth, err := registerAuth(mux, *setupRoot, *bootstrapFile)
 	if err != nil {
@@ -99,7 +101,7 @@ func main() {
 	}
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
-	if err := registerSetup(service, mux, *setupRoot, *setupPerl, *setupInternal, number, *telnetBind, auth, func(port int) {
+	if err := registerSetup(service, &children, mux, *setupRoot, *setupPerl, *setupInternal, number, *telnetBind, auth, func(port int) {
 		activeTarget.Store(net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
 	}); err != nil {
 		log.Fatal(err)
@@ -122,7 +124,9 @@ func main() {
 	address := net.JoinHostPort(*httpBind, strconv.Itoa(*port))
 	log.Printf("DXRegia: http://%s", address)
 	server := &http.Server{Addr: address, Handler: mux, ReadHeaderTimeout: 5 * time.Second, WriteTimeout: 25 * time.Second}
+	shutdownDone := make(chan struct{})
 	go func() {
+		defer close(shutdownDone)
 		<-service.Done()
 		shutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -131,4 +135,7 @@ func main() {
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Print(err)
 	}
+	stop()
+	<-shutdownDone
+	children.Wait()
 }

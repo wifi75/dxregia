@@ -1,0 +1,27 @@
+name: Linux installation smoke test
+
+on:
+  push:
+    branches: [main, dxregia-linux-validation]
+  pull_request:
+    paths: ['dxregia/**', 'perl/**', 'cmd/**', 'data/**', '.github/workflows/linux-smoke.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install locally on a fresh Docker runner
+        run: sh dxregia/deploy/install-local.sh > "$RUNNER_TEMP/dxregia-install.txt"
+      - name: Verify setup, two factors, Telnet, persistent restart and backup
+        run: python3 dxregia/deploy/smoke_linux.py
+      - name: Report container logs on failure
+        if: failure()
+        run: docker logs --tail 80 dxregia

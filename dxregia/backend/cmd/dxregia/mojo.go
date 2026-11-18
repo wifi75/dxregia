@@ -10,11 +10,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
+	"sync"
+	"syscall"
 	"time"
 )
 
-func startMojo(service context.Context, perl, root string, config nodeConfig) error {
+func startMojo(service context.Context, children *sync.WaitGroup, perl, root string, config nodeConfig) error {
 	data := filepath.Join(root, "local_data")
 	if err := os.MkdirAll(data, 0700); err != nil {
 		return err
@@ -53,11 +56,19 @@ func startMojo(service context.Context, perl, root string, config nodeConfig) er
 		return err
 	}
 	cmd := mojoCommand(service, perl, root, "cluster.pl", logFile)
+	if runtime.GOOS != "windows" {
+		cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
+		cmd.WaitDelay = 8 * time.Second
+	}
 	if err := cmd.Start(); err != nil {
 		return err
 	}
 	exited := make(chan error, 1)
-	go func() { exited <- cmd.Wait() }()
+	children.Add(1)
+	go func() {
+		defer children.Done()
+		exited <- cmd.Wait()
+	}()
 	probe, cancel := context.WithTimeout(service, 9*time.Second)
 	defer cancel()
 	timer := time.NewTicker(250 * time.Millisecond)

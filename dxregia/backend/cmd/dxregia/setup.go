@@ -70,7 +70,7 @@ func (c *nodeConfig) validate() error {
 	return nil
 }
 
-func registerSetup(service context.Context, mux *http.ServeMux, root, perl string, internalPort, suggestedPort int, telnetBind string, auth *sysopAuth, setTarget func(int)) error {
+func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.ServeMux, root, perl string, internalPort, suggestedPort int, telnetBind string, auth *sysopAuth, setTarget func(int)) error {
 	if root == "" {
 		return nil
 	}
@@ -125,7 +125,7 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 		if err := installPresenceHook(local); err != nil {
 			return err
 		}
-		if err := startMojo(service, perl, root, *saved); err == nil {
+		if err := startMojo(service, children, perl, root, *saved); err == nil {
 			return nil
 		} else {
 			log.Printf("Mojo restart: %v", err)
@@ -205,7 +205,7 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 			setTarget(config.Port)
 		}
 		if perl != "" {
-			if err := startMojo(service, perl, root, config); err != nil {
+			if err := startMojo(service, children, perl, root, config); err != nil {
 				log.Printf("Mojo startup: %v", err)
 				http.Error(w, "Configurazione salvata. Avvio di Mojo non riuscito. Consulta il registro di avvio e riprova.", http.StatusServiceUnavailable)
 				return
