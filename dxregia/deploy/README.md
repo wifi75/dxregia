@@ -33,6 +33,8 @@ DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-native.
 
 Lo script compila frontend e backend, installa le dipendenze Perl e avvia il servizio systemd dxregia con il suo utente dedicato. Stampa l'indirizzo del pannello e, al primo avvio, la password temporanea. Le porte predefinite sono 8080 e 7300. I dati sono in /var/lib/dxregia e il runtime è in /opt/dxregia. Una nuova esecuzione avvia il servizio già installato e conserva i dati. L'accesso iniziale è sul loopback. Per un server remoto si può accedere al pannello con un tunnel SSH dalla propria postazione.
 
+Per consentire l'accesso Telnet dalla rete, imposta `DXREGIA_TELNET_BIND=0.0.0.0` alla prima installazione nativa, prima del wizard. Il pannello resta sul loopback. Il firewall deve permettere le connessioni in ingresso sulla porta Telnet scelta. Per un nodo gia configurato, la riesecuzione dell'installatore conserva il listener esistente.
+
 Il collaudo automatico nativo è passato su Ubuntu 24.04 con systemd, su amd64 e arm64. Una LXC non privilegiata con systemd può usare lo stesso percorso; il collaudo Proxmox resta separato. Le immagini Docker rimangono disponibili.
 
 ## Installazione di prova da sorgente

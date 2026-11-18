@@ -276,6 +276,11 @@ def main():
     assert request(client, "/api/setup", config) == (200, {"started": True, "port": TELNET_PORT})
     portal_traffic(client)
     telnet_presence(client)
+    if NATIVE and os.environ.get("DXREGIA_TELNET_BIND") == "0.0.0.0":
+        # The loopback Telnet check alone also passes with a loopback-only listener.
+        listeners = subprocess.check_output(["ss", "-H4ltn", f"sport = :{TELNET_PORT}"], text=True)
+        assert any(row.split()[3] in {f"0.0.0.0:{TELNET_PORT}", f"*:{TELNET_PORT}"}
+                   for row in listeners.splitlines()), listeners
     edited = dict(config, name="Lab sysop", qth="Profilo Linux", email="lab@example.org", advertisedHost="node.example.org")
     assert request(client, "/api/node-settings", dict(edited, port=TELNET_PORT + 1), method="PUT")[0] == 409
     assert request(client, "/api/node-settings", edited, method="PUT") == (200, edited)

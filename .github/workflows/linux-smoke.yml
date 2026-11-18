@@ -60,6 +60,7 @@ jobs:
       DXREGIA_ARCH: ${{ matrix.arch }}
       DXREGIA_WEB_PORT: '8788'
       DXREGIA_TELNET_PORT: '7374'
+      DXREGIA_TELNET_BIND: '0.0.0.0'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
