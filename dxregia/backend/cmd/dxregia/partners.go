@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"net/mail"
@@ -50,7 +52,7 @@ func (d *partnerDetails) validate() bool {
 		(net.ParseIP(d.Host) != nil || partnerHost.MatchString(d.Host)) && d.Port >= 1 && d.Port <= 65535
 }
 
-func registerPartners(mux *http.ServeMux, root string, auth *sysopAuth) error {
+func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth *sysopAuth) error {
 	if auth == nil {
 		return nil
 	}
@@ -68,6 +70,22 @@ func registerPartners(mux *http.ServeMux, root string, auth *sysopAuth) error {
 		return err
 	}
 	var lock sync.Mutex
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
+				lock.Lock()
+				recordFirstConnections(path, partners, snapshot)
+				lock.Unlock()
+			}
+		}
+	}()
+
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		if !auth.allowed(r) {
@@ -131,6 +149,34 @@ func registerPartners(mux *http.ServeMux, root string, auth *sysopAuth) error {
 	mux.HandleFunc("POST /api/partners", handler)
 	mux.HandleFunc("PUT /api/partners/{call}", handler)
 	return nil
+}
+
+func recordFirstConnections(path string, partners map[string]partner, snapshot presence) {
+	changed := make([]string, 0)
+	for _, channel := range snapshot.Channels {
+		if channel.Kind != "node" || channel.State != "normal" || channel.Since <= 0 || channel.Since > snapshot.At {
+			continue
+		}
+		entry, ok := partners[channel.Call]
+		if !ok || entry.FirstConnectedAt != nil {
+			continue
+		}
+		since := time.Unix(channel.Since, 0).UTC()
+		entry.FirstConnectedAt = &since
+		partners[channel.Call] = entry
+		changed = append(changed, channel.Call)
+	}
+	if len(changed) == 0 {
+		return
+	}
+	if err := savePartners(path, partners); err != nil {
+		log.Printf("Save first partner connections: %v", err)
+		for _, call := range changed {
+			entry := partners[call]
+			entry.FirstConnectedAt = nil
+			partners[call] = entry
+		}
+	}
 }
 
 func savePartners(path string, partners map[string]partner) error {

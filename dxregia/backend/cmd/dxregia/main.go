@@ -85,10 +85,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := registerPartners(mux, *setupRoot, auth); err != nil {
+	if err := registerPartners(service, mux, *setupRoot, auth); err != nil {
 		log.Fatal(err)
 	}
 	registerPresence(mux, *setupRoot, auth)
+	registerSpots(mux, *setupRoot)
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
 	if err := registerSetup(service, mux, *setupRoot, *setupPerl, *setupInternal, number, *telnetBind, auth, func(port int) {
@@ -102,6 +103,9 @@ func main() {
 		if err := json.NewEncoder(w).Encode(checkListener(r.Context(), activeTarget.Load().(string))); err != nil {
 			log.Print(err)
 		}
+	})
+	mux.HandleFunc("GET /spots", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
 	mux.Handle("GET /", http.FileServer(http.Dir(*web)))
 	address := net.JoinHostPort(*httpBind, strconv.Itoa(*port))

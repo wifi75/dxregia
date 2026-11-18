@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import Auth from './Auth.svelte'
+  import Spots from './Spots.svelte'
+  const publicPortal = window.location.pathname === '/spots'
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
   const labels = {
@@ -36,14 +38,17 @@
     }).format(new Date(value))
   }
 
-  onMount(() => { void refresh() })
+  onMount(() => { if (!publicPortal) void refresh() })
 </script>
 
 <header>
   <div class="brand">DXRegia</div>
-  <span class="section">Diagnostica locale</span>
+  <a class="section" href={publicPortal ? "/" : "/spots"}>{publicPortal ? "Pannello sysop" : "Portale spot"}</a>
 </header>
 
+{#if publicPortal}
+  <Spots />
+{:else}
 <main>
   <div class="heading">
     <h1>Stato del nodo</h1>
@@ -64,6 +69,7 @@
   </article>
   <Auth onSaved={refresh} />
 </main>
+{/if}
 
 <style>
   :global(*) { box-sizing: border-box; }

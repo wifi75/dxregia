@@ -13,7 +13,8 @@ Collaudare l'immagine e lo script locale su un host Linux con Docker, poi comple
 - [x] Impostare struttura, architettura e passaggio di consegne.
 - [x] Definire [pagina pubblica degli spot e area sysop](docs/INTERFACES.md).
 - [x] Autenticazione sysop con cambio obbligatorio della password temporanea e protezione del wizard lato API.
-- [ ] Implementare pagina spot pubblica con feed, filtri e layout mobile.
+- [x] Implementare la prima pagina spot pubblica con dati Mojo, filtri e layout mobile.
+- [ ] Completare la mappa delle entità DXCC e collaudare il feed con due nodi collegati su Linux.
 - [ ] Riprodurre l'avvio di Mojo su Linux e registrare dipendenze, configurazione minima e accesso locale alla console.
 - [ ] Verificare la baseline con due nodi locali e una sessione Telnet. Annotare gli scambi attesi e i criteri per spot, riconnessione e persistenza.
 - [x] Implementare la diagnostica locale Go/Svelte sul listener Telnet.
@@ -34,7 +35,7 @@ Collaudare l'immagine e lo script locale su un host Linux con Docker, poi comple
 Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, riceve uno spot sul logger via Telnet e ritrova configurazione e collegamento dopo il riavvio.
 
 - [x] Anagrafica nodi partner con referente, email e storico note datate.
-- [ ] Collegare l'anagrafica a Mojo e registrare automaticamente la prima connessione confermata.
+- [x] Registrare automaticamente la prima connessione confermata per i partner presenti nell'anagrafica.
 
 - [x] Proteggere configurazione, anagrafica e presenza con TOTP e blocco del riutilizzo.
 - [x] Mostrare sulla dashboard sysop nodi e sessioni da una fotografia recente di Mojo. Test reale Telnet su Windows.

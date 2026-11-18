@@ -81,3 +81,7 @@ Per le installazioni gestite, il backend installa un hook Local.pm solo se assen
 ## 2026-11-18 — Wizard sysop e import iniziale
 
 Wizard in due passaggi con rinvio e ripresa, dati sysop estesi e riepilogo privato. Anteprima da DXVars.pm, Listeners.pm con un listener e JSON a campi riconosciuti. Verificata l'importazione con il modello Mojo originale e con campioni JSON e Listeners.pm. Build Go e web riuscite. Modifica dei dati dopo l'avvio, cambio porta HTTP dal pannello e migrazione completa di utenti, filtri e partner restano aperti.
+
+## 2026-11-18 — Portale spot reale e prima connessione dei partner
+
+Il portale /spots interroga /api/spots ogni cinque secondi e legge fino a 100 spot recenti dall'archivio Mojo degli ultimi due giorni UTC. Verificati via HTTP la pagina, la bandiera locale e un record scritto dal vero Mojo nel laboratorio Windows. L'API restituisce solo i campi pubblici. Il modo appare quando esplicito nel commento. La mappa DXCC iniziale è parziale; PNG provenienti da Flagcdn. Il backend registra la prima sessione partner in stato normal, osservata nella fotografia privata di Mojo, e la conserva al ricollegamento. Test Go passato. Restano connessione dal pannello, analytics, migrazione completa, backup e collaudo Linux.

@@ -37,18 +37,25 @@ func registerPresence(mux *http.ServeMux, root string, auth *sysopAuth) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		var snapshot presence
-		file, err := os.Open(path)
-		if err == nil {
-			defer file.Close()
-			err = json.NewDecoder(io.LimitReader(file, 4<<20)).Decode(&snapshot)
-		}
-		age := time.Since(time.Unix(snapshot.At, 0))
-		if err != nil || age < 0 || age > 15*time.Second {
-			snapshot = presence{}
-		}
-		json.NewEncoder(w).Encode(snapshot)
+		json.NewEncoder(w).Encode(readPresence(path))
 	})
+}
+
+func readPresence(path string) presence {
+	var snapshot presence
+	file, err := os.Open(path)
+	if err != nil {
+		return snapshot
+	}
+	defer file.Close()
+	if err := json.NewDecoder(io.LimitReader(file, 4<<20)).Decode(&snapshot); err != nil {
+		return presence{}
+	}
+	age := time.Since(time.Unix(snapshot.At, 0))
+	if age < 0 || age > 15*time.Second {
+		return presence{}
+	}
+	return snapshot
 }
 
 func installPresenceHook(local string) error {
