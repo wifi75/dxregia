@@ -235,13 +235,13 @@
   .lens { display: inline-grid; place-items: center; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; --button-face: transparent; --button-edge: transparent; --button-ink: #6d8798; box-shadow: none; }
   .lens:hover:not(:disabled) { --button-ink: #175c82; --button-face: #e3eef6; transform: none; filter: none; }
   tbody tr:hover, tbody tr:nth-child(even):hover { background: #c3dbec; }
-  .frequency, .mode { display: inline-block; padding: 2px 7px; border-radius: 4px; }
-  .frequency { min-width: 7ch; text-align: right; color: #142b39; }
+  .frequency, .mode { display: inline-block; padding: 3px 8px; border-radius: 5px; text-align: center; }
+  .frequency { width: 10.5ch; color: #142b39; font-weight: 700; }
   .frequency, td:last-child { font-variant-numeric: tabular-nums; }
   td:first-child, td:last-child, .comment { color: #465f72; }
   .comment { width: 100%; }
   img { object-fit: cover; vertical-align: middle; margin-right: 7px; border: 1px solid #15263826; border-radius: 2px; }
-  .mode { color: #4c6374; font-size: .76rem; font-weight: 650; }
+  .mode { min-width: 4.6em; color: #4c6374; font-size: .92rem; font-weight: 700; }
   .mode[data-mode=CW] { background: #fff0d7; color: #7d430e; }
   .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { background: #d7f0e3; color: #1a6046; }
   .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31] { background: #eee4ff; color: #573894; }
@@ -270,6 +270,6 @@
     td:nth-child(5) { grid-area: entity; font-size: .9rem; }
     td:nth-child(6) { grid-area: comment; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
     td:nth-child(7) { grid-area: utc; font-size: .85rem; }
-    .frequency { min-width: 0; }
+    .frequency { width: 10ch; }
   }
 </style>
