@@ -38,6 +38,15 @@
     } catch { autoError = 'Impossibile salvare l’impostazione.' }
   }
 
+  async function remove(request: ContactRequest) {
+    if (!confirm('Eliminare la richiesta di ' + request.Call + '? Non si può annullare. Un partner già configurato resta in Nodi partner.')) return
+    try {
+      const response = await fetch('/api/contact-requests/' + encodeURIComponent(request.ID), { method: 'DELETE' })
+      if (!response.ok) { autoError = (await response.text()).trim(); return }
+      requests = (requests ?? []).filter(item => item.ID !== request.ID)
+    } catch { autoError = 'Impossibile eliminare la richiesta.' }
+  }
+
   async function refresh() {
     try {
       const response = await fetch('/api/contact-requests')
@@ -75,9 +84,12 @@
         {#if request.Kind === 'partner'}<p>{request.Name} · host {request.Host} · porta {request.Port}</p>{/if}
         {#if request.Message}<p class="message">{request.Message}</p>{/if}
         <p>Notifica email: {request.MailStatus}</p>
-        {#if request.Kind === 'partner'}
-          <button type="button" onclick={() => onDraft(request)}>Prepara scheda partner</button>
-        {/if}
+        <div class="row-actions">
+          {#if request.Kind === 'partner'}
+            <button type="button" onclick={() => onDraft(request)}>Prepara scheda partner</button>
+          {/if}
+          <button class="secondary" type="button" onclick={() => remove(request)}>Elimina richiesta</button>
+        </div>
       </details>
     {/each}
   {:else if requests}<p>Nessuna richiesta ricevuta.</p>
@@ -89,6 +101,7 @@
   .switch { display: flex; align-items: center; gap: 10px; font-weight: 650; }
   .switch input { width: 18px; height: 18px; min-height: auto; accent-color: #167b50; }
   .hint { margin: 6px 0 0; color: #485b6d; font-size: .9rem; }
+  .row-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
   .auto-tag { color: #167b50; font-weight: 650; }
   section { margin-top: 20px; padding: 16px; }
   .heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }

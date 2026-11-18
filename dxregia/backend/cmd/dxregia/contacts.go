@@ -72,9 +72,12 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 					}
 					status := m.notify(config, item)
 					lock.Lock()
-					requests[index].MailStatus = status
-					if err := saveContacts(path, requests); err != nil {
-						requests[index].MailStatus = "Esito email da verificare"
+					// L'elenco può cambiare mentre l'email parte (ad esempio se il sysop elimina una richiesta).
+					if at := slices.IndexFunc(requests, func(other contactRequest) bool { return other.ID == item.ID }); at >= 0 {
+						requests[at].MailStatus = status
+						if err := saveContacts(path, requests); err != nil {
+							requests[at].MailStatus = "Esito email da verificare"
+						}
 					}
 					lock.Unlock()
 				}
@@ -124,6 +127,28 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		requests = append(requests, item)
 		w.WriteHeader(http.StatusAccepted)
+	})
+	mux.HandleFunc("DELETE /api/contact-requests/{id}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		id := r.PathValue("id")
+		lock.Lock()
+		defer lock.Unlock()
+		at := slices.IndexFunc(requests, func(item contactRequest) bool { return item.ID == id })
+		if at < 0 {
+			http.Error(w, "Richiesta non trovata.", http.StatusNotFound)
+			return
+		}
+		remaining := slices.Concat(requests[:at:at], requests[at+1:])
+		if err := saveContacts(path, remaining); err != nil {
+			http.Error(w, "Impossibile eliminare la richiesta.", http.StatusInternalServerError)
+			return
+		}
+		requests = remaining
+		w.WriteHeader(http.StatusNoContent)
 	})
 	mux.HandleFunc("GET /api/contact-requests", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
