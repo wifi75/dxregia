@@ -149,3 +149,5 @@ Il run Linux 44274300277 ha verificato su amd64 e arm64 provisioning, stato su e
 L'installatore nativo accetta DXREGIA_TELNET_BIND=0.0.0.0 prima del primo avvio per consentire logger e partner esterni. Il pannello resta sul loopback. I listener dei nodi gia configurati restano da modificare mediante migrazione coordinata.
 
 Le notifiche SMTP supportano TLS implicito e STARTTLS obbligatorio tramite DXREGIA_SMTP_TLS. Entrambe le modalita verificano il certificato prima dell'invio. Resta da collaudare la consegna con un provider reale.
+
+L'ascolto Telnet nativo su tutte le interfacce ha superato il controllo del listener su Ubuntu amd64 e arm64 nel run 44275996268. I job Docker di quel run si sono fermati al timeout del test spot. Il test successivo attende la finestra PC92 di Mojo per i nuovi utenti.

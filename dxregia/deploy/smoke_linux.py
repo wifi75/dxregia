@@ -181,6 +181,9 @@ def spot_delivery(primary, remote, peer, peer_port):
                 read_until(connection, b"dxspider >")
             spotter.sendall(f"dx 14025 JA1ABC {marker}\r\n".encode())
             reply = read_until(spotter, b"dxspider >")
+            # Mojo can hold a new user's spots until the next PC92 update
+            # (60 seconds by default, plus a five-second grace period).
+            logger.settimeout(80)
             try:
                 delivered = read_until(logger, marker.encode())
             except (TimeoutError, RuntimeError):
