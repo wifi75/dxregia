@@ -105,3 +105,5 @@ Collaudato il collegamento in uscita via API e due Mojo reali su Windows, con au
 ## Riconnessione automatica per partner
 
 Opzione esplicita nel pannello, piano persistente e tentativi distanziati di due minuti. Test Go verificato per sospensione al cambio di porta, link attivo, accodamento e protezione da tentativi ravvicinati. Build Svelte riuscita. Prossimo collaudo: caduta e ripresa su due nodi Mojo, poi backup e installatore Linux.
+
+Collaudo su Windows completato con due Mojo reali: disconnessione via comando del sysop, rilevazione del link inattivo e riconnessione automatica confermata dal motore. Nell'istanza di laboratorio è stato anticipato l'orario del prossimo tentativo; il vincolo reale di due minuti è verificato nel test Go. La prova di spegnimento forzato non ha interrotto il processo Mojo nel laboratorio e non costituisce una verifica di caduta dell'host.
