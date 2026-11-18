@@ -37,7 +37,6 @@
   <nav aria-label="Portale">
     <a href="/spots" aria-current={publicPortal && !contactPage ? 'page' : undefined}>{publicPortal ? t('navSpots') : 'Spot in diretta'}</a>
     <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>{publicPortal ? t('navContact') : 'Contatti'}</a>
-    <a href="/" aria-current={!publicPortal ? 'page' : undefined}>{publicPortal ? t('navSysop') : 'Pannello sysop'}</a>
   </nav>
   {#if publicPortal}
     <label class="lang"><span class="visually-hidden">{t('langLabel')}</span>
@@ -55,7 +54,7 @@
 {:else}
 <main>
   {#snippet nodeStatus()}
-    <Dashboard {status} {failed} {busy} {refresh} />
+    <Dashboard {status} {failed} {refresh} />
   {/snippet}
   <Auth onSaved={refresh} {nodeStatus} />
 </main>

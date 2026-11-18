@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,6 +22,7 @@ const sysopCookie = "dxregia_sysop"
 
 type sysopAuth struct {
 	mu            sync.Mutex
+	root          string
 	file          string
 	bootstrapFile string
 	hash          []byte
@@ -34,6 +37,17 @@ type sysopAuth struct {
 	factorOK      bool
 }
 
+// loginName è il nome utente del sysop: l'indicativo scelto nella configurazione guidata.
+// Finché la configurazione non esiste si usa «sysop».
+func (a *sysopAuth) loginName() string {
+	data, err := os.ReadFile(filepath.Join(a.root, "local", "dxregia-node.json"))
+	var node nodeConfig
+	if err != nil || json.Unmarshal(data, &node) != nil || strings.TrimSpace(node.Sysop) == "" {
+		return "sysop"
+	}
+	return strings.TrimSpace(node.Sysop)
+}
+
 func randomToken() (string, error) {
 	key := make([]byte, 24)
 	_, err := rand.Read(key)
@@ -44,7 +58,7 @@ func registerAuth(mux *http.ServeMux, root, bootstrapFile string) (*sysopAuth, e
 	if root == "" {
 		return nil, nil
 	}
-	auth := &sysopAuth{file: filepath.Join(root, ".dxregia-sysop"), bootstrapFile: bootstrapFile}
+	auth := &sysopAuth{root: root, file: filepath.Join(root, ".dxregia-sysop"), bootstrapFile: bootstrapFile}
 	hash, err := os.ReadFile(auth.file)
 	if os.IsNotExist(err) {
 		password, err := bootstrapPassword(bootstrapFile)
@@ -142,9 +156,25 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				http.Error(w, "Accesso richiesto.", http.StatusUnauthorized)
 				return
 			}
-			var password string
+			var password, user string
+			var raw json.RawMessage
 			body := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048))
-			if body.Decode(&password) != nil || body.Decode(new(any)) != io.EOF || len(password) > 72 {
+			if body.Decode(&raw) != nil || body.Decode(new(any)) != io.EOF {
+				http.Error(w, "Password non valida.", http.StatusBadRequest)
+				return
+			}
+			if action == "login" {
+				var input struct{ User, Password string }
+				if json.Unmarshal(raw, &input) != nil {
+					http.Error(w, "Utente o password non validi.", http.StatusBadRequest)
+					return
+				}
+				user, password = input.User, input.Password
+			} else if json.Unmarshal(raw, &password) != nil {
+				http.Error(w, "Password non valida.", http.StatusBadRequest)
+				return
+			}
+			if len(password) > 72 || len(user) > 64 {
 				http.Error(w, "Password non valida.", http.StatusBadRequest)
 				return
 			}
@@ -153,9 +183,12 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 					http.Error(w, "Attendi prima di riprovare.", http.StatusTooManyRequests)
 					return
 				}
-				if bcrypt.CompareHashAndPassword(a.hash, []byte(password)) != nil {
+				// La password si verifica sempre, così i tempi non rivelano se l'utente era giusto.
+				passwordOK := bcrypt.CompareHashAndPassword(a.hash, []byte(password)) == nil
+				userOK := subtle.ConstantTimeCompare([]byte(strings.ToLower(strings.TrimSpace(user))), []byte(strings.ToLower(a.loginName()))) == 1
+				if !passwordOK || !userOK {
 					a.nextLogin = time.Now().Add(time.Second)
-					http.Error(w, "Password errata.", http.StatusUnauthorized)
+					http.Error(w, "Utente o password errati.", http.StatusUnauthorized)
 					return
 				}
 			} else {

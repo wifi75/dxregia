@@ -7,7 +7,7 @@
   type Spot = { Frequency: number; Call: string; At: number; Spotter: string; Entity?: string }
   type Tone = 'green' | 'amber' | 'red' | 'neutral'
 
-  let { status, failed, busy, refresh }: { status?: Status; failed: boolean; busy: boolean; refresh: () => void } = $props()
+  let { status, failed, refresh }: { status?: Status; failed: boolean; refresh: () => void } = $props()
 
   let snapshot = $state<Snapshot>()
   let directory = $state<Record<string, { Name: string }>>({})
@@ -97,14 +97,14 @@
   onMount(() => {
     void load()
     const timer = setInterval(load, 5000)
+    const probe = setInterval(refresh, 30000)
     const clock = setInterval(() => { now = Date.now() }, 1000)
-    return () => { clearInterval(timer); clearInterval(clock) }
+    return () => { clearInterval(timer); clearInterval(probe); clearInterval(clock) }
   })
 </script>
 
 <div class="heading">
   <h1>Stato del nodo</h1>
-  <button onclick={refresh} disabled={busy}>{busy ? 'Verifica in corso…' : 'Verifica ora'}</button>
 </div>
 
 <section class="health" aria-label="Salute del nodo">

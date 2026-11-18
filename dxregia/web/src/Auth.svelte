@@ -11,6 +11,7 @@
   import Partners from './Partners.svelte'
   import BackupVerify from './BackupVerify.svelte'
   import MailSettings from './MailSettings.svelte'
+  import Logo from './Logo.svelte'
   import Traffic from './Traffic.svelte'
   import ContactRequests from './ContactRequests.svelte'
   import type { ContactRequest } from './ContactRequests.svelte'
@@ -47,6 +48,7 @@
     page = 'stato'
   }
   let password = $state('')
+  let user = $state('')
   let error = $state('')
   let busy = $state(false)
   let recovery = $state(false)
@@ -94,7 +96,7 @@
       const response = await fetch('/api/auth/' + endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(password),
+        body: JSON.stringify(endpoint === 'login' ? { User: user, Password: password } : password),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -194,6 +196,7 @@
     </div>
   {:else}
     <section class="auth-card glass-panel glass-enter">
+      <Logo />
       <h2>{session.mustChange ? 'Cambia la password temporanea' : session.mustVerify ? 'Verifica in due passaggi' : 'Accesso sysop'}</h2>
       {#if session.enrollmentKey}
         <p>Aggiungi DXRegia alla tua app di autenticazione.</p>
@@ -201,6 +204,13 @@
         <details><summary>Inserisci la chiave a mano</summary><p><code>{session.enrollmentKey}</code></p></details>
       {/if}
       <form onsubmit={submit}>
+        {#if !session.mustChange && !challenge}
+          <label>
+            Utente
+            <input type="text" required bind:value={user} autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="64" />
+          </label>
+          <p class="hint">Il tuo indicativo da sysop. Se non l’hai ancora impostato: sysop.</p>
+        {/if}
         <label>
           {session.mustChange ? 'Nuova password' : challenge ? (recovery ? 'Codice di recupero' : 'Codice a sei cifre') : 'Password'}
           <input type={challenge && !recovery ? 'text' : 'password'} required bind:value={password}
@@ -223,6 +233,7 @@
 {/if}
 
 <style>
+  .hint { margin: -6px 0 0; font-size: .88rem; }
   .auth-card { max-width: 560px; margin: 24px auto; padding: clamp(18px, 4vw, 32px); }
   .workspace { display: grid; grid-template-columns: clamp(190px, 19vw, 264px) minmax(0, 1fr); align-items: start; gap: clamp(14px, 2vw, 28px); }
   .workspace-content { min-width: 0; }
