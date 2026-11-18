@@ -40,7 +40,8 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 
 - [x] Proteggere configurazione, anagrafica e presenza con TOTP e blocco del riutilizzo.
 - [x] Mostrare sulla dashboard sysop nodi e sessioni da una fotografia recente di Mojo. Test reale Telnet su Windows.
-- [ ] Collaudare nella dashboard i collegamenti tra due nodi e le sessioni Web Mojo.
+- [x] Collaudare nella dashboard i collegamenti tra due nodi su Linux, inclusa la riconnessione automatica.
+- [ ] Collaudare nella dashboard le sessioni Web Mojo.
 - [x] Contatore pubblico e storico privato delle visualizzazioni giornaliere e dei domini di provenienza.
 - [x] Mostrare nell'analytics sysop una stima delle schede pubbliche attive e le visualizzazioni per pagina.
 - [ ] Integrare i paesi di provenienza nell'analytics sysop.

@@ -143,6 +143,26 @@ def wait_for(description, check, timeout=40):
     raise RuntimeError(f"Timed out waiting for {description}")
 
 
+def telnet_presence(client):
+    callsign = "Q7QQQ"
+
+    def visible():
+        status, snapshot = request(client, "/api/presence")
+        assert status == 200
+        return any(
+            channel["Call"] == callsign and channel["Kind"] == "telnet"
+            for channel in (snapshot["Channels"] or [])
+        )
+
+    with socket.create_connection((HOST, TELNET_PORT), timeout=5) as conn:
+        read_until(conn, b"login:")
+        conn.sendall(callsign.encode() + b"\r\n")
+        read_until(conn, b"dxspider >")
+        wait_for("Telnet user on the sysop dashboard", visible)
+        conn.sendall(b"bye\r\n")
+    wait_for("Telnet user to leave the sysop dashboard", lambda: not visible())
+
+
 def peer_link(primary):
     peer = "dxregia-peer-smoke"
     peer_port, peer_web = 7393, 18808
@@ -214,7 +234,7 @@ def main():
     assert request(client, "/api/auth/totp", first_code)[0] == 200
     assert request(client, "/api/setup", config) == (200, {"started": True, "port": TELNET_PORT})
     portal_traffic(client)
-    telnet_login(b"Q7QQQ")
+    telnet_presence(client)
     edited = dict(config, name="Lab sysop", qth="Profilo Linux", email="lab@example.org", advertisedHost="node.example.org")
     assert request(client, "/api/node-settings", dict(edited, port=TELNET_PORT + 1), method="PUT")[0] == 409
     assert request(client, "/api/node-settings", edited, method="PUT") == (200, edited)

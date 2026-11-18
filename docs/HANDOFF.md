@@ -143,3 +143,5 @@ La matrice Docker ora prova due nodi Mojo isolati, ciascuno configurato tramite 
 Lo script install-release.sh seleziona amd64/arm64, scarica i due asset nativi da GitHub Releases, verifica SHA-256 e delega l'installazione a install-native.sh. Il download reale resta da collaudare con una release che esponga gli asset.
 
 Il collaudo dell'installer da release usa asset locali su ciascuna architettura: l'archivio valido deve avviare l'installer, un checksum errato deve fermarlo prima dell'estrazione. La prova contro gli URL reali resta aperta.
+
+Il run Linux 44274300277 ha verificato su amd64 e arm64 provisioning, stato su entrambi i nodi, data di prima connessione e riconnessione dopo il riavvio del partner. La versione successiva del test controlla anche che una sessione Telnet compaia nella fotografia sysop e sparisca dopo la chiusura.
