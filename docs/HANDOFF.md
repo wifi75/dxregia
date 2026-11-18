@@ -195,3 +195,5 @@ La sezione Nodo → Accesso web consente di cambiare la porta HTTP nelle install
 Il listener pubblico Telnet Mojo e standard su 0.0.0.0 per ogni nodo gestito, senza opzione di bind. All'avvio viene normalizzato Listeners.pm, con copia della configurazione precedente. L'installatore e l'aggiornamento Docker pubblicano Telnet su tutte le interfacce IPv4. Pannello HTTP e listener interno Mojo restano separati.
 
 Il portale Spot usa una colonna sinistra con filtri per banda e modo e un registro a destra con ricerca, conteggio, orario dell'ultimo aggiornamento e controllo pausa. Su schermi stretti i filtri passano sopra il registro. Il sysop mantiene menu categorizzato a sinistra e area di lavoro a destra. Anteprima desktop renderizzata in Edge a 1440 px con spot di esempio.
+
+Nodo → Console Telnet nel pannello sysop. Usa il listener locale configurato, richiede 2FA, consente interrogazioni di diagnostica con una lista di comandi e conserva la cronologia della vista. Ogni richiesta apre una sessione breve con limite di tempo e output. Il portale aggiunge superfici traslucide e segnale live animato con rispetto di prefers-reduced-motion.

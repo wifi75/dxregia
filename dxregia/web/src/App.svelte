@@ -90,7 +90,7 @@
     margin: 0;
     min-width: 280px;
     min-height: 100vh;
-    background: #f1f5f9;
+    background: radial-gradient(ellipse at 5% 0%, #d5e8f4 0%, transparent 48%), #f1f5f9;
     color: #182636;
     font: 15px/1.5 system-ui, sans-serif;
   }
@@ -98,7 +98,8 @@
     display: flex;
     align-items: baseline;
     gap: 18px;
-    background: #fff;
+    background: #ffffffb5;
+    backdrop-filter: blur(14px);
     border-bottom: 1px solid #d7dfe7;
     padding: 8px clamp(12px, 2vw, 32px);
   }

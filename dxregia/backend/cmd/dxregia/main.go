@@ -109,6 +109,7 @@ func main() {
 	}); err != nil {
 		log.Fatal(err)
 	}
+	registerTelnetConsole(mux, auth, func() string { return activeTarget.Load().(string) })
 	mux.HandleFunc("GET /api/listener", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")

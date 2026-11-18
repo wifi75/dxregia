@@ -153,9 +153,11 @@
   .feed-controls time { color: #496174; font-variant-numeric: tabular-nums; }
   .feed-state { display: inline-flex; align-items: center; gap: .45rem; color: #395468; font-weight: 650; }
   .feed-state::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #ad7118; }
-  .feed-state.live::before { background: #20845a; box-shadow: 0 0 0 3px #dcefe5; }
+  .feed-state.live::before { background: #20845a; box-shadow: 0 0 0 3px #dcefe5; animation: signal-pulse 2.6s ease-out infinite; }
+  @keyframes signal-pulse { 0%, 100% { box-shadow: 0 0 0 2px #20845a24; } 48% { box-shadow: 0 0 0 5px #20845a0a; } }
+  @media (prefers-reduced-motion: reduce) { .feed-state.live::before { animation: none; } }
   .desk { display: grid; grid-template-columns: 218px minmax(0, 1fr); align-items: start; gap: 18px; }
-  .receiver { position: sticky; top: 12px; min-width: 0; border: 1px solid #b7c9d5; border-top: 4px solid #186187; border-radius: 7px; background: #eef4f7; padding: 14px; }
+  .receiver { position: sticky; top: 12px; min-width: 0; border: 1px solid #b7c9d5; border-top: 4px solid #186187; border-radius: 7px; background: linear-gradient(160deg, #ffffffdf, #e2eef5cc); backdrop-filter: blur(12px); box-shadow: 0 8px 22px #26526d16; padding: 14px; }
   .receiver h2 { margin: 0 0 .6rem; color: #214963; font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; }
   .mode-filter { margin-top: 16px; padding-top: 14px; border-top: 1px solid #c8d7e0; }
   .band-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
@@ -164,7 +166,7 @@
   .band-grid button[aria-pressed=false] { --button-face: #fff; --button-edge: #a4bccb; --button-ink: #274760; }
   .band-grid button[aria-pressed=true] { --button-face: #175c82; --button-edge: #0c3a56; }
   .band-color { width: 9px; height: 9px; border-radius: 2px; box-shadow: inset 0 0 0 1px #223c4c30; }
-  .log { min-width: 0; background: #fff; border: 1px solid #b7c9d5; border-radius: 7px; }
+  .log { min-width: 0; background: #fff; border: 1px solid #b7c9d5; border-radius: 7px; box-shadow: 0 8px 24px #26526d12; }
   .log > p { margin: 14px 16px; }
   .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; padding: 12px 16px; border-bottom: 1px solid #ccdbe7; background: #f5f8fa; border-radius: 6px 6px 0 0; color: #496174; }
   input { width: min(100%, 350px); min-height: 40px; border: 1px solid #acbfce; border-radius: 6px; background: #fff; color: #173653; padding: 6px 10px; font: inherit; }
