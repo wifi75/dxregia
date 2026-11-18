@@ -199,3 +199,5 @@ Il portale Spot usa una colonna sinistra con filtri per banda e modo e un regist
 Nodo → Console Telnet nel pannello sysop. Usa il listener locale configurato, richiede 2FA, consente interrogazioni di diagnostica con una lista di comandi e conserva la cronologia della vista. Ogni richiesta apre una sessione breve con limite di tempo e output. Il portale aggiunge superfici traslucide e segnale live animato con rispetto di prefers-reduced-motion.
 
 Gestione → Password aggiunge il cambio separato di password web e sysop Telnet, entrambi con un nuovo TOTP oltre alla sessione autenticata. Il cambio web chiude la sessione; quello Telnet accoda una richiesta privata temporanea al motore, esclusa dai backup, e attende conferma. La console puo rispondere anche alla richiesta di password Telnet.
+
+Nodo → Opzioni Telnet legge da Mojo password richiesta, nominativi con barra, registrazione e limiti di sessione. Le modifiche sono persistenti e il pannello attende riscontro dalla fotografia del motore. Le personalizzazioni senza hook gestito non sono editabili da questo menu. Le altre famiglie di opzioni Mojo rimangono da censire e integrare.

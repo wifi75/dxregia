@@ -3,6 +3,7 @@
   import type { Snippet } from 'svelte'
   import { toDataURL } from 'qrcode'
   import WebSettings from './WebSettings.svelte'
+  import TelnetOptions from './TelnetOptions.svelte'
   import TelnetConsole from './TelnetConsole.svelte'
   import PasswordSettings from './PasswordSettings.svelte'
   import Setup from './Setup.svelte'
@@ -18,7 +19,7 @@
   let session = $state<Session>()
   let { onSaved, nodeStatus }: { onSaved: () => void; nodeStatus: Snippet } = $props()
   const groups = [
-    { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet']] },
+    { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet'], ['opzioni-telnet', 'Opzioni Telnet']] },
     { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['richieste', 'Richieste ricevute']] },
     { label: 'Gestione', items: [['statistiche', 'Statistiche del portale'], ['backup', 'Backup'], ['password', 'Password']] },
   ] as const
@@ -166,6 +167,8 @@
           <WebSettings />
         {:else if page === 'console'}
           <TelnetConsole />
+        {:else if page === 'opzioni-telnet'}
+          <TelnetOptions />
         {:else if page === 'partner'}
           <Partners {draft} />
         {:else if page === 'richieste'}

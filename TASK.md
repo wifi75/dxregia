@@ -75,3 +75,5 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Modificare i dati del profilo sysop a nodo avviato con applicazione nell'hook Mojo gestito.
 - [ ] Completare la modifica di porte e indicativi con migrazione e verifica dell'endpoint.
 - [x] Installazione nativa da sorgente con systemd, verificata su Ubuntu 24.04. Prova LXC Proxmox ancora aperta.
+
+- [ ] Portare nel pannello le opzioni Mojo con inventario di variabili e comandi, includendo filtri, protocolli e funzioni a configurazione avanzata. Il primo menu Opzioni Telnet gestisce accesso, registrazione, sessioni e riconnessioni.

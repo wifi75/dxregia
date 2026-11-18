@@ -12,6 +12,7 @@ sub process {
     $last_write = $now;
     apply_node_profile();
     apply_sysop_password();
+    apply_telnet_options();
     provision_partners();
     connect_partners();
     my @channels;
@@ -34,9 +35,54 @@ sub process {
     my $target = "$main::local_data/dxregia-presence.json";
     my $tmp = "$target.tmp";
     open(my $file, '>:raw', $tmp) or die "DXRegia snapshot: $!";
-    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, SysopPassword => JSON::true, Channels => \@channels }) or die "DXRegia snapshot: $!";
+    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, SysopPassword => JSON::true, Telnet => telnet_options(), Channels => \@channels }) or die "DXRegia snapshot: $!";
     close($file) or die "DXRegia snapshot: $!";
     rename($tmp, $target) or die "DXRegia snapshot: $!";
+}
+
+my $applied_telnet = '';
+
+sub telnet_options {
+    return {
+        PasswordRequired => $main::passwdreq ? JSON::true : JSON::false,
+        SlashCallsigns => $main::allowslashcall ? JSON::true : JSON::false,
+        ReplaceSession => $main::bumpexisting ? JSON::true : JSON::false,
+        Registration => int($main::reqreg // 0),
+        ConcurrentUsers => int($main::maxconnect_user // 0),
+        ConcurrentNodes => int($main::maxconnect_node // 0),
+        MultipleSessions => int($main::allowmultiple // 0),
+        ReconnectSeconds => int($main::min_reconnection_rate // 0),
+        MaxSSID => int($main::max_ssid // 0),
+    };
+}
+
+sub apply_telnet_options {
+    my $path = "$main::root/local/dxregia-telnet.json";
+    open(my $file, '<:raw', $path) or return;
+    my $bytes = '';
+    read($file, $bytes, 1025);
+    close($file);
+    return if !$bytes || length($bytes) > 1024 || $bytes eq $applied_telnet;
+    my $value = eval { JSON::decode_json($bytes) };
+    return unless ref($value) eq 'HASH';
+    for my $key (qw(PasswordRequired SlashCallsigns ReplaceSession)) {
+        return unless JSON::is_bool($value->{$key});
+    }
+    my %max = (Registration => 2, ConcurrentUsers => 1000, ConcurrentNodes => 1000,
+               MultipleSessions => 15, ReconnectSeconds => 86400, MaxSSID => 15);
+    foreach my $key (keys %max) {
+        return unless defined $value->{$key} && $value->{$key} =~ /\A[0-9]+\z/ && $value->{$key} <= $max{$key};
+    }
+    $main::passwdreq = $value->{PasswordRequired} ? 1 : 0;
+    $main::allowslashcall = $value->{SlashCallsigns} ? 1 : 0;
+    $main::bumpexisting = $value->{ReplaceSession} ? 1 : 0;
+    $main::reqreg = $value->{Registration};
+    $main::maxconnect_user = $value->{ConcurrentUsers};
+    $main::maxconnect_node = $value->{ConcurrentNodes};
+    $main::allowmultiple = $value->{MultipleSessions};
+    $main::min_reconnection_rate = $value->{ReconnectSeconds};
+    $main::max_ssid = $value->{MaxSSID};
+    $applied_telnet = $bytes;
 }
 
 sub apply_sysop_password {
