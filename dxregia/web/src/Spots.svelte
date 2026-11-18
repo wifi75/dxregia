@@ -199,7 +199,7 @@
 </main>
 
 <style>
-  main { width: 100%; padding: 14px clamp(12px, 2vw, 32px) 24px; }
+  main { width: 100%; max-width: 1240px; margin: 0 auto; padding: 14px clamp(12px, 2vw, 32px) 24px; }
   h1 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.25rem); color: #102e42; letter-spacing: -.04em; }
   @media (prefers-reduced-motion: reduce) { tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: none; background: #fff1a0; } }
   .filters { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px 14px; margin-bottom: 14px; min-width: 0; }
