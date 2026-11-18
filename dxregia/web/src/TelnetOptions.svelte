@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { tr } from './adminI18n'
+  import Hint from './Hint.svelte'
 
   const toggles = [
     ['PasswordRequired', 'Richiedi una password a tutti i collegamenti Telnet'],
@@ -14,6 +15,16 @@
     ['ReconnectSeconds', 'Soglia per riconoscere connessioni ravvicinate (secondi)', 86400],
     ['MaxSSID', 'SSID massimo da cercare per sessioni aggiuntive', 15],
   ] as const
+  const hints: Record<string, string> = {
+    PasswordRequired: 'Se attivo, chiunque si colleghi in Telnet deve inserire la password del proprio account. Chi non ha una password impostata viene rifiutato.',
+    SlashCallsigns: 'Permette di collegarsi con nominativi che contengono una barra, ad esempio IU3WJQ/P (portatile). Se disattivo, vengono rifiutati.',
+    ReplaceSession: 'Se qualcuno si collega con un nominativo già collegato, la nuova sessione prende il posto della vecchia invece di essere rifiutata.',
+    ConcurrentUsers: 'Quante connessioni Telnet contemporanee può avere lo stesso utente. 0 = nessun limite.',
+    ConcurrentNodes: 'Quante connessioni contemporanee può avere lo stesso nodo partner. 0 = nessun limite.',
+    MultipleSessions: 'Quante sessioni aggiuntive può aprire lo stesso nominativo, con un SSID diverso (IU3WJQ-1, IU3WJQ-2…). 0 = una sola sessione.',
+    ReconnectSeconds: 'Entro questo numero di secondi, più connessioni ravvicinate dello stesso nominativo possono convivere come sessioni aggiuntive; oltre, vale la regola normale.',
+    MaxSSID: 'Fino a quale SSID (da -1 a -15) DXSpider cerca un posto libero quando lo stesso nominativo apre sessioni aggiuntive.',
+  }
   type Options = Record<typeof toggles[number][0], boolean> &
     Record<typeof limits[number][0], number> & { Registration: number }
   type Snapshot = { Options: Options; Applied: boolean }
@@ -79,22 +90,22 @@
       <fieldset disabled={busy}>
         <legend>Accesso</legend>
         {#each toggles.slice(0, 2) as [key, label]}
-          <label class="check"><input type="checkbox" bind:checked={options[key]} />{label}</label>
+          <label class="check"><input type="checkbox" bind:checked={options[key]} />{label}<Hint text={hints[key]} /></label>
         {/each}
-        <label>Registrazione utenti
+        <label>Registrazione utenti<Hint text="Decide chi è considerato utente registrato. Chi non lo è vede un messaggio di benvenuto diverso e non può usare i comandi riservati ai registrati, come inviare messaggi. Il sysop registra un utente con il comando set/register." />
           <select bind:value={options.Registration}>
-            <option value={0}>Registrazione non richiesta</option>
-            <option value={1}>Registrazione richiesta</option>
-            <option value={2}>Modalità de-registrazione Mojo</option>
+            <option value={0}>Nessuna registrazione: tutti ammessi</option>
+            <option value={1}>Solo utenti registrati dal sysop</option>
+            <option value={2}>Tutti, tranne i de-registrati dal sysop</option>
           </select>
         </label>
       </fieldset>
       <fieldset disabled={busy}>
         <legend>Sessioni e riconnessioni</legend>
-        <label class="check"><input type="checkbox" bind:checked={options.ReplaceSession} />{toggles[2][1]}</label>
+        <label class="check"><input type="checkbox" bind:checked={options.ReplaceSession} />{toggles[2][1]}<Hint text={hints.ReplaceSession} /></label>
         <div class="limits">
           {#each limits as [key, label, max]}
-            <label>{label}<input type="number" bind:value={options[key]} min="0" {max} step="1" required /></label>
+            <label>{label}<Hint text={hints[key]} /><input type="number" bind:value={options[key]} min="0" {max} step="1" required /></label>
           {/each}
         </div>
         <p>Imposta 0 nei limiti di connessione per disattivare il relativo limite. Le modifiche si applicano ai collegamenti successivi.</p>
