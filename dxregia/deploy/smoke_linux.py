@@ -375,9 +375,9 @@ def main():
 
         assert request(client, "/api/auth/totp", wait_for("next TOTP window", next_code))[0] == 200
 
-        def verify_upload(opener, path):
+        def verify_upload(opener, content):
             upload = urllib.request.Request(
-                BASE + "/api/backups/verify", data=path.read_bytes(),
+                BASE + "/api/backups/verify", data=content,
                 headers={"Content-Type": "application/zip"},
             )
             try:
@@ -386,9 +386,10 @@ def main():
             except urllib.error.HTTPError as error:
                 return error.code
 
-        assert verify_upload(urllib.request.build_opener(), archive) == 401
-        assert verify_upload(client, archive) == 200
-        assert verify_upload(client, base / "damaged.zip") == 422
+        # The server can reject an unauthenticated request before receiving its body.
+        assert verify_upload(urllib.request.build_opener(), b"zip") == 401
+        assert verify_upload(client, archive.read_bytes()) == 200
+        assert verify_upload(client, (base / "damaged.zip").read_bytes()) == 422
     print("Linux installer, setup with TOTP, Telnet, backup upload and persistent restart passed")
     if not NATIVE:
         peer_link(client)

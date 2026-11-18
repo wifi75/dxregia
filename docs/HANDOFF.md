@@ -165,3 +165,5 @@ Il collaudo del backup distribuito comprende anche un archivio ZIP valido con un
 Il pannello sysop ora verifica un archivio ZIP caricato fino a 512 MiB con lo stesso strumento del backup offline. Il file temporaneo viene eliminato a fine richiesta. Il nuovo collaudo controlla accesso protetto da TOTP, archivio valido e archivio alterato. Creazione, pianificazione e ripristino dal pannello restano aperti.
 
 Il run 44278251212 ha riprodotto il timeout di riconnessione anche con nomi DNS stabili. Il prossimo collaudo raccoglie stato del partner, salute del listener e messaggi di connessione filtrati, senza stampare lo script di login o la password.
+
+Il test del rifiuto senza autenticazione invia ora un corpo minimo: il backend risponde prima di leggere il corpo, e l'invio di un archivio intero poteva chiudere la connessione prima che il client leggesse il 401. I due casi autenticati usano ancora archivi completi.
