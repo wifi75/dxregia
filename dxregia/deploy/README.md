@@ -33,3 +33,15 @@ Eseguire python3 dxregia/deploy/check_telnet.py HOST PORTA dal sistema che deve 
 L'installatore avvia e verifica il pannello anche con una directory dati nuova, senza configurazione Mojo. Il wizard raccoglie i valori dal browser. Il backend valida i dati, genera la configurazione interna e inizializza il nodo, poi avvia Mojo e verifica il listener Telnet. Se un passaggio fallisce, mostra l'errore e consente di correggere e riprovare dal browser. Il wizard deve poter riprendere dopo un riavvio e non deve reinizializzare una banca utenti esistente.
 
 Verifica di accettazione: dopo lo script, completare cambio password e wizard dal browser, verificare Telnet e riavviare. Nessun passaggio richiede di creare o modificare file a mano.
+
+## Backup offline del nodo
+
+Richiede Python 3.10 o successivo. Arresta DXRegia e Mojo prima di copiare il nodo. Per un container, esegui lo strumento sull'archivio persistente con il servizio arrestato.
+
+~~~sh
+python3 dxregia/deploy/backup_node.py backup /percorso/mojo /percorso/salvataggi/nodo.zip
+python3 dxregia/deploy/backup_node.py verify /percorso/salvataggi/nodo.zip
+python3 dxregia/deploy/backup_node.py restore /percorso/salvataggi/nodo.zip /percorso/mojo-ripristinato
+~~~
+
+Il ripristino richiede una directory nuova. Lo strumento controlla percorsi, dimensioni e checksum prima di pubblicare i dati ripristinati. Il backup include motore e dati del nodo, banca utenti, filtri, anagrafica, impostazioni e dati di accesso. Tratta l'archivio come riservato. Il backend DXRegia e le dipendenze del sistema si installano separatamente. Il pannello offre anche il download delle sole impostazioni del nodo come JSON riutilizzabile nel wizard.

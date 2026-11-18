@@ -55,6 +55,16 @@
     }
   })
 
+  function exportSettings() {
+    if (!profile) return
+    const objectURL = URL.createObjectURL(new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = objectURL
+    link.download = 'dxregia-config.json'
+    link.click()
+    setTimeout(() => URL.revokeObjectURL(objectURL), 1000)
+  }
+
   async function save(event: SubmitEvent) {
     event.preventDefault()
     if (pending) return
@@ -143,6 +153,7 @@
         <div><dt>Località e locator</dt><dd>{[profile.qth, profile.locator].filter(Boolean).join(' · ')}</dd></div>
         <div><dt>Host pubblico</dt><dd>{profile.advertisedHost || '—'}</dd></div>
       </dl>
+      <button type="button" class="secondary" onclick={exportSettings}>Scarica configurazione JSON</button>
     {/if}
   </section>
 {/if}

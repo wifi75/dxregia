@@ -97,9 +97,9 @@ Modulo pubblico e coda privata disponibili. Scheda partner precompilata e nota i
 ## 2026-11-18 — Abilitazione partner in ingresso
 
 Il sysop autenticato può accodare la creazione dell'account Spider in Mojo. L'hook crea l'account con password casuale, scrive l'esito e rimuove la richiesta. Collaudato con Mojo reale su Windows: coda privata, creazione, richiesta della password via Telnet e assenza della password nei log debug di ingresso. Non verificato handshake nodo-nodo completo dopo la creazione. L'hook aggiorna solo la versione DXRegia nota e lascia intatti gli hook personalizzati. Per usare la modifica dei log ExtMsg.pm, avviare Mojo dalla base aggiornata. Mancano invio automatico delle istruzioni e dell'esito, connessione in uscita e collaudo Linux.
-\
+
 ## 2026-11-18 — Collegamento in uscita e notifiche partner\
-\
+
 Collaudato il collegamento in uscita via API e due Mojo reali su Windows, con autenticazione del partner e porta remota dedicata. Entrambi i nodi hanno riportato Attivo; password assente dai log di debug del laboratorio. Le email di istruzioni e verifica sono attivabili per singolo partner. Sequenza testata con invio simulato; SMTP reale e Linux ancora da verificare. La riconnessione automatica e gli errori specifici di negoziazione sono ancora aperti.
 
 ## Riconnessione automatica per partner
@@ -107,3 +107,7 @@ Collaudato il collegamento in uscita via API e due Mojo reali su Windows, con au
 Opzione esplicita nel pannello, piano persistente e tentativi distanziati di due minuti. Test Go verificato per sospensione al cambio di porta, link attivo, accodamento e protezione da tentativi ravvicinati. Build Svelte riuscita. Prossimo collaudo: caduta e ripresa su due nodi Mojo, poi backup e installatore Linux.
 
 Collaudo su Windows completato con due Mojo reali: disconnessione via comando del sysop, rilevazione del link inattivo e riconnessione automatica confermata dal motore. Nell'istanza di laboratorio è stato anticipato l'orario del prossimo tentativo; il vincolo reale di due minuti è verificato nel test Go. La prova di spegnimento forzato non ha interrotto il processo Mojo nel laboratorio e non costituisce una verifica di caduta dell'host.
+
+## Backup offline e ripristino
+
+Tool Python backup_node.py con backup, verifica integrità e ripristino in una directory nuova. Collaudo Windows su un nodo Mojo inizializzato: conservati database utenti e anagrafica, rifiutato archivio modificato e sovrascrittura, login Telnet dopo il ripristino. Gli script pendenti non vengono riprodotti dal backup. Il pannello può esportare le impostazioni del nodo in JSON reimportabile. Restano dal pannello la pianificazione, il backup completo e la gestione del ripristino.

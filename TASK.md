@@ -61,3 +61,7 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Collaudare la riconnessione automatica dopo disconnessione fra due nodi Mojo reali su Windows.
 
 - [x] Collegare un partner in uscita dal pannello. Verifica Windows fra due istanze Mojo con password e porta remota dedicata.
+
+- [x] Backup offline verificabile e ripristino in nuova directory. Test con avvio Mojo e login Telnet.
+- [x] Download dal pannello delle impostazioni sysop e del nodo come JSON reimportabile.
+- [ ] Integrare backup completo e pianificazione dal pannello con arresto e ripresa coordinati.
