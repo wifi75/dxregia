@@ -295,7 +295,17 @@ def peer_link(primary):
         wait_for("disconnected partner status", lambda: local_partner()["Connection"] != "Attivo")
         docker("start", peer)
         # Automatic reconnect is throttled, so allow more than the retry interval.
-        wait_for("automatic peer reconnect", lambda: local_partner()["Connection"] == "Attivo", timeout=150)
+        try:
+            wait_for("automatic peer reconnect", lambda: local_partner()["Connection"] == "Attivo", timeout=150)
+        except RuntimeError:
+            print(f"Primary partner state: {local_partner()!r}", flush=True)
+            print(f"Peer listener: {remote('/api/listener')!r}", flush=True)
+            for name in (CONTAINER, peer):
+                subprocess.run(["docker", "exec", name, "sh", "-c",
+                                "find /data/mojo/local_data/debug -type f -name '*.dat' "
+                                "-exec grep -aE 'Connect.*(Failed|timed out)|Connected.* to |PC92.*disconn|login failed' {} + "
+                                "| tail -40"], check=False)
+            raise
     finally:
         subprocess.run(["docker", "rm", "-fv", peer], check=False)
         subprocess.run(["docker", "network", "disconnect", network, CONTAINER], check=False)

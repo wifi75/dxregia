@@ -77,6 +77,10 @@ L'installatore avvia e verifica il pannello anche con una directory dati nuova, 
 
 Verifica di accettazione: dopo lo script, completare cambio password e wizard dal browser, verificare Telnet e riavviare. Nessun passaggio richiede di creare o modificare file a mano.
 
+## Verificare un archivio dal pannello
+
+Accedi come sysop e apri **Verifica un backup**. Seleziona un archivio DXRegia ZIP fino a 512 MiB e premi **Verifica archivio**. Il controllo confronta il manifest con il contenuto e verifica gli SHA-256. Un archivio verificato può essere ripristinato con il comando offline descritto sotto. Il controllo carica temporaneamente l'archivio sul server e lo elimina al termine.
+
 ## Backup offline del nodo
 
 Richiede Python 3.10 o successivo. L'installazione nativa include il comando `/opt/dxregia/bin/dxregia-backup` e l'immagine Docker include `/opt/dxregia/backup_node.py`. Arresta DXRegia e Mojo prima di copiare il nodo. Per un container, esegui lo strumento sull'archivio persistente con il servizio arrestato.

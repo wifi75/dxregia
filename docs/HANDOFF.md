@@ -163,3 +163,5 @@ Il run 44277402955 ha consegnato lo spot al logger e ai feed di entrambi i nodi 
 Il collaudo del backup distribuito comprende anche un archivio ZIP valido con un file alterato e un checksum del manifest non corrispondente. Il ripristino deve rifiutarlo senza pubblicare una directory parziale.
 
 Il pannello sysop ora verifica un archivio ZIP caricato fino a 512 MiB con lo stesso strumento del backup offline. Il file temporaneo viene eliminato a fine richiesta. Il nuovo collaudo controlla accesso protetto da TOTP, archivio valido e archivio alterato. Creazione, pianificazione e ripristino dal pannello restano aperti.
+
+Il run 44278251212 ha riprodotto il timeout di riconnessione anche con nomi DNS stabili. Il prossimo collaudo raccoglie stato del partner, salute del listener e messaggi di connessione filtrati, senza stampare lo script di login o la password.
