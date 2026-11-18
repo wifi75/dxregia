@@ -4,7 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-18
+
 ### Added
+- Admin panel, Node menu: tooltips on the Telnet options, and a plain explanation that registration decides who can send spots.
+- The portal can be installed as an app on a phone (manifest, service worker, install button; an instruction for Safari on iPhone).
+- Telnet banner: the message of the day is shown before the login prompt, and its box grows to fit the text.
 - User registration from the portal: a web form (callsign, email, password) with an email confirmation link; confirmed users are created in DXSpider with a bcrypt password and can send spots, and Telnet then asks for that password. Sysop page "Registered users" to enable it, set the public site address and revoke users.
 - Access history page and a dashboard that separates partner nodes from the users connected to the node.
 - Portal: dismissible Aurora sponsor banner on the spots page (six languages; closing it hides it for 7 days) and the author credit in the footer.
@@ -15,8 +20,15 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 - Admin panel, Node menu: message of the day, crontab, startup script, block lists (words, DX callsigns, IP addresses), hop counts and filter inventory, each with tooltips. See `docs/NODE-SETTINGS.md`.
 
 ### Changed
+- Spots page on a phone: a compact table with the flags always in view, multi-select drop-down filters (bands, modes), a slim sponsor bar and a header on one row.
+- `update-native.sh` keeps only the last three previous versions after a successful update.
 - The DXSpider Mojo engine now lives in `engine/` (original structure kept); `COPYING` and `LICENSE` stay at the root. Installers, the Docker image, the bundle builder and the CI were updated.
 - `update-native.sh` accepts `DXREGIA_BRANCH` to update from a branch other than `main`.
+
+### Fixed
+- The node now reports the real DXSpider build (1.57, build 688 of upstream commit 9b55f03f) instead of a stale one.
+- Portuguese texts for the spot filters and the sound button sat in the Spanish catalogue; the Portuguese portal showed them in English.
+- A flat close button on the sponsor banner (it inherited the 3-D button style).
 
 ## [0.3.0] - 2026-11-18
 

@@ -60,7 +60,7 @@ _I documenti tecnici qui sotto sono scritti in italiano._
 
 ## Stato
 
-DXRegia è in sviluppo attivo (versione 0.3.0). Installazione, primo accesso, Telnet, backup e riavvio sono provati su Ubuntu 24.04 (amd64 e arm64). Restano aperti: la prova su Proxmox LXC, la consegna della posta con altri provider e un pacchetto di release firmato. Segnalazioni e idee sono benvenute nelle [Issue di GitHub](https://github.com/wifi75/dxregia/issues).
+DXRegia è in sviluppo attivo (versione 0.4.0). Installazione, primo accesso, Telnet, backup e riavvio sono provati su Ubuntu 24.04 (amd64 e arm64). Restano aperti: la prova su Proxmox LXC, la consegna della posta con altri provider e un pacchetto di release firmato. Segnalazioni e idee sono benvenute nelle [Issue di GitHub](https://github.com/wifi75/dxregia/issues).
 
 ## Origine e licenza
 
