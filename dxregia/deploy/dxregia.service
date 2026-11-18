@@ -11,7 +11,7 @@ StateDirectoryMode=0700
 UMask=0077
 Environment=DXREGIA_WEB_PORT=8080 DXREGIA_TELNET_PORT=7300 DXREGIA_HTTP_BIND=127.0.0.1 DXREGIA_TELNET_BIND=127.0.0.1
 EnvironmentFile=-/etc/dxregia.env
-ExecStart=/opt/dxregia/bin/dxregia -web /opt/dxregia/web -setup-root /var/lib/dxregia/mojo -setup-perl /usr/bin/perl -bootstrap-password-file /var/lib/dxregia/sysop-initial -http-bind ${DXREGIA_HTTP_BIND} -port ${DXREGIA_WEB_PORT} -telnet 127.0.0.1:${DXREGIA_TELNET_PORT} -setup-telnet-bind ${DXREGIA_TELNET_BIND}
+ExecStart=/opt/dxregia/bin/dxregia -web /opt/dxregia/web -backup-tool /opt/dxregia/bin/dxregia-backup -setup-root /var/lib/dxregia/mojo -setup-perl /usr/bin/perl -bootstrap-password-file /var/lib/dxregia/sysop-initial -http-bind ${DXREGIA_HTTP_BIND} -port ${DXREGIA_WEB_PORT} -telnet 127.0.0.1:${DXREGIA_TELNET_PORT} -setup-telnet-bind ${DXREGIA_TELNET_BIND}
 Restart=on-failure
 TimeoutStopSec=15s
 KillMode=mixed

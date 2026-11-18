@@ -4,6 +4,7 @@
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
   import Presence from './Presence.svelte'
+  import BackupVerify from './BackupVerify.svelte'
   import Traffic from './Traffic.svelte'
   import ContactRequests from './ContactRequests.svelte'
   import type { ContactRequest } from './ContactRequests.svelte'
@@ -105,6 +106,7 @@
     <Setup {onSaved} />
     <Presence />
     <Traffic />
+    <BackupVerify />
     <ContactRequests onDraft={request => { draft = { ...request } }} />
     <Partners {draft} />
     <button type="button" onclick={logout}>Esci</button>

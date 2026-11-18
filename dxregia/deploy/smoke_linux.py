@@ -351,20 +351,36 @@ def main():
         subprocess.run([sys.executable, "-B", str(migration), str(restored), str(adopted)], check=True)
         assert (adopted / "local/dxregia-initialized").is_file()
         assert (adopted / "local_data/dxusers.db").read_bytes() == (source / "local_data/dxusers.db").read_bytes()
-    service("start")
-    ready(client)
-    assert request(client, "/api/visits") == (200, {"Views": 2})
-    time.sleep(6)
-    telnet_login(b"Q7QQQ", b"Profilo Linux")
-    print("Linux installer, setup with TOTP, Telnet, offline backup and persistent restart passed")
-    if not NATIVE:
+        service("start")
+        ready(client)
+        assert request(client, "/api/visits") == (200, {"Views": 2})
+        time.sleep(6)
+        telnet_login(b"Q7QQQ", b"Profilo Linux")
         # HTTP sessions are held in memory, so authenticate again after restarting.
         assert request(client, "/api/auth/login", password)[0] == 200
+
         def next_code():
             code = totp(enroll["enrollmentKey"])
             return code if code != first_code else None
 
         assert request(client, "/api/auth/totp", wait_for("next TOTP window", next_code))[0] == 200
+
+        def verify_upload(opener, path):
+            upload = urllib.request.Request(
+                BASE + "/api/backups/verify", data=path.read_bytes(),
+                headers={"Content-Type": "application/zip"},
+            )
+            try:
+                with opener.open(upload, timeout=30) as response:
+                    return response.status
+            except urllib.error.HTTPError as error:
+                return error.code
+
+        assert verify_upload(urllib.request.build_opener(), archive) == 401
+        assert verify_upload(client, archive) == 200
+        assert verify_upload(client, base / "damaged.zip") == 422
+    print("Linux installer, setup with TOTP, Telnet, backup upload and persistent restart passed")
+    if not NATIVE:
         peer_link(client)
 
 

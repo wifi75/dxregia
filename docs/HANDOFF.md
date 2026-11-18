@@ -161,3 +161,5 @@ Gli ambienti installati su Linux includono Python e lo strumento di backup verif
 Il run 44277402955 ha consegnato lo spot al logger e ai feed di entrambi i nodi su amd64 e arm64. Il test si e fermato al successivo riavvio del partner. I due container ora usano una rete Docker dedicata e il nome DNS stabile del partner per il collaudo della riconnessione.
 
 Il collaudo del backup distribuito comprende anche un archivio ZIP valido con un file alterato e un checksum del manifest non corrispondente. Il ripristino deve rifiutarlo senza pubblicare una directory parziale.
+
+Il pannello sysop ora verifica un archivio ZIP caricato fino a 512 MiB con lo stesso strumento del backup offline. Il file temporaneo viene eliminato a fine richiesta. Il nuovo collaudo controlla accesso protetto da TOTP, archivio valido e archivio alterato. Creazione, pianificazione e ripristino dal pannello restano aperti.

@@ -63,6 +63,7 @@ func main() {
 	setupPerl := flag.String("setup-perl", "", "Perl executable for starting Mojo during setup")
 	setupFixedPort := flag.Bool("setup-fixed-telnet-port", false, "require the Telnet port published by the container")
 	setupInternal := flag.Int("setup-internal-port", 27754, "Mojo internal loopback port")
+	backupTool := flag.String("backup-tool", "", "path to the installed backup utility")
 	flag.Parse()
 
 	if net.ParseIP(*httpBind) == nil || net.ParseIP(*telnetBind).To4() == nil {
@@ -91,6 +92,7 @@ func main() {
 	if err := registerPartners(service, mux, *setupRoot, auth); err != nil {
 		log.Fatal(err)
 	}
+	registerBackupVerification(mux, auth, *backupTool)
 	registerPresence(mux, *setupRoot, auth)
 	registerSpots(mux, *setupRoot)
 	if err := registerContacts(service, mux, *setupRoot, auth); err != nil {
