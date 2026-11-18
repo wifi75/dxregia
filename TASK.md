@@ -14,7 +14,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 - [x] Definire [pagina pubblica degli spot e area sysop](docs/INTERFACES.md).
 - [x] Autenticazione sysop con cambio obbligatorio della password temporanea e protezione del wizard lato API.
 - [x] Implementare la prima pagina spot pubblica con dati Mojo, filtri e layout mobile.
-- [ ] Completare la mappa delle entità DXCC e collaudare il feed con due nodi collegati su Linux.
+- [ ] Completare la mappa delle entità DXCC.
+- [x] Verificare lo stesso spot al client Telnet e ai feed dei due nodi Linux, su amd64 e arm64. Evidenza nei job Docker del run 44277402955, che si fermano dopo, alla riconnessione.
 - [x] Riprodurre l'avvio di Mojo su Linux e registrare dipendenze, configurazione minima e accesso locale alla console.
 - [ ] Verificare la baseline con due nodi locali e una sessione Telnet. Annotare gli scambi attesi e i criteri per spot, riconnessione e persistenza.
 - [x] Implementare la diagnostica locale Go/Svelte sul listener Telnet.
@@ -67,7 +68,7 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 
 - [x] Backup offline verificabile e ripristino in nuova directory. Test con avvio Mojo e login Telnet.
 - [x] Download dal pannello delle impostazioni sysop e del nodo come JSON reimportabile.
-- [x] Integrare la verifica di un archivio di backup dall'area sysop protetta da TOTP. Collaudo Linux in corso.
+- [x] Integrare la verifica di un archivio di backup dall'area sysop protetta da TOTP. Collaudo completato su Linux nativo amd64 e arm64 (run 44279401543).
 - [ ] Integrare backup completo e pianificazione dal pannello con arresto e ripresa coordinati.
 - [x] Migrazione offline di Mojo SQLite in una nuova directory gestita e login Telnet su copia.
 
