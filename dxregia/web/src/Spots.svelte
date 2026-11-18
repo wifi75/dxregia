@@ -153,9 +153,16 @@
   {:else if available}
     <p>{spots.length ? t('noMatch') : t('noRecent')}</p>
   {/if}
-  {#if views !== undefined}<p class="visits">{t('visits', { n: khz.format(views) })}</p>{/if}
     </section>
   </div>
+  {#if views !== undefined}
+    <div class="visits-box" role="group" aria-label={t('visitsLabel')}>
+      <span class="visits-label">{t('visitsLabel')}</span>
+      <span class="digits">
+        {#each String(views).padStart(6, '0').split('') as digit, i (i)}<span class="digit">{digit}</span>{/each}
+      </span>
+    </div>
+  {/if}
 </main>
 
 <style>
@@ -201,7 +208,6 @@
   .mode[data-mode=CW] { background: #fff0d7; color: #7d430e; }
   .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { background: #d7f0e3; color: #1a6046; }
   .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31] { background: #eee4ff; color: #573894; }
-  .visits { margin-block: 14px 0; color: #34505f; font-size: .85rem; }
   @media (max-width: 700px) {
     main { padding: 0 10px 20px; }
     .filters { display: grid; grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 8px; margin-bottom: 10px; }
@@ -228,4 +234,9 @@
     td:nth-child(7) { grid-area: utc; font-size: .85rem; }
     .frequency { width: 10ch; }
   }
+  .visits-box { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 26px; }
+  .visits-label { color: #2a4558; font-size: .74rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .digits { display: flex; gap: 4px; }
+  .digit { position: relative; display: grid; place-items: center; min-width: 30px; height: 42px; border-radius: 7px; background: linear-gradient(#2a5b79, #123448); color: #fff; font: 700 1.45rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 #0a2433, 0 3px 6px #143a5940; }
+  .digit::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #00000040; }
 </style>
