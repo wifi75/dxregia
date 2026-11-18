@@ -2,6 +2,17 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it/1.1.0/), versioni [SemVer](https://semver.org/lang/it/). Si riferisce a DXRegia (cartella `dxregia/`); il motore upstream mantiene la propria cronologia in `Changes`.
 
+## [Non rilasciato]
+
+### Aggiunto
+- Nuovo logo (icona DX e parola Regia) in alta definizione, favicon e icone per telefono e sito installabile.
+- Centro di analytics nel pannello: pubblico del portale (visite, visitatori unici senza cookie, lingua, dispositivi, orari) e attività del cluster (spot per giorno e ora, bande, modi, entità, nominativi).
+- Pagina degli spot rifatta: filtri a selezione multipla su una riga, ricerca, lente sui nominativi, nuovi spot evidenziati con suono, modo dedotto dalla frequenza, tema chiaro e scuro, impaginazione per telefono e tablet.
+- Spedizioni DX annunciate (feed pubblico NG3K ADXO) con popup accanto al nominativo.
+- Portale e email in sei lingue (italiano, inglese, spagnolo, tedesco, francese, portoghese); email HTML ai partner con conferma al primo collegamento.
+- Configurazione automatica dei partner dal form Contatti, con interruttore e limite giornaliero.
+- Eliminazione di richieste e nodi partner; dashboard live con LED; login con utente e password; pannello su `/admin`.
+
 ## [0.2.0] - 2026-11-18
 
 ### Aggiunto

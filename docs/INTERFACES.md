@@ -11,6 +11,21 @@ DXRegia usa una sola identità visiva per pagina pubblica e area sysop. Entrambe
 
 Prima di estendere il pannello, verificare due schermate con dati rappresentativi: Spot pubblici e Nodi partner con un errore di connessione. Esaminarle a 390 e 1440 pixel, nel tema chiaro e con navigazione da tastiera. Per valutare il layout usare nominativi lunghi, commenti estesi e almeno un aggiornamento mentre l'operatore legge una riga.
 
+## Marchio e icone
+
+Il marchio è l'icona **DX** (lettere D bianca e X ambra su fondo blu notte) seguita dalla parola **Regia**. I file sono in `dxregia/web/public/brand/` e sono serviti dal sito.
+
+| File | Uso |
+| --- | --- |
+| `dxregia-logo.svg`, `dxregia-logo-2000.png` | Logo completo per sfondi chiari |
+| `dxregia-logo-dark.svg`, `dxregia-logo-dark-2000.png` | Logo completo per sfondi scuri (testo bianco) |
+| `dxregia-wordmark.svg`, `dxregia-wordmark-dark.svg` | Solo la parola «Regia», usata nella pagina di accesso sotto l'icona animata |
+| `dxregia-icon.svg`, `dxregia-icon-1024.png`, `-512.png`, `-256.png` | Solo l'icona, in alta definizione |
+
+La parola è convertita in tracciati vettoriali (carattere Inter ExtraBold, licenza OFL): gli SVG non dipendono da caratteri installati. Colori: blu notte `#143a60`, ambra `#f0a23a`, azzurro `#3a82c0`, bianco. Lascia attorno al logo uno spazio pari almeno a metà dell'altezza dell'icona e non deformarlo né ricolorarlo.
+
+Nella radice di `dxregia/web/public/` ci sono le icone del sito: `favicon.svg`, `favicon.ico` (16, 32 e 48 px), `apple-touch-icon.png` (180 px), `icon-192.png`, `icon-512.png` e `site.webmanifest`, collegati da `index.html`. L'intestazione sceglie il logo chiaro o scuro in base al tema.
+
 ## Area pubblica
 
 La pagina Spot è l'ingresso pubblico, consultabile senza login. Il riferimento visivo fornito mostra una tabella ad alta densità, filtri a portata di mano e un riferimento Telnet in testata. DXRegia adotta una propria identità grafica con fondo bianco, accenti blu e tipografia tabellare per frequenze e orari.

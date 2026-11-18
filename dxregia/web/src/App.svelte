@@ -44,7 +44,7 @@
 
 <header>
   <div class="brandline">
-    <a class="brand" href="/spots" aria-label="DXRegia"><img class="brand-icon" src="/brand/dxregia-icon.svg" alt="" width="34" height="34"><span aria-hidden="true">Regia</span></a>
+    <a class="brand" href="/spots"><img class="brand-logo" src={currentTheme() === 'dark' ? '/brand/dxregia-logo-dark.svg' : '/brand/dxregia-logo.svg'} alt="DXRegia" width="115" height="36"></a>
     {#if publicPortal && !contactPage}
       <span class="sep" aria-hidden="true">–</span>
       <h1 id="spots-title" class="page">{t('spotsTitle')}</h1>
@@ -135,7 +135,7 @@
   .lang-menu button[aria-checked=true] { background: #dcebf6; color: #143a60; }
   .lang-menu img { border: 1px solid #15263826; border-radius: 2px; object-fit: cover; }
   header .brand { display: inline-flex; gap: 9px; align-items: center; padding: 0; font-size: 1.25rem; font-weight: 800; line-height: 1; color: #143a60; }
-  .brand-icon { display: block; width: 34px; height: 34px; border-radius: 9px; }
+  .brand-logo { display: block; height: 36px; width: auto; }
   header { justify-content: space-between; align-items: center; flex-wrap: wrap; }
   header nav { display: flex; flex-wrap: wrap; gap: .35rem; }
   .brandline { display: flex; align-items: center; gap: 10px; min-width: 0; }
