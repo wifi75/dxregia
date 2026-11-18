@@ -71,7 +71,7 @@
   }
 </script>
 
-<section aria-labelledby="telnet-options-title">
+<section class="glass-panel" aria-labelledby="telnet-options-title">
   <h1 id="telnet-options-title">Opzioni Telnet</h1>
   {#if options}
     <form onsubmit={save}>
@@ -105,7 +105,7 @@
 </section>
 
 <style>
-  section { padding: clamp(14px, 2vw, 24px); border: 1px solid #b7c9d5; border-radius: 8px; background: #fff; }
+  section { padding: clamp(14px, 2vw, 24px); }
   h1 { margin: 0 0 1.2rem; }
   form, fieldset { display: grid; gap: .75rem; }
   form > button { justify-self: start; }

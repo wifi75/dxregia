@@ -33,7 +33,7 @@
   })
 </script>
 
-<section aria-labelledby="presence-title">
+<section class="glass-panel" aria-labelledby="presence-title">
   <h2 id="presence-title">Attività del nodo</h2>
   {#if snapshot?.At}
     <p>Ultimo aggiornamento {date.format(new Date(snapshot.At * 1000))}</p>
@@ -76,7 +76,7 @@
 </section>
 
 <style>
-  section { margin-top: 20px; padding: 16px; background: white; border: 1px solid #d7dfe7; }
+  section { margin-top: 20px; padding: 16px; }
   h2 { margin: 0; font-size: 1.15rem; }
   h3 { margin: 16px 0 6px; font-size: 1rem; }
   p { color: #485b6d; margin: 6px 0; }

@@ -137,7 +137,7 @@
 </script>
 
 {#if available || result || profile}
-  <section aria-labelledby="setup-title">
+  <section class="glass-panel" aria-labelledby="setup-title">
     <h2 id="setup-title">{available || result ? "Prima configurazione" : "Configurazione sysop"}</h2>
     {#if result}
       <p role="status">{result.started ? 'Mojo è attivo su 127.0.0.1:' + result.port + '.' : 'Configurazione Mojo salvata.'}</p>
@@ -219,7 +219,7 @@
 {/if}
 
 <style>
-  section { margin-top: 20px; padding: 16px; background: #fff; border: 1px solid #d7dfe7; }
+  section { margin-top: 20px; padding: 16px; }
   h2 { margin: 0 0 12px; font-size: 1.15rem; }
   .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px 16px; }
   label { display: grid; gap: 5px; font-weight: 600; }

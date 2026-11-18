@@ -24,7 +24,7 @@
   }
 </script>
 
-<section aria-labelledby="backup-heading">
+<section class="glass-panel" aria-labelledby="backup-heading">
   <h2 id="backup-heading">Verifica un backup</h2>
   <form onsubmit={verify}>
     <label>

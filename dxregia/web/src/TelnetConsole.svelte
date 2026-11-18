@@ -26,7 +26,7 @@
   }
 </script>
 
-<section aria-labelledby="console-title">
+<section class="glass-panel" aria-labelledby="console-title">
   <h1 id="console-title">Console Telnet</h1>
   <form onsubmit={execute}>
     <label>Nominativo <input bind:value={call} required maxlength="12" autocomplete="off" spellcheck="false" /></label>
@@ -49,7 +49,7 @@
 </section>
 
 <style>
-  section { padding: clamp(16px, 2.5vw, 26px); border: 1px solid #b7c9d5; border-radius: 9px; background: #ffffffcf; backdrop-filter: blur(10px); }
+  section { padding: clamp(16px, 2.5vw, 26px); }
   h1 { margin: 0 0 16px; color: #173a51; }
   form { display: flex; flex-wrap: wrap; align-items: end; gap: .8rem; }
   label { display: grid; gap: .3rem; font-weight: 650; }

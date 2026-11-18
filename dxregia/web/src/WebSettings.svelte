@@ -48,7 +48,7 @@
   }
 </script>
 
-<section aria-labelledby="web-settings-heading">
+<section class="glass-panel" aria-labelledby="web-settings-heading">
   <h1 id="web-settings-heading">Accesso web</h1>
   {#if current}
     <p>Porta HTTP in uso <strong>{current.port}</strong></p>
@@ -69,7 +69,7 @@
 </section>
 
 <style>
-  section { padding: 20px; border: 1px solid #cbd9e4; border-radius: 8px; background: #fff; }
+  section { padding: 20px; }
   h1 { margin: 0; font-size: 1.6rem; }
   label { display: block; font-weight: 650; margin-bottom: .5rem; }
   .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }

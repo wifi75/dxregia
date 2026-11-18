@@ -41,7 +41,7 @@
     <p role="status">Richiesta registrata. Il sysop può consultarla e rispondere all’indirizzo indicato.</p>
     <a href="/spots">Torna agli spot</a>
   {:else}
-    <form onsubmit={submit}>
+    <form class="glass-panel glass-enter" onsubmit={submit}>
       <label>Motivo del contatto
         <select bind:value={kind}>
           <option value="message">Scrivi al sysop</option>
@@ -76,7 +76,7 @@
   h1 { margin: 0 0 16px; font-size: 1.65rem; }
   h2 { margin: 6px 0 0; font-size: 1.12rem; }
   p { margin: 0; }
-  form { background: white; border: 1px solid #d7dfe7; padding: 16px; display: grid; gap: 14px; }
+  form { display: grid; gap: 14px; }
   .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 195px), 1fr)); gap: 12px; }
   label { display: grid; gap: 5px; font-weight: 600; min-width: 0; }
   input, select, textarea { padding: 8px; min-height: 44px; border: 1px solid #aab8c5; border-radius: 4px; font: inherit; min-width: 0; }

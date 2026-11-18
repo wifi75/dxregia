@@ -77,8 +77,8 @@
       </button>
     </div>
   </div>
-  <div class="desk">
-    <aside class="receiver" aria-label="Filtri degli spot">
+  <div class="desk glass-enter">
+    <aside class="receiver glass-panel" aria-label="Filtri degli spot">
       <section>
         <h2>Bande</h2>
         <div class="band-grid">
@@ -100,7 +100,7 @@
         </div>
       </section>
     </aside>
-    <section class="log" aria-label="Registro degli spot">
+    <section class="log glass-panel" aria-label="Registro degli spot">
       <div class="toolbar">
         <input type="search" bind:value={query} aria-label="Cerca negli spot" placeholder="Cerca nominativo o commento" />
         <span>{filtered.length} {filtered.length === 1 ? 'spot mostrato' : 'spot mostrati'}</span>
@@ -157,7 +157,7 @@
   @keyframes signal-pulse { 0%, 100% { box-shadow: 0 0 0 2px #20845a24; } 48% { box-shadow: 0 0 0 5px #20845a0a; } }
   @media (prefers-reduced-motion: reduce) { .feed-state.live::before { animation: none; } }
   .desk { display: grid; grid-template-columns: 218px minmax(0, 1fr); align-items: start; gap: 18px; }
-  .receiver { position: sticky; top: 12px; min-width: 0; border: 1px solid #b7c9d5; border-top: 4px solid #186187; border-radius: 7px; background: linear-gradient(160deg, #ffffffdf, #e2eef5cc); backdrop-filter: blur(12px); box-shadow: 0 8px 22px #26526d16; padding: 14px; }
+  .receiver { position: sticky; top: 12px; min-width: 0; padding: 14px; }
   .receiver h2 { margin: 0 0 .6rem; color: #214963; font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; }
   .mode-filter { margin-top: 16px; padding-top: 14px; border-top: 1px solid #c8d7e0; }
   .band-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
@@ -166,16 +166,16 @@
   .band-grid button[aria-pressed=false] { --button-face: #fff; --button-edge: #a4bccb; --button-ink: #274760; }
   .band-grid button[aria-pressed=true] { --button-face: #175c82; --button-edge: #0c3a56; }
   .band-color { width: 9px; height: 9px; border-radius: 2px; box-shadow: inset 0 0 0 1px #223c4c30; }
-  .log { min-width: 0; background: #fff; border: 1px solid #b7c9d5; border-radius: 7px; box-shadow: 0 8px 24px #26526d12; }
+  .log { min-width: 0; padding: 0; overflow: hidden; }
   .log > p { margin: 14px 16px; }
-  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; padding: 12px 16px; border-bottom: 1px solid #ccdbe7; background: #f5f8fa; border-radius: 6px 6px 0 0; color: #496174; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; padding: 12px 16px; border-bottom: 1px solid #ccdbe7; background: #ffffff80; color: #496174; }
   input { width: min(100%, 350px); min-height: 40px; border: 1px solid #acbfce; border-radius: 6px; background: #fff; color: #173653; padding: 6px 10px; font: inherit; }
   .table-wrap { overflow: auto; }
   table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
   th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #dce5ed; }
-  th { background: #f9fbfd; color: #285879; border-bottom: 2px solid #2972a0; font-size: .78rem; letter-spacing: .065em; text-transform: uppercase; }
+  th { background: #ffffffa3; color: #285879; border-bottom: 2px solid #2972a0; font-size: .78rem; letter-spacing: .065em; text-transform: uppercase; }
   th small { color: #536b7d; text-transform: none; }
-  tbody tr:nth-child(even) { background: #edf3f8; }
+  tbody tr:nth-child(even) { background: #e5f1f7ab; }
   tbody tr:first-child td:first-child { box-shadow: inset 4px 0 #20845a; }
   tbody tr:hover { background: #e0eff8; }
   .frequency, .mode { display: inline-block; padding: 2px 7px; border-radius: 4px; }

@@ -129,7 +129,7 @@
 
 {#if session}
   {#if codes.length}
-    <section class="auth-card">
+    <section class="auth-card glass-panel glass-enter">
       <h2>Salva i codici di recupero</h2>
       <p>Conserva questi codici in un posto sicuro. Un codice e la password permettono di configurare una nuova app di autenticazione.</p>
       <ul class="recovery-codes">
@@ -139,7 +139,7 @@
     </section>
   {:else if session.signedIn && !session.mustChange && !session.mustVerify}
     <div class="workspace">
-      <aside class="sidebar">
+      <aside class="sidebar glass-panel">
         <p class="sidebar-title">Amministrazione</p>
         <nav aria-label="Amministrazione DXRegia">
           {#each groups as group}
@@ -157,7 +157,8 @@
         <button class="secondary" type="button" onclick={logout}>Esci</button>
         {#if error}<p role="alert">{error}</p>{/if}
       </aside>
-      <div class="workspace-content">
+      {#key page}
+      <div class="workspace-content glass-enter">
         {#if page === 'stato'}
           {@render nodeStatus()}
           <Presence />
@@ -185,9 +186,10 @@
           <PasswordSettings />
         {/if}
       </div>
+      {/key}
     </div>
   {:else}
-    <section class="auth-card">
+    <section class="auth-card glass-panel glass-enter">
       <h2>{session.mustChange ? 'Cambia la password temporanea' : session.mustVerify ? 'Verifica in due passaggi' : 'Accesso sysop'}</h2>
       {#if session.enrollmentKey}
         <p>Aggiungi DXRegia alla tua app di autenticazione.</p>
@@ -217,17 +219,17 @@
 {/if}
 
 <style>
-  .auth-card { max-width: 560px; margin: 24px auto; padding: clamp(18px, 4vw, 32px); background: #fff; border: 1px solid #d7dfe7; border-radius: 12px; }
+  .auth-card { max-width: 560px; margin: 24px auto; padding: clamp(18px, 4vw, 32px); }
   .workspace { display: grid; grid-template-columns: clamp(190px, 19vw, 264px) minmax(0, 1fr); align-items: start; gap: clamp(14px, 2vw, 28px); }
   .workspace-content { min-width: 0; }
-  .sidebar { position: sticky; top: 18px; padding: 16px 12px; min-height: calc(100vh - 112px); border: 1px solid #b7c9d5; border-top: 4px solid #186187; border-radius: 7px; background: #eef4f7; }
+  .sidebar { position: sticky; top: 18px; padding: 16px 12px; min-height: calc(100vh - 112px); }
   .sidebar-title { margin: 0 0 1.2rem; padding-inline: .7rem; font-size: 1.06rem; color: #143a54; font-weight: 760; }
   .sidebar ul { margin: 0; padding: 0; list-style: none; }
   .nav-group + .nav-group { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2eaf0; }
   .nav-group h2 { margin: 0 0 .25rem; padding-left: .7rem; color: #425d70; font-size: .75rem; letter-spacing: .075em; text-transform: uppercase; }
   .nav-group a { display: flex; align-items: center; min-height: 40px; padding: .45rem .65rem; text-decoration: none; color: #244662; border-inline-start: 3px solid transparent; border-radius: 5px; }
-  .nav-group a:hover { background: #eef4f8; }
-  .nav-group a[aria-current=page] { border-inline-start-color: #176c98; background: #e2eef7; color: #113e64; font-weight: 700; }
+  .nav-group a:hover { background: #ffffffa8; }
+  .nav-group a[aria-current=page] { border-inline-start-color: #176c98; background: linear-gradient(100deg, #cceaf4, #e4f6f1); color: #103e60; font-weight: 700; }
   @media (max-width: 650px) {
     .workspace { grid-template-columns: minmax(0, 1fr); }
     .sidebar { position: static; min-height: 0; }

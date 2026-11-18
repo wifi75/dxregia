@@ -50,7 +50,7 @@
   }
 </script>
 
-<section aria-labelledby="password-title">
+<section class="glass-panel" aria-labelledby="password-title">
   <h1 id="password-title">Password sysop</h1>
   <form onsubmit={change}>
     <label>Accesso da aggiornare
@@ -69,7 +69,7 @@
 </section>
 
 <style>
-  section { padding: 22px; border: 1px solid #b7c9d5; border-radius: 9px; background: #fff; }
+  section { padding: 22px; }
   h1 { margin: 0 0 1rem; }
   form { display: grid; gap: .85rem; justify-items: start; }
   form p { margin: 0; color: #465e70; }

@@ -65,7 +65,7 @@
     <h1>Stato del nodo</h1>
     <button onclick={refresh} disabled={busy}>{busy ? 'Verifica in corso…' : 'Verifica ora'}</button>
   </div>
-  <article>
+  <article class="glass-panel">
     <div class="summary" class:ready={!failed && status?.state === 'ready'} role="status" aria-busy={busy}>
       <span class="signal" aria-hidden="true"></span>
       <div>
@@ -90,17 +90,15 @@
     margin: 0;
     min-width: 280px;
     min-height: 100vh;
-    background: radial-gradient(ellipse at 5% 0%, #d5e8f4 0%, transparent 48%), #f1f5f9;
-    color: #182636;
     font: 15px/1.5 system-ui, sans-serif;
   }
   header {
     display: flex;
     align-items: baseline;
     gap: 18px;
-    background: #ffffffb5;
+    background: #ffffffb9;
     backdrop-filter: blur(14px);
-    border-bottom: 1px solid #d7dfe7;
+    border-bottom: 1px solid #a9c3d088;
     padding: 8px clamp(12px, 2vw, 32px);
   }
   header .brand { display: inline-flex; gap: 9px; align-items: center; padding-inline: 0; font-size: 1.25rem; font-weight: 800; color: #143a60; }
@@ -124,7 +122,7 @@
     margin-bottom: 16px;
   }
   h1 { margin: 0; font-size: 1.65rem; line-height: 1.2; }
-  article { background: #fff; border: 1px solid #d7dfe7; }
+  article { padding: 0; overflow: hidden; }
   .summary { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; }
   .signal { margin-top: 8px; width: 8px; height: 8px; flex: 0 0 8px; background: #9a5600; border-radius: 50%; }
   .ready .signal { background: #217346; }

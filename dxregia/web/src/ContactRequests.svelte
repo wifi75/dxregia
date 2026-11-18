@@ -24,7 +24,7 @@
   onMount(() => { void refresh() })
 </script>
 
-<section aria-labelledby="requests-title">
+<section class="glass-panel" aria-labelledby="requests-title">
   <div class="heading"><h2 id="requests-title">Richieste dal portale</h2><button type="button" onclick={refresh}>Aggiorna</button></div>
   {#if failed}<p role="status">Richieste non disponibili.</p>
   {:else if requests?.length}
@@ -45,7 +45,7 @@
 </section>
 
 <style>
-  section { margin-top: 20px; padding: 16px; background: white; border: 1px solid #d7dfe7; }
+  section { margin-top: 20px; padding: 16px; }
   .heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
   h2 { margin: 0; font-size: 1.15rem; }
   details { border-top: 1px solid #d7dfe7; padding: 8px 0; }

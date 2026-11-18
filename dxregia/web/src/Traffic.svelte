@@ -24,7 +24,7 @@
   })
 </script>
 
-<section aria-labelledby="traffic-title">
+<section class="glass-panel" aria-labelledby="traffic-title">
   <h2 id="traffic-title">Statistiche del portale</h2>
   {#if failed}
     <p role="status">Statistiche non disponibili.</p>
@@ -59,7 +59,7 @@
 </section>
 
 <style>
-  section { margin-top: 20px; padding: 16px; background: white; border: 1px solid #d7dfe7; }
+  section { margin-top: 20px; padding: 16px; }
   h3 { margin: 8px 0 0; font-size: .92rem; }
   h2 { margin: 0; font-size: 1.15rem; }
   details { border-top: 1px solid #d7dfe7; padding: 8px 0; }

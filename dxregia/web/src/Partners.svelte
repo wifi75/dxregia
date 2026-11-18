@@ -180,7 +180,7 @@
   }
 </script>
 
-<section aria-labelledby="partners-title">
+<section class="glass-panel" aria-labelledby="partners-title">
   <div class="toolbar">
     <h2 id="partners-title">Nodi partner</h2>
     <button type="button" onclick={() => open()} disabled={busy || enabling}>Aggiungi nodo</button>
@@ -267,7 +267,7 @@
 </section>
 
 <style>
-  section { margin-top: 20px; padding: 16px; background: white; border: 1px solid #d7dfe7; }
+  section { margin-top: 20px; padding: 16px; }
   .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
   h2 { margin: 0; font-size: 1.15rem; }
   h3 { margin: 18px 0 6px; font-size: 1rem; }

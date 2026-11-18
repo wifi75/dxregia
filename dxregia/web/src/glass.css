@@ -1,0 +1,39 @@
+:root {
+  --glass-text: #17384c;
+  --glass-accent: #176687;
+  --glass-line: #a9c3d0;
+  --glass-radius: 17px;
+  --glass-shadow: 0 15px 34px #1b577223, 0 2px 6px #1b577212, inset 0 1px #fff;
+  --glass-fill: linear-gradient(150deg, #ffffffe8, #f1f9fbd1 60%, #e9f4f2d4);
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 2% 4%, #bde6fa, transparent 57%),
+    radial-gradient(ellipse at 96% 16%, #b9eddf, transparent 57%),
+    #edf4f8;
+  background-attachment: fixed;
+  color: var(--glass-text);
+}
+
+.glass-panel {
+  padding: 16px;
+  border: 1px solid var(--glass-line);
+  border-radius: var(--glass-radius);
+  background: var(--glass-fill);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(14px) saturate(135%);
+}
+
+.glass-enter {
+  animation: glass-enter 240ms ease-out both;
+}
+
+@keyframes glass-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-enter { animation: none; }
+}
