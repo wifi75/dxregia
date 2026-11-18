@@ -82,7 +82,8 @@ func installPresenceHook(local string) error {
 			digest != "8c0f94bc34d71bc10422aca764a3b21223882e8d5b98dfee0036f45472017ec6" &&
 			digest != "ac480a075906701840e342e0e712aa6c0f064d5b65f202b48d6a09a25f2cccd4" &&
 			digest != "f655c5fd185d97f83a9d72cc08b62983427b5df718e3352416bc5ca7eb6e603f" &&
-			digest != "8b09a687d3058eaeb2292096bf3afbbd024991e7afda5d6b98ad9f9a0286b79c" {
+			digest != "8b09a687d3058eaeb2292096bf3afbbd024991e7afda5d6b98ad9f9a0286b79c" &&
+			digest != "b86cfd5dbaab32dc023192d342c2babf4e3389fbbea4bd0dbddcf5bfccb31327" {
 			return nil
 		}
 		return upgradePresenceHook(local, path)
