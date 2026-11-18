@@ -213,3 +213,5 @@ Lo script Mojo generato per il peering ora specifica in modo esplicito timeout, 
 L'elenco partner aggiorna ogni cinque secondi la colonna Stato con LED e testo, anche senza aprire una scheda. L'anteprima dello script mostra campo per campo la configurazione del collegamento con password oscurata. Nodo → Log DXSpider mostra eventi di connessione e avvio selezionati, usando solo messaggi ricostruiti dal backend e senza esporre log di login grezzi.
 
 Il form Aggiungi nodo accetta la password remota quando si seleziona Con password. Salva e connetti la passa al piano di connessione persistente. La scheda amministrativa mostra la password salvata tramite API autenticata con no-store, separata dall'elenco partner e dal log. Il piano legacy conserva le credenziali remote in un file privato del nodo, poiché Mojo deve reinviarle alla riconnessione.
+
+Il provisioning dal pannello applica anche registered(1), equivalente a set/register, oltre al tipo Spider e alla configurazione della password per l'ingresso. Per gli account esistenti il flusso verifica tipo e blocco prima di registrarli e preserva password non corrispondenti.

@@ -159,6 +159,14 @@ sub apply_node_profile {
     $applied_profile = $bytes;
 }
 
+sub register_partner_account {
+    my ($user, $call) = @_;
+    $user->registered(1);
+    $user->put;
+    my $channel = DXChannel::get($call);
+    $channel->registered(1) if $channel;
+}
+
 sub provision_partners {
     my $dir = "$main::local_data/dxregia-partners";
     opendir(my $dh, $dir) or return;
@@ -183,6 +191,7 @@ sub provision_partners {
             } else {
                 if (!$user) {
                     $user = DXUser->new($call);
+                    $user->registered(1);
                     $user->sort('S');
                     $user->homenode($call);
                     $user->priv(1);
@@ -191,13 +200,19 @@ sub provision_partners {
                     $result = $outgoing ? 'Pronto in uscita' : 'Abilitato in Mojo';
                 } else {
                     if ($outgoing) {
+                        register_partner_account($user, $call) unless $user->registered;
                         $result = $user->passwd =~ /\A\{DXREGIA-BCRYPT\}outgoing-only:/ ? 'Pronto in uscita' : 'Abilitato in Mojo';
                     } elsif ($user->passwd =~ /\A\{DXREGIA-BCRYPT\}outgoing-only:/) {
                         $user->passwd($password);
-                        $user->put;
+                        register_partner_account($user, $call);
                         $result = 'Abilitato in Mojo';
                     } else {
-                        $result = $user->passwd eq $password ? 'Abilitato in Mojo' : 'Account Mojo esistente da verificare';
+                        if ($user->passwd eq $password) {
+                            register_partner_account($user, $call) unless $user->registered;
+                            $result = 'Abilitato in Mojo';
+                        } else {
+                            $result = 'Account Mojo esistente da verificare';
+                        }
                     }
                 }
             }
