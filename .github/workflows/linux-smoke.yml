@@ -95,7 +95,7 @@ jobs:
       - name: Update the native install from outside the checkout
         run: |
           cd "$RUNNER_TEMP"
-          sh "$GITHUB_WORKSPACE/dxregia/deploy/update-native.sh" --source "$GITHUB_WORKSPACE"
+          dxregia-update --source "$GITHUB_WORKSPACE"
           curl -fsS "http://127.0.0.1:$DXREGIA_WEB_PORT/api/visits" | python3 -c 'import json,sys; assert json.load(sys.stdin)["Views"] == 2'
       - name: Publish the verified native test bundle
         if: github.event_name == 'push'

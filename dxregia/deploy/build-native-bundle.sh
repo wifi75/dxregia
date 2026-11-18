@@ -29,7 +29,7 @@ printf '%s\n' "$arch" > "$bundle/dxregia/prebuilt/architecture"
 for name in perl cmd connect data filter msg COPYING LICENSE; do
     cp -a "$root/$name" "$bundle/"
 done
-for name in install-native.sh dxregia.service backup_node.py migrate_mojo.py check_telnet.py README.md; do
+for name in install-native.sh update-native.sh dxregia.service backup_node.py migrate_mojo.py check_telnet.py README.md; do
     cp -a "$root/dxregia/deploy/$name" "$bundle/dxregia/deploy/"
 done
 stage=$(mktemp -d "$output/.dxregia-package-XXXXXX")

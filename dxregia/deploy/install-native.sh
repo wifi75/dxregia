@@ -79,6 +79,7 @@ if [ ! -f "$unit" ]; then
     as_root install -d -m 0755 "$runtime/bin" "$runtime/web"
     as_root install -m 0755 "$binary" "$runtime/bin/dxregia"
     as_root install -m 0755 "$root/dxregia/deploy/backup_node.py" "$runtime/bin/dxregia-backup"
+    as_root install -m 0755 "$root/dxregia/deploy/update-native.sh" /usr/local/bin/dxregia-update
     as_root cp -R "$root/dxregia/web/dist/." "$runtime/web/"
     if [ ! -f /etc/dxregia.env ]; then
         printf 'DXREGIA_WEB_PORT=%s\nDXREGIA_TELNET_PORT=%s\nDXREGIA_TELNET_BIND=%s\n' "$web_port" "$telnet_port" "$telnet_bind" > "$stage/environment"

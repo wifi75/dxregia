@@ -181,3 +181,5 @@ Per l'assistenza 2FA il backend distingue i codici già usati da quelli che non 
 Il run 44295449257 ha passato l'intera matrice Linux nativa e Docker amd64/arm64 con la modifica alla diagnosi TOTP. Il commit e3591bab e stato promosso su main. La procedura per l'orologio host Proxmox e il recupero 2FA e nella guida di installazione.
 
 Aggiornamento nativo da qualsiasi directory tramite update-native.sh. Compila prima di arrestare il servizio, conserva configurazioni e credenziali, sostituisce runtime e parti upstream, controlla HTTP e Telnet e ripristina i componenti precedenti se il controllo fallisce. Il workflow lo esercita da una directory esterna al checkout e verifica che il contatore persistente resti invariato.
+
+L'installatore nativo distribuisce lo script come /usr/local/bin/dxregia-update. Il collaudo lo invoca da fuori checkout. Sui server esistenti lo stesso file .sh puo essere eseguito direttamente o installato una volta nel PATH.

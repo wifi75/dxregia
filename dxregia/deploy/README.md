@@ -39,7 +39,7 @@ Il collaudo automatico nativo è passato su Ubuntu 24.04 con systemd, su amd64 e
 
 ## Aggiornare un'installazione nativa
 
-Scarica `update-native.sh` da `main` e avvialo da qualsiasi directory. Servono Git, Go, Node.js con npm, curl, Python 3, flock e privilegi sudo o root. Lo script scarica `main`, compila backend e frontend, aggiorna il motore Mojo e lo strumento di backup e riavvia il servizio. Conserva dati, credenziali, porte e personalizzazioni in `local`, `local_cmd` e `local_data`. Le directory upstream distribuite con il programma vengono sostituite. Lo script conserva le copie precedenti e le ripristina se il pannello o il listener Telnet non risponde.
+Esegui `dxregia-update` da qualsiasi directory. Per le installazioni precedenti, scarica `update-native.sh` da `main` e avvialo con `sh update-native.sh`, oppure installalo con `sudo install -m 0755 update-native.sh /usr/local/bin/dxregia-update`. Servono Git, Go, Node.js con npm, curl, Python 3, flock e privilegi sudo o root. Lo script scarica `main`, compila backend e frontend, aggiorna il motore Mojo e lo strumento di backup e riavvia il servizio. Conserva dati, credenziali, porte e personalizzazioni in `local`, `local_cmd` e `local_data`. Le directory upstream distribuite con il programma vengono sostituite. Lo script conserva le copie precedenti e le ripristina se il pannello o il listener Telnet non risponde.
 
 ## Installazione di prova da sorgente
 
