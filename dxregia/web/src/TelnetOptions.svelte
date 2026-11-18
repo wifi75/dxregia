@@ -92,11 +92,11 @@
         {#each toggles.slice(0, 2) as [key, label]}
           <label class="check"><input type="checkbox" bind:checked={options[key]} />{label}<Hint text={hints[key]} /></label>
         {/each}
-        <label>Registrazione utenti<Hint text="Decide chi è considerato utente registrato. Chi non lo è vede un messaggio di benvenuto diverso e non può usare i comandi riservati ai registrati, come inviare messaggi. Il sysop registra un utente con il comando set/register." />
+        <label>Registrazione utenti<Hint text="Decide chi può inviare spot. Tutti possono collegarsi e leggere, ma solo gli utenti registrati possono inviare spot (dx), annunci, chat e messaggi. Per permetterlo solo a chi vuoi tu, scegli «Solo utenti registrati dal sysop» e registra ogni utente con il comando set/register NOMINATIVO dalla Console Telnet." />
           <select bind:value={options.Registration}>
-            <option value={0}>Nessuna registrazione: tutti ammessi</option>
-            <option value={1}>Solo utenti registrati dal sysop</option>
-            <option value={2}>Tutti, tranne i de-registrati dal sysop</option>
+            <option value={0}>Tutti possono inviare spot</option>
+            <option value={1}>Solo utenti registrati dal sysop inviano spot</option>
+            <option value={2}>Tutti inviano spot, tranne i de-registrati dal sysop</option>
           </select>
         </label>
       </fieldset>
