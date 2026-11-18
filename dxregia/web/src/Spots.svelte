@@ -18,8 +18,45 @@
   let mode = $state('')
   let noFt8 = $state(false)
   let query = $state('')
+  const spotKey = (spot: Spot) => spot.At + '|' + spot.Call + '|' + spot.Frequency
+  const soundPref = () => { try { return localStorage.getItem('dxregia-sound') !== 'off' } catch { return true } }
+  let soundOn = $state(soundPref())
+  let freshKeys = $state<Set<string>>(new Set())
+  let knownKeys: Set<string> | undefined
+  let audio: AudioContext | undefined
+
+  // I browser permettono l'audio solo dopo un gesto dell'utente: il primo tocco o tasto lo sblocca.
+  function unlockAudio() {
+    try {
+      audio ??= new AudioContext()
+      if (audio.state === 'suspended') void audio.resume()
+    } catch { /* senza audio il resto funziona uguale */ }
+  }
+
+  // Un breve «bip» morbido: due note ravvicinate, volume basso.
+  function chirp(at = 0) {
+    if (!audio || audio.state !== 'running') return
+    const start = audio.currentTime + at
+    const gain = audio.createGain()
+    gain.connect(audio.destination)
+    gain.gain.setValueAtTime(0.0001, start)
+    gain.gain.exponentialRampToValueAtTime(0.09, start + 0.015)
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.2)
+    const tone = audio.createOscillator()
+    tone.type = 'sine'
+    tone.frequency.setValueAtTime(880, start)
+    tone.frequency.exponentialRampToValueAtTime(1320, start + 0.09)
+    tone.connect(gain)
+    tone.start(start)
+    tone.stop(start + 0.22)
+  }
+
+  function toggleSound() {
+    soundOn = !soundOn
+    try { localStorage.setItem('dxregia-sound', soundOn ? 'on' : 'off') } catch { /* solo una comodità */ }
+    if (soundOn) { unlockAudio(); chirp() }
+  }
   let reading = false
-  let lastUpdate = $state<Date>()
   let views = $state<number>()
   const bandFor = (frequency: number) => bands.find(([, low, high]) => frequency >= low && frequency <= high)?.[0] ?? ''
   const modeFor = (comment: string) => comment.match(/\b(FT8|FT4|SSB|CW|RTTY|PSK31|USB|LSB)\b/i)?.[1].toUpperCase() ?? ''
@@ -31,6 +68,15 @@
   const entities: Record<number, [string]> = {
     23: ['Portogallo'], 25: ['Madeira'], 36: ['Canarie'], 95: ['Giappone'],
     124: ['Argentina'], 129: ['Austria'], 142: ['Brasile'], 226: ['Stati Uniti'], 277: ['Figi'],
+  }
+  const rowsKeyed = (list: Spot[]) => {
+    const seen = new Map<string, number>()
+    return list.map(spot => {
+      const base = spotKey(spot)
+      const n = (seen.get(base) ?? 0) + 1
+      seen.set(base, n)
+      return { spot, key: base + '#' + n, id: base }
+    })
   }
   const groupOf = (value: string) => ['FT8', 'FT4', 'RTTY', 'PSK31'].includes(value) ? 'DIGI' : ['SSB', 'USB', 'LSB'].includes(value) ? 'SSB' : value
   let filtered = $derived(spots.filter(spot =>
@@ -47,9 +93,20 @@
       const response = await fetch('/api/spots', { signal: AbortSignal.timeout(6000) })
       if (!response.ok) throw new Error()
       const data = await response.json()
-      spots = data.Spots
+      const rows: Spot[] = data.Spots ?? []
+      const keys = new Set(rows.map(spotKey))
+      if (knownKeys) {
+        const added = [...keys].filter(key => !knownKeys!.has(key))
+        if (added.length) {
+          freshKeys = new Set([...freshKeys, ...added])
+          // Giallo pieno per 10 secondi, poi sfuma: la scheda resta evidenziata ancora 4 secondi durante la dissolvenza.
+          setTimeout(() => { freshKeys = new Set([...freshKeys].filter(key => !added.includes(key))) }, 14500)
+          if (soundOn) for (let i = 0; i < Math.min(added.length, 4); i++) chirp(i * 0.16)
+        }
+      }
+      knownKeys = keys
+      spots = rows
       available = data.Available
-      if (available) lastUpdate = new Date()
     } catch {
       available = false
     } finally {
@@ -57,24 +114,19 @@
     }
   }
   onMount(() => {
+    const unlock = () => unlockAudio()
+    window.addEventListener('pointerdown', unlock, { once: true })
+    window.addEventListener('keydown', unlock, { once: true })
     void refresh()
     void fetch('/api/visits').then(async response => {
       if (response.ok) views = (await response.json()).Views
     }).catch(() => {})
     const timer = setInterval(refresh, 5000)
-    return () => clearInterval(timer)
+    return () => { clearInterval(timer); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock) }
   })
 </script>
 
 <main aria-labelledby="spots-title">
-  <div class="heading">
-    <div class="feed-controls">
-      <span class="feed-state" class:live={available}>
-        {available === false ? t('feedDown') : available ? t('live') : t('connecting')}
-      </span>
-      {#if lastUpdate}<time title={t('lastUpdate')} datetime={lastUpdate.toISOString()}>{utc.format(lastUpdate)} UTC</time>{/if}
-    </div>
-  </div>
   <section class="filters glass-panel glass-enter" aria-label={t('filters')}>
     <div class="chip-row">
       <div class="chips" role="group" aria-label={t('bands')}>
@@ -98,6 +150,12 @@
         {#if query}<button class="clear" type="button" aria-label={t('clear')} title={t('clear')} onclick={() => query = ''}>×</button>{/if}
       </span>
       <span class="count">{t(filtered.length === 1 ? 'shownOne' : 'shownMany', { n: filtered.length })}</span>
+      <button class="sound" type="button" aria-pressed={soundOn} title={soundOn ? t('soundOn') : t('soundOff')} aria-label={soundOn ? t('soundOn') : t('soundOff')} onclick={toggleSound}>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor" stroke="none"/>
+          {#if soundOn}<path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18 6.5a8 8 0 0 1 0 11"/>{:else}<path d="M16 9.5l5 5M21 9.5l-5 5"/>{/if}
+        </svg>
+      </button>
     </div>
   </section>
   <div class="desk glass-enter">
@@ -113,8 +171,8 @@
       <table>
         <thead><tr><th scope="col">{t('thDe')}</th><th scope="col">{t('thFreq')} <small>kHz</small></th><th>{t('thMode')}</th><th>{t('thDx')}</th><th>{t('thEntity')}</th><th>{t('thComment')}</th><th>{t('thUtc')}</th></tr></thead>
         <tbody>
-          {#each filtered as spot, i}
-            <tr class:latest={i === 0}>
+          {#each rowsKeyed(filtered) as { spot, key, id } (key)}
+            <tr class:fresh={freshKeys.has(id)}>
               <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Spotter} onclick={() => query = spot.Spotter}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>{spot.Spotter}</span></td>
               <td><strong class="frequency" style:background={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
               <td data-empty={!modeFor(spot.Comment) || undefined}><span class="mode" data-mode={modeFor(spot.Comment)}>{modeFor(spot.Comment) || '—'}</span></td>
@@ -141,23 +199,17 @@
 </main>
 
 <style>
-  main { width: 100%; padding: 0 clamp(12px, 2vw, 32px) 24px; }
-  .heading { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; min-height: 64px; }
+  main { width: 100%; padding: 14px clamp(12px, 2vw, 32px) 24px; }
   h1 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.25rem); color: #102e42; letter-spacing: -.04em; }
-  .feed-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
-  .feed-controls time { color: #496174; font-variant-numeric: tabular-nums; }
-  .feed-state { display: inline-flex; align-items: center; gap: .45rem; color: #395468; font-weight: 650; }
-  .feed-state::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #ad7118; }
-  .feed-state.live::before { background: #20845a; box-shadow: 0 0 0 3px #dcefe5; animation: signal-pulse 2.6s ease-out infinite; }
-  @keyframes signal-pulse { 0%, 100% { box-shadow: 0 0 0 2px #20845a24; } 48% { box-shadow: 0 0 0 5px #20845a0a; } }
-  @media (prefers-reduced-motion: reduce) { .feed-state.live::before { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: none; background: #fff1a0; } }
   .filters { display: grid; gap: 10px; padding: 12px 14px; margin-bottom: 14px; }
   .chip-row { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
   .chips { display: flex; flex-wrap: wrap; gap: 7px; }
   .chip { display: inline-flex; align-items: center; gap: .4rem; min-height: 34px; padding: .25rem .8rem; border-radius: 999px; font-size: .88rem; --button-face: #fff; --button-edge: #a4bccb; --button-ink: #274760; box-shadow: none; }
   .chip[aria-pressed=true] { --button-face: #175c82; --button-edge: #0c3a56; --button-ink: #fff; }
   .band-color { width: 9px; height: 9px; border-radius: 3px; box-shadow: inset 0 0 0 1px #223c4c30; }
-  .search-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .search-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .count { margin-left: auto; }
   .search { position: relative; flex: 1 1 280px; max-width: 460px; }
   .search input { width: 100%; padding-right: 36px; }
   .clear { position: absolute; right: 4px; top: 4px; width: 32px; min-height: 32px; padding: 0; border-radius: 6px; font-size: 1.2rem; line-height: 1; --button-face: transparent; --button-edge: transparent; --button-ink: #4c6374; box-shadow: none; }
@@ -173,8 +225,10 @@
   th { background: #ffffffa3; color: #1d5d8c; border-bottom: 2px solid #2972a0; font-size: .86rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
   th small { color: #536b7d; text-transform: none; }
   tbody tr:nth-child(even) { background: #e5f1f7ab; }
-  tbody tr.latest, tbody tr.latest:nth-child(even) { background: #fff3b0; }
-  tbody tr.latest td:first-child { box-shadow: inset 4px 0 #20845a; }
+  tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: fresh 14s ease-out both; }
+  @keyframes fresh { 0%, 71% { background: #fff1a0; box-shadow: inset 4px 0 #e0a020; } 100% { background: transparent; box-shadow: inset 4px 0 transparent; } }
+  .sound { display: inline-grid; place-items: center; width: 40px; min-height: 40px; padding: 0; border-radius: 50%; --button-face: #fff; --button-edge: #a4bccb; --button-ink: #214e80; box-shadow: none; }
+  .sound[aria-pressed=false] { --button-ink: #7d8fa0; }
   .callcell { display: inline-flex; align-items: center; gap: 6px; }
   .lens { display: inline-grid; place-items: center; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; --button-face: transparent; --button-edge: transparent; --button-ink: #6d8798; box-shadow: none; }
   .lens:hover:not(:disabled) { --button-ink: #175c82; --button-face: #e3eef6; transform: none; filter: none; }
@@ -192,8 +246,6 @@
   .visits { margin-block: 14px 0; color: #526c7f; font-size: .85rem; }
   @media (max-width: 700px) {
     main { padding: 0 10px 20px; }
-    .heading { min-height: 48px; justify-content: space-between; }
-    .feed-controls { width: 100%; justify-content: space-between; gap: 8px; }
     .filters { padding: 10px; gap: 8px; margin-bottom: 10px; }
     .chip-row { flex-direction: column; align-items: stretch; gap: 8px; }
     .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
@@ -203,8 +255,6 @@
     table, tbody { display: block; white-space: normal; }
     thead { display: none; }
     tbody tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "freq dx utc" "mode entity entity" "de comment comment"; align-items: center; gap: 3px 10px; padding: 10px 12px; border-bottom: 1px solid #dce5ed; }
-    tbody tr.latest td:first-child { box-shadow: none; }
-    tbody tr.latest { box-shadow: inset 4px 0 #20845a; }
     td { padding: 0; border: 0; min-width: 0; }
     td:nth-child(1) { grid-area: de; font-size: .82rem; }
     td:nth-child(1) .lens { display: none; }

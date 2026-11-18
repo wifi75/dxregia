@@ -2,6 +2,7 @@
 const it = {
   navSpots: 'Spot in diretta', navContact: 'Contatti', langLabel: 'Lingua',
   allShort: 'Tutti', digi: 'Digi', noFt8: 'Senza FT8', lens: 'Mostra solo questo nominativo', clear: 'Cancella la ricerca',
+  soundOn: 'Suono attivo: tocca per disattivarlo', soundOff: 'Suono disattivato: tocca per attivarlo',
   spotsTitle: 'Cluster DX', live: 'In diretta', paused: 'In pausa', feedDown: 'Feed non disponibile', connecting: 'Connessione…',
   lastUpdate: 'Ultimo aggiornamento del feed', pause: 'Pausa', resume: 'Riprendi',
   filters: 'Filtri degli spot', bands: 'Bande', allBands: 'Tutte le bande', modes: 'Modo', allModes: 'Tutti i modi',
@@ -27,6 +28,7 @@ type Catalog = Record<Key, string>
 const en: Catalog = {
   navSpots: 'Live spots', navContact: 'Contact', langLabel: 'Language',
   allShort: 'All', digi: 'Digi', noFt8: 'No FT8', lens: 'Show only this callsign', clear: 'Clear search',
+  soundOn: 'Sound on: tap to turn it off', soundOff: 'Sound off: tap to turn it on',
   spotsTitle: 'DX Cluster', live: 'Live', paused: 'Paused', feedDown: 'Feed unavailable', connecting: 'Connecting…',
   lastUpdate: 'Last feed update', pause: 'Pause', resume: 'Resume',
   filters: 'Spot filters', bands: 'Bands', allBands: 'All bands', modes: 'Mode', allModes: 'All modes',
@@ -50,7 +52,9 @@ const en: Catalog = {
 const es: Catalog = {
   navSpots: 'Spots en directo', navContact: 'Contacto', langLabel: 'Idioma',
   allShort: 'Todas', digi: 'Digi', noFt8: 'Sem FT8', lens: 'Mostrar só este indicativo', clear: 'Limpar a pesquisa',
+  soundOn: 'Som ativo: toca para desativar', soundOff: 'Som desativado: toca para ativar',
   allShort: 'Todas', digi: 'Digi', noFt8: 'Sin FT8', lens: 'Mostrar solo este indicativo', clear: 'Borrar la búsqueda',
+  soundOn: 'Sonido activado: toca para desactivarlo', soundOff: 'Sonido desactivado: toca para activarlo',
   spotsTitle: 'Clúster DX', live: 'En directo', paused: 'En pausa', feedDown: 'Feed no disponible', connecting: 'Conectando…',
   lastUpdate: 'Última actualización del feed', pause: 'Pausa', resume: 'Reanudar',
   filters: 'Filtros de spots', bands: 'Bandas', allBands: 'Todas las bandas', modes: 'Modo', allModes: 'Todos los modos',
@@ -74,6 +78,7 @@ const es: Catalog = {
 const de: Catalog = {
   navSpots: 'Live-Spots', navContact: 'Kontakt', langLabel: 'Sprache',
   allShort: 'Alle', digi: 'Digi', noFt8: 'Ohne FT8', lens: 'Nur dieses Rufzeichen zeigen', clear: 'Suche löschen',
+  soundOn: 'Ton an: zum Ausschalten tippen', soundOff: 'Ton aus: zum Einschalten tippen',
   spotsTitle: 'DX-Cluster', live: 'Live', paused: 'Pausiert', feedDown: 'Feed nicht verfügbar', connecting: 'Verbinde…',
   lastUpdate: 'Letzte Aktualisierung des Feeds', pause: 'Pause', resume: 'Fortsetzen',
   filters: 'Spot-Filter', bands: 'Bänder', allBands: 'Alle Bänder', modes: 'Betriebsart', allModes: 'Alle Betriebsarten',
@@ -97,6 +102,7 @@ const de: Catalog = {
 const fr: Catalog = {
   navSpots: 'Spots en direct', navContact: 'Contact', langLabel: 'Langue',
   allShort: 'Toutes', digi: 'Digi', noFt8: 'Sans FT8', lens: 'Afficher uniquement cet indicatif', clear: 'Effacer la recherche',
+  soundOn: 'Son activé : touche pour le couper', soundOff: 'Son coupé : touche pour l’activer',
   spotsTitle: 'Cluster DX', live: 'En direct', paused: 'En pause', feedDown: 'Flux indisponible', connecting: 'Connexion…',
   lastUpdate: 'Dernière mise à jour du flux', pause: 'Pause', resume: 'Reprendre',
   filters: 'Filtres des spots', bands: 'Bandes', allBands: 'Toutes les bandes', modes: 'Mode', allModes: 'Tous les modes',
