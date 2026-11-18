@@ -125,6 +125,20 @@ func registrationQueueDir(root string) string {
 	return filepath.Join(root, "local_data", "dxregia-users")
 }
 
+// registrationSender è chi spedisce le email di conferma. Nei test si sostituisce con uno che le raccoglie.
+type registrationSender struct {
+	send func(to, message string) error
+	from string
+}
+
+var registrationMailer = func(root string) *registrationSender {
+	m := currentMailer(root)
+	if m == nil {
+		return nil
+	}
+	return &registrationSender{send: m.send, from: m.from}
+}
+
 func nodeCallOf(root string) string {
 	data, err := os.ReadFile(filepath.Join(root, "local", "dxregia-node.json"))
 	var node nodeConfig
@@ -171,7 +185,7 @@ func registerUsers(mux *http.ServeMux, root string, auth *sysopAuth) {
 	// Stato pubblico: serve al portale per mostrare o nascondere il pulsante «Registrati».
 	mux.HandleFunc("GET /api/register/status", func(w http.ResponseWriter, r *http.Request) {
 		settings := readRegisterSettings(root)
-		reply(w, map[string]bool{"Enabled": settings.Enabled && currentMailer(root) != nil})
+		reply(w, map[string]bool{"Enabled": settings.Enabled && registrationMailer(root) != nil})
 	})
 
 	mux.HandleFunc("POST /api/register", func(w http.ResponseWriter, r *http.Request) {
@@ -182,7 +196,7 @@ func registerUsers(mux *http.ServeMux, root string, auth *sysopAuth) {
 			return
 		}
 		settings := readRegisterSettings(root)
-		mailer := currentMailer(root)
+		mailer := registrationMailer(root)
 		if !settings.Enabled || mailer == nil {
 			http.Error(w, "La registrazione non è disponibile.", http.StatusServiceUnavailable)
 			return
@@ -331,7 +345,7 @@ func registerUsers(mux *http.ServeMux, root string, auth *sysopAuth) {
 		if data, err := os.ReadFile(registerSettingsPath(root)); err == nil {
 			_ = json.Unmarshal(data, &raw)
 		}
-		reply(w, map[string]any{"Enabled": raw.Enabled, "PublicURL": raw.PublicURL, "SMTP": currentMailer(root) != nil})
+		reply(w, map[string]any{"Enabled": raw.Enabled, "PublicURL": raw.PublicURL, "SMTP": registrationMailer(root) != nil})
 	})
 	mux.HandleFunc("PUT /api/register/settings", func(w http.ResponseWriter, r *http.Request) {
 		if !auth.allowed(r) {
