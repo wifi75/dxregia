@@ -129,6 +129,16 @@ func main() {
 		traffic.view(r)
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
+	// Il pannello sysop vive su /admin e non è collegato da nessuna pagina pubblica.
+	adminPage := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
+	}
+	mux.HandleFunc("GET /admin", adminPage)
+	mux.HandleFunc("GET /admin/", adminPage)
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/spots", http.StatusFound)
+	})
 	mux.Handle("GET /", http.FileServer(http.Dir(*web)))
 	httpPort, err := loadWebPort(*webPortFile, *port)
 	if err != nil {

@@ -54,7 +54,7 @@ fi
 url="http://127.0.0.1:$web_port"
 for attempt in $(seq 1 30); do
     if curl -fsS --max-time 2 "$url/api/auth" >/dev/null 2>&1; then
-        printf 'Pannello sysop: %s\n' "$url"
+        printf 'Pannello sysop: %s/admin\n' "$url"
         if docker exec "$name" test -f /data/mojo/.dxregia-sysop; then
             printf '%s\n' 'Usa la password sysop già configurata.'
         else

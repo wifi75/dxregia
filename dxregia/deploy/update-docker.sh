@@ -178,7 +178,7 @@ for attempt in $(seq 1 25); do
             curl -fsS --max-time 3 "$url/api/listener" | python3 -c 'import json, sys; sys.exit(json.load(sys.stdin).get("state") != "ready")' 2>/dev/null; }; then
         restore=0
         stopped=0
-        printf 'DXRegia aggiornato a %s. Pannello: %s\nContainer precedente: %s\n' "$revision" "$url" "$previous"
+        printf 'DXRegia aggiornato a %s. Pannello: %s/admin\nContainer precedente: %s\n' "$revision" "$url" "$previous"
         exit 0
     fi
     sleep 1

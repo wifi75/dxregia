@@ -267,7 +267,7 @@ def peer_link(primary):
 
         wait_for("secondary web service", lambda: remote("/api/auth")[0] == 200)
         virgin = docker("exec", peer, "cat", "/data/sysop-initial")
-        assert remote("/api/auth/login", virgin)[1]["mustChange"]
+        assert remote("/api/auth/login", {"User": "sysop", "Password": virgin})[1]["mustChange"]
         status, enrollment = remote("/api/auth/password", secrets.token_hex(24))
         assert status == 200 and enrollment["mustVerify"]
         assert remote("/api/auth/totp", totp(enrollment["enrollmentKey"]))[0] == 200
@@ -331,7 +331,7 @@ def main():
     )
     config = {"node": "Q1QQQ-2", "sysop": "Q1QQQ", "locator": "JN55AA", "port": TELNET_PORT}
     assert request(client, "/api/setup", config)[0] == 401
-    status, login = request(client, "/api/auth/login", virgin)
+    status, login = request(client, "/api/auth/login", {"User": "sysop", "Password": virgin})
     assert status == 200 and login["mustChange"]
     password = secrets.token_hex(24)
     status, enroll = request(client, "/api/auth/password", password)
@@ -378,7 +378,7 @@ def main():
         time.sleep(6)
         telnet_login(b"Q7QQQ", b"Profilo Linux")
         # HTTP sessions are held in memory, so authenticate again after restarting.
-        assert request(client, "/api/auth/login", password)[0] == 200
+        assert request(client, "/api/auth/login", {"User": "Q1QQQ", "Password": password})[0] == 200
 
         def next_code():
             code = totp(enroll["enrollmentKey"])

@@ -196,7 +196,7 @@ for attempt in $(seq 1 25); do
             curl -fsS --max-time 3 "$url/api/listener" | python3 -c 'import json, sys; sys.exit(json.load(sys.stdin).get("state") != "ready")' 2>/dev/null; }; then
         success=1
         indicator 32 "DXRegia aggiornato a $(printf '%.12s' "$revision")."
-        printf 'Pannello (verifica locale): %s\nVersione precedente: %s e %s\n' "$url" "$rollback" "$engine_rollback"
+        printf 'Pannello (verifica locale): %s/admin\nVersione precedente: %s e %s\n' "$url" "$rollback" "$engine_rollback"
         exit 0
     fi
     sleep 1

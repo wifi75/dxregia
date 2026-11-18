@@ -7,7 +7,8 @@
   import Contact from './Contact.svelte'
   import { trackPortalPresence } from './portalPresence'
   const contactPage = window.location.pathname === '/contatti'
-  const publicPortal = contactPage || window.location.pathname === '/spots'
+  // Il pannello sysop è solo su /admin; ogni altra pagina è il portale pubblico.
+  const publicPortal = !(window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'))
   if (publicPortal) trackPortalPresence()
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
