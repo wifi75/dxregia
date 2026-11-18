@@ -52,3 +52,32 @@ All paths are relative to the node directory (`/var/lib/dxregia/mojo` on a nativ
 ## Session length
 
 **Management → Password → Session length** sets how long a panel login lasts (1 hour to 7 days, default 8 hours). When the session ends, the panel returns to the login page on the same section.
+
+## Access history
+
+**Node → Node accesses** lists who connected to the node (radio amateurs or partner nodes), with callsign, source address and duration, for the last 24 hours, 7 or 30 days. It is built from the DXSpider log, so it only goes back as far as the log files do. The dashboard shows who is connected right now.
+
+## Telnet options
+
+**Node → Telnet options** has a tooltip on every field. The key choice is **User registration**:
+
+- *Everyone can send spots* (default): anyone who connects can send spots, announcements and chat.
+- *Only users registered by the sysop send spots*: anyone can connect and read, but spots, announcements, chat and messages need a registered user. Register by hand with `set/register CALLSIGN`, or let users register themselves (below).
+- *Everyone except those deregistered by the sysop*: registered by default, with a blacklist.
+
+## Registration of users
+
+**Links → Registered users** turns on self-registration from the portal. Visitors open `/registrazione`, give a callsign, an email and a password (8–72 printable characters, no spaces) and confirm a link sent by email (valid 24 hours, usable once). Only then is the callsign created in DXSpider as a registered user with that password, stored as a bcrypt hash; Telnet then asks for the password. The page also lists the registrations and can revoke any of them.
+
+To use it:
+
+1. Set up the mail server (Management → Mail server).
+2. In *Registered users*, tick the switch and write the public address of the site (for example `https://dxregia.example.org`). It is set by hand on purpose: the links in the emails never take their address from the request.
+3. Choose *Only users registered by the sysop send spots* (the page offers a button).
+
+Limits: 40 requests a day, 3 per callsign or email. A callsign that already has a password set by the sysop cannot be taken over. Registration does not prove that the person owns the callsign, only the email address.
+
+## Portal extras
+
+- The spots page has a dismissible sponsor banner (Aurora), the DXSpider version and the author in the footer.
+- The portal can be installed on a phone (manifest and service worker; HTTPS required). The service worker never caches the API or `/admin`.

@@ -17,6 +17,9 @@ DXRegia macht es einfach, einen DX-Cluster-Knoten zu installieren, zu betreiben 
 - **Klügere Spots** — die Betriebsart wird aus der Frequenz abgeleitet, wenn der Kommentar sie nicht nennt, und angekündigte DX-Operationen (NG3K ADXO) erscheinen neben dem Rufzeichen.
 - **Sechs Sprachen** — Italienisch, Englisch, Spanisch, Deutsch, Französisch und Portugiesisch; jede andere Sprache fällt auf Englisch zurück.
 - **Admin-Bereich unter `/admin`** — geführte Ersteinrichtung, Anmeldung mit Benutzer, Passwort und Zwei-Faktor-Code, Live-Dashboard mit Status-LEDs und ein Analytics-Center.
+- **Knoteneinstellungen im Panel** — Nachricht des Tages, geplante Befehle, Startskript, Sperrlisten (Wörter, Rufzeichen, IP-Adressen), Hops, Filter und Telnet-Optionen, jeweils mit Tooltip. Das Panel spricht die sechs Sprachen und zeigt, wer sich mit dem Knoten verbunden hat.
+- **Registrierung zum Senden von Spots** — Besucher registrieren sich im Portal (Rufzeichen, E-Mail, Passwort) und bestätigen per E-Mail; nur Registrierte können per Telnet Spots senden. Optional, im Panel einzuschalten.
+- **Als App installierbar** — das Portal lässt sich auf dem Startbildschirm des Smartphones installieren und öffnet sich auch ohne Verbindung.
 - **Partnerknoten** — hinzufügen, verbinden und automatisch wiederverbinden; sehen, wer die Verbindung gestartet hat; einen Knoten löschen, um ihn zu trennen und seinen Zugang zu entziehen.
 - **Verbindungsanfragen automatisch** — andere Sysops fragen über deine Kontaktseite an; DXRegia kann ihr Konto anlegen, ihnen deine Verbindungsdaten mailen und bestätigen, sobald sie verbunden sind (Schalter und Tageslimit im Panel).
 - **HTML-E-Mails** — Anleitungen und Bestätigungen in sechs Sprachen über deinen eigenen SMTP-Server, im Panel eingerichtet und getestet.

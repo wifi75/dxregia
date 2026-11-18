@@ -59,3 +59,7 @@ Dalla scheda salvata, il sysop può scegliere Abilita accesso in ingresso. La ri
 Abilita gli account partner sui due nodi. Dal nodo che avvia il collegamento, usa Connetti nodo con la password fornita dal nodo remoto se richiesta. DXRegia si collega all'host e alla porta della scheda. Mostra Attivo solo dopo il passaggio allo stato operativo in Mojo. Per attivare la riconnessione, seleziona Riprova automaticamente prima di connettere il nodo. Il backend conserva l'eventuale password remota nel suo archivio privato e distanzia i tentativi di almeno due minuti. Sospende i tentativi quando l'endpoint della scheda differisce da quello autorizzato. Disattiva riconnessione rimuove il piano salvato.\
 \
 Con SMTP configurato, indirizzo del referente e host pubblico, il sysop può scegliere di inviare le istruzioni e l'esito via email quando abilita il partner. Le istruzioni partono dopo la conferma dell'account e contengono host, porta, indicativo e password dedicata. Dopo cinque minuti il worker verifica lo stato del link e invia conferma o indica i controlli da fare. Se Mojo non fornisce dati recenti, l'email precisa che la verifica è rimasta in sospeso.
+
+## Aggiornamenti: versioni precedenti
+
+`update-native.sh` conserva le ultime tre versioni precedenti (runtime in `/opt/.dxregia-update-*` e parti del motore in `.dxregia-engine-previous-*` nella directory di stato) e cancella le più vecchie dopo un aggiornamento riuscito. Una copia dello script rimasta da prima dello spostamento del motore in `engine/` non funziona più: va riscaricata da `main`.

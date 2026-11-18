@@ -17,6 +17,9 @@ DXRegia facilita instalar, gestionar y compartir un nodo DX Cluster. Mantiene DX
 - **Spots más inteligentes** — el modo se deduce de la frecuencia cuando el comentario no lo indica, y las operaciones DX anunciadas (NG3K ADXO) aparecen junto al indicativo.
 - **Seis idiomas** — italiano, inglés, español, alemán, francés y portugués; cualquier otro idioma usa inglés.
 - **Panel de administración en `/admin`** — configuración guiada, acceso con usuario, contraseña y código de dos factores, panel en directo con LED de estado y centro de analítica.
+- **Ajustes del nodo en el panel** — mensaje del día, comandos programados, script de inicio, listas de bloqueo (palabras, indicativos, direcciones IP), saltos, filtros y opciones de Telnet, cada uno con su tooltip. El panel habla los seis idiomas y muestra quién se ha conectado al nodo.
+- **Registro para enviar spots** — los visitantes se registran en el portal (indicativo, correo, contraseña) y confirman por correo; solo los registrados pueden enviar spots por Telnet. Opcional, se activa en el panel.
+- **Instalable como app** — el portal se instala en la pantalla de inicio del móvil y se abre también sin conexión.
 - **Nodos socios** — añade, conecta y reconecta automáticamente; ve quién inició cada enlace; elimina un nodo para desconectarlo y revocar su acceso.
 - **Solicitudes de enlace en automático** — otros sysops lo piden desde tu página de Contacto; DXRegia puede crear su cuenta, enviarles por correo tus datos de conexión y confirmar cuando se conectan (interruptor y límite diario en el panel).
 - **Correos en HTML** — instrucciones y confirmaciones en seis idiomas mediante tu propio servidor SMTP, configurado y probado desde el panel.

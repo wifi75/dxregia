@@ -17,6 +17,9 @@ O DXRegia torna simples instalar, gerir e partilhar um nó DX Cluster. Mantém o
 - **Spots mais inteligentes** — o modo é deduzido da frequência quando o comentário não o indica, e as operações DX anunciadas (NG3K ADXO) aparecem junto ao indicativo.
 - **Seis idiomas** — italiano, inglês, espanhol, alemão, francês e português; qualquer outro idioma usa inglês.
 - **Painel de administração em `/admin`** — configuração guiada, acesso com utilizador, palavra-passe e código de dois fatores, painel em direto com LED de estado e centro de análise.
+- **Definições do nó no painel** — mensagem do dia, comandos agendados, script de arranque, listas de bloqueio (palavras, indicativos, endereços IP), saltos, filtros e opções de Telnet, cada uma com um tooltip. O painel fala as seis línguas e mostra quem se ligou ao nó.
+- **Registo para enviar spots** — os visitantes registam-se no portal (indicativo, email, palavra-passe) e confirmam por email; só os registados podem enviar spots por Telnet. Opcional, ativa-se no painel.
+- **Instalável como app** — o portal instala-se no ecrã principal do telemóvel e abre mesmo sem ligação.
 - **Nós parceiros** — adicione, ligue e religue automaticamente; veja quem iniciou cada ligação; elimine um nó para o desligar e revogar o acesso.
 - **Pedidos de ligação em automático** — outros sysops pedem a partir da sua página de Contacto; o DXRegia pode criar a conta deles, enviar por e-mail os seus dados de ligação e confirmar quando se ligam (interruptor e limite diário no painel).
 - **E-mails em HTML** — instruções e confirmações em seis idiomas através do seu próprio servidor SMTP, configurado e testado no painel.

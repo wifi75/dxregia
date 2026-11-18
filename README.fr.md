@@ -17,6 +17,9 @@ DXRegia facilite l'installation, la gestion et le partage d'un nœud DX Cluster.
 - **Des spots plus intelligents** — le mode est déduit de la fréquence quand le commentaire ne l'indique pas, et les opérations DX annoncées (NG3K ADXO) apparaissent à côté de l'indicatif.
 - **Six langues** — italien, anglais, espagnol, allemand, français et portugais ; toute autre langue bascule sur l'anglais.
 - **Panneau d'administration sur `/admin`** — configuration guidée, connexion avec utilisateur, mot de passe et code à deux facteurs, tableau de bord en direct avec voyants d'état et centre d'analyse.
+- **Réglages du nœud dans le panneau** — message du jour, commandes planifiées, script de démarrage, listes de blocage (mots, indicatifs, adresses IP), sauts, filtres et options Telnet, chacun avec une infobulle. Le panneau parle les six langues et montre qui s'est connecté au nœud.
+- **Inscription pour envoyer des spots** — les visiteurs s'inscrivent sur le portail (indicatif, e-mail, mot de passe) et confirment par e-mail ; seuls les inscrits peuvent envoyer des spots en Telnet. Facultative, à activer dans le panneau.
+- **Installable comme application** — le portail s'installe sur l'écran d'accueil du smartphone et s'ouvre même sans connexion.
 - **Nœuds partenaires** — ajoutez, connectez et reconnectez automatiquement ; voyez qui a lancé chaque liaison ; supprimez un nœud pour le déconnecter et révoquer son accès.
 - **Demandes de liaison en automatique** — d'autres sysops la demandent depuis votre page Contact ; DXRegia peut créer leur compte, leur envoyer vos données de connexion par e-mail et confirmer quand ils se connectent (interrupteur et limite quotidienne dans le panneau).
 - **E-mails HTML** — instructions et confirmations en six langues via votre propre serveur SMTP, configuré et testé depuis le panneau.

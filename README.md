@@ -17,6 +17,9 @@ DXRegia makes it easy to install, run and share a DX Cluster node. It keeps DXSp
 - **Smarter spots** — the mode is inferred from the frequency when the comment does not say it, and announced DX operations (NG3K ADXO) appear next to the callsign.
 - **Six languages** — Italian, English, Spanish, German, French and Portuguese; any other language falls back to English.
 - **Admin panel at `/admin`** — guided first setup, sign-in with user, password and two-factor code, a live dashboard with status LEDs and an analytics center.
+- **Node settings in the panel** — message of the day, scheduled commands, startup script, block lists (words, callsigns, IP addresses), hop counts, filters and Telnet options, each with a tooltip. The panel itself speaks the six languages and shows who connected to the node.
+- **Registration to send spots** — visitors register on the portal (callsign, email, password) and confirm by email; only registered users can send spots over Telnet. Optional, switched on in the panel.
+- **Install as an app** — the portal installs on a phone's home screen and still opens without a connection.
 - **Partner nodes** — add, connect and auto-reconnect; see who started each link; delete a node to disconnect it and revoke its access.
 - **Link requests on autopilot** — other sysops ask from your Contact page; DXRegia can create their account, email your connection details and confirm when they connect (a switch and a daily limit in the panel).
 - **HTML emails** — instructions and confirmations in six languages through your own SMTP server, set up and tested in the panel.
