@@ -197,7 +197,9 @@
   {:else}
     <section class="auth-card glass-panel glass-enter">
       <Logo />
-      <h2>{session.mustChange ? 'Cambia la password temporanea' : session.mustVerify ? 'Verifica in due passaggi' : 'Accesso sysop'}</h2>
+      {#if session.mustChange || session.mustVerify}
+        <h2>{session.mustChange ? 'Cambia la password temporanea' : 'Verifica in due passaggi'}</h2>
+      {/if}
       {#if session.enrollmentKey}
         <p>Aggiungi DXRegia alla tua app di autenticazione.</p>
         {#if qr}<img src={qr} alt="Codice QR per configurare DXRegia nell’app di autenticazione" width="180" height="180" />{/if}
@@ -208,8 +210,8 @@
           <label>
             Utente
             <input type="text" required bind:value={user} autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="64" />
+            <span class="hint">Il tuo indicativo da sysop. Se non l’hai ancora impostato: sysop.</span>
           </label>
-          <p class="hint">Il tuo indicativo da sysop. Se non l’hai ancora impostato: sysop.</p>
         {/if}
         <label>
           {session.mustChange ? 'Nuova password' : challenge ? (recovery ? 'Codice di recupero' : 'Codice a sei cifre') : 'Password'}
@@ -233,8 +235,16 @@
 {/if}
 
 <style>
-  .hint { margin: -6px 0 0; font-size: .88rem; }
-  .auth-card { max-width: 560px; margin: 24px auto; padding: clamp(18px, 4vw, 32px); }
+  .auth-card { max-width: 440px; margin: 40px auto; padding: clamp(22px, 5vw, 36px); text-align: center; }
+  .auth-card h2 { margin: 6px 0 22px; font-size: 1.25rem; text-align: center; }
+  .auth-card form { display: grid; gap: 18px; text-align: left; }
+  .auth-card label { display: grid; gap: 8px; font-weight: 650; }
+  .auth-card input { width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; }
+  .auth-card .hint { margin: 0; font-size: .86rem; line-height: 1.4; font-weight: 450; color: #5b6e80; }
+  .auth-card form button { width: 100%; min-height: 46px; margin-top: 4px; }
+  .auth-card > button { margin-top: 14px; }
+  .auth-card img { display: block; margin: 10px auto; }
+  .auth-card details, .auth-card > p { text-align: left; }
   .workspace { display: grid; grid-template-columns: clamp(190px, 19vw, 264px) minmax(0, 1fr); align-items: start; gap: clamp(14px, 2vw, 28px); }
   .workspace-content { min-width: 0; }
   .sidebar { position: sticky; top: 18px; padding: 16px 12px; min-height: calc(100vh - 112px); }

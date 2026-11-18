@@ -7,7 +7,7 @@
 </div>
 
 <style>
-  .logo { display: grid; justify-items: center; gap: 10px; margin-bottom: 6px; }
+  .logo { display: grid; justify-items: center; gap: 10px; margin-bottom: 22px; }
   .mark { position: relative; display: grid; place-items: center; width: 86px; height: 86px; }
   .wave { position: absolute; inset: 14px; border: 2px solid #2f78b3; border-radius: 50%; opacity: 0; animation: ripple 3.2s ease-out infinite; }
   .wave.late { animation-delay: 1.6s; }
