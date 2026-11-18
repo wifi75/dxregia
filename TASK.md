@@ -70,3 +70,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 
 - [x] Modificare i dati del profilo sysop a nodo avviato con applicazione nell'hook Mojo gestito.
 - [ ] Completare la modifica di porte e indicativi con migrazione e verifica dell'endpoint.
+- [x] Installazione nativa da sorgente con systemd, verificata su Ubuntu 24.04. Prova LXC Proxmox ancora aperta.
