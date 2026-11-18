@@ -68,7 +68,6 @@
 
 <main aria-labelledby="spots-title">
   <div class="heading">
-    <h1 id="spots-title">{t('spotsTitle')}</h1>
     <div class="feed-controls">
       <span class="feed-state" class:live={available && !paused}>
         {paused ? t('paused') : available === false ? t('feedDown') : available ? t('live') : t('connecting')}
@@ -122,7 +121,7 @@
             <tr>
               <td>{spot.Spotter}</td>
               <td><strong class="frequency" style:background={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
-              <td><span class="mode" data-mode={modeFor(spot.Comment)}>{modeFor(spot.Comment) || '—'}</span></td>
+              <td data-empty={!modeFor(spot.Comment) || undefined}><span class="mode" data-mode={modeFor(spot.Comment)}>{modeFor(spot.Comment) || '—'}</span></td>
               <td><strong>{spot.Call}</strong></td>
               <td>
                 {#if dxccFlags[spot.DXCC]}
@@ -147,7 +146,7 @@
 
 <style>
   main { width: 100%; padding: 0 clamp(12px, 2vw, 32px) 24px; }
-  .heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 72px; }
+  .heading { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; min-height: 64px; }
   h1 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.25rem); color: #102e42; letter-spacing: -.04em; }
   .feed-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
   .feed-controls time { color: #496174; font-variant-numeric: tabular-nums; }
@@ -189,11 +188,40 @@
   .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { background: #d7f0e3; color: #1a6046; }
   .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31] { background: #eee4ff; color: #573894; }
   .visits { margin-block: 14px 0; color: #526c7f; font-size: .85rem; }
-  @media (max-width: 800px) {
+  @media (max-width: 900px) {
     .desk { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-    .receiver { position: static; }
-    .band-grid { grid-template-columns: repeat(auto-fit, minmax(53px, 1fr)); }
+    .receiver { position: static; padding: 12px; }
+    .band-grid { grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); }
     .band-grid .all-bands { grid-column: auto; }
-    .band-grid button { min-height: 40px; }
+    .band-grid button { min-height: 42px; }
+  }
+  @media (max-width: 700px) {
+    main { padding: 0 10px 20px; }
+    .heading { min-height: 48px; justify-content: space-between; }
+    .feed-controls { width: 100%; justify-content: space-between; gap: 8px; }
+    .receiver { padding: 10px; }
+    .receiver h2 { margin-bottom: .4rem; }
+    .mode-filter { margin-top: 10px; padding-top: 10px; }
+    .band-grid { display: flex; gap: .4rem; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+    .band-grid button { flex: 0 0 auto; min-width: 66px; min-height: 40px; }
+    .toolbar { padding: 10px 12px; }
+    .toolbar input { width: 100%; }
+    .table-wrap { overflow: visible; }
+    table, tbody { display: block; white-space: normal; }
+    thead { display: none; }
+    tbody tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "freq dx utc" "mode entity entity" "de comment comment"; align-items: center; gap: 3px 10px; padding: 10px 12px; border-bottom: 1px solid #dce5ed; }
+    tbody tr:first-child { box-shadow: inset 4px 0 #20845a; }
+    tbody tr:first-child td:first-child { box-shadow: none; }
+    td { padding: 0; border: 0; min-width: 0; }
+    td:nth-child(1) { grid-area: de; font-size: .82rem; }
+    td:nth-child(1)::before { content: 'de '; color: #7a93a6; }
+    td:nth-child(2) { grid-area: freq; }
+    td:nth-child(3) { grid-area: mode; }
+    td:nth-child(3)[data-empty] { display: none; }
+    td:nth-child(4) { grid-area: dx; font-size: 1.08rem; }
+    td:nth-child(5) { grid-area: entity; font-size: .9rem; }
+    td:nth-child(6) { grid-area: comment; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
+    td:nth-child(7) { grid-area: utc; font-size: .85rem; }
+    .frequency { min-width: 0; }
   }
 </style>

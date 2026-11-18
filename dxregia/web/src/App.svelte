@@ -31,10 +31,21 @@
   }
 
   onMount(() => { if (!publicPortal) void refresh() })
+
+  $effect(() => {
+    document.title = 'DXRegia – ' + (!publicPortal ? 'Amministrazione' : contactPage ? t('cTitle') : t('spotsTitle'))
+  })
 </script>
 
 <header>
-  <a class="brand" href="/spots"><span class="signal-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DXRegia</a>
+  <div class="brandline">
+    <a class="brand" href="/spots"><span class="signal-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DXRegia</a>
+    {#if publicPortal && !contactPage}
+      <span class="sep" aria-hidden="true">–</span>
+      <h1 id="spots-title" class="page">{t('spotsTitle')}</h1>
+    {/if}
+  </div>
+  <div class="tools">
   <nav aria-label="Portale">
     <a href="/spots" aria-current={publicPortal && !contactPage ? 'page' : undefined}>{publicPortal ? t('navSpots') : 'Spot in diretta'}</a>
     <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>{publicPortal ? t('navContact') : 'Contatti'}</a>
@@ -46,6 +57,7 @@
       </select>
     </label>
   {/if}
+  </div>
 </header>
 
 {#if contactPage}
@@ -90,7 +102,19 @@
   .signal-mark i:nth-child(4) { height: 18px; background: #e39221; }
   p, dt { color: #485b6d; }
   header { justify-content: space-between; align-items: center; flex-wrap: wrap; }
-  header nav { display: flex; flex-wrap: wrap; gap: .35rem; margin-left: auto; }
+  header nav { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .brandline { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+  .sep { color: #8aa3b5; font-size: 1.25rem; }
+  .page { margin: 0; font-size: 1.25rem; font-weight: 650; color: #2a516f; white-space: nowrap; }
+  .tools { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
+  @media (max-width: 640px) {
+    header { gap: 4px; padding: 6px 12px; }
+    header .brand { font-size: 1.1rem; }
+    .sep, .page { font-size: 1.05rem; }
+    .tools { width: 100%; justify-content: space-between; margin-left: 0; }
+    header a { padding: .4rem .6rem; font-size: .92rem; }
+    .lang select { min-height: 32px; padding: 3px 6px; font-size: .9rem; }
+  }
   header a { color: #234968; font-weight: 650; padding: .55rem .8rem; border-radius: .5rem; text-decoration: none; }
   header a:hover, header a[aria-current=page] { background: #e7f0f7; color: #143a60; }
   main { width: 100%; padding: 24px clamp(14px, 2vw, 36px); }
