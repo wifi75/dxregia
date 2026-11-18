@@ -251,6 +251,7 @@
   {/if}
 
   {#if editing}
+    {@const canEnableInbound = selected && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '')}
     <h3 id="partner-draft" tabindex="-1">{selected ? selected.Call : 'Nuovo nodo partner'}</h3>
     {#if selected}
       <p>Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'Da rilevare'}</p>
@@ -259,11 +260,6 @@
           title={selected.Provisioning || 'Accesso in ingresso non abilitato'} aria-hidden="true"></span>
         Accesso in ingresso: {selected.Provisioning === 'Pronto in uscita' ? 'Non abilitato' : selected.Provisioning || 'Non abilitato dal pannello'}
       </p>
-      {#if !selected.Provisioning || !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning)}
-        {#if selected.Email}<label class="mail-opt"><input type="checkbox" bind:checked={sendInstructions} /> Invia le istruzioni e l’esito via email a {selected.Email}</label>{/if}
-        <button type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita accesso in ingresso</button>
-      {/if}
-      <button type="button" disabled={enabling} onclick={refreshProvisioning}>Aggiorna stato Mojo</button>
       {#if selected.MailStatus || emailStatus}<p>Email: {selected.MailStatus || emailStatus}</p>{/if}
       {#if peerPassword && selected.Provisioning === 'Abilitato in Mojo'}
         <p>Conserva la password del partner. Servirà per configurare il collegamento dal suo nodo.</p>
@@ -342,10 +338,35 @@
         {/if}
       {/if}
       <label class="note">Aggiungi una nota <textarea bind:value={note} maxlength="4000" rows="3" placeholder="Es. Inviata email al referente"></textarea></label>
-      <button type="submit" value={selected ? 'directory' : 'connect'} disabled={busy || enabling}>
-        {busy ? 'Salvataggio…' : selected ? 'Salva anagrafica' : 'Salva e connetti'}
-      </button>
-      {#if !selected}<button class="secondary" type="submit" value="directory" disabled={busy || enabling}>Salva solo anagrafica</button>{/if}
+      {#if canEnableInbound && selected?.Email}
+        <label class="mail-opt action-help">
+          <input type="checkbox" bind:checked={sendInstructions} aria-describedby="peer-email-help" />
+          Invia le istruzioni e l’esito via email a {selected.Email}
+          <span class="tooltip" id="peer-email-help" role="tooltip">Invia i dati al referente dopo l’abilitazione, se SMTP è configurato. Usa l’indirizzo salvato nella scheda.</span>
+        </label>
+      {/if}
+      <div class="form-actions">
+        <span class="action-help">
+          <button type="submit" value={selected ? 'directory' : 'connect'} disabled={busy || enabling} aria-describedby="peer-save-help">
+            {busy ? 'Salvataggio…' : selected ? 'Salva anagrafica' : 'Salva e connetti'}
+          </button>
+          <span class="tooltip" id="peer-save-help" role="tooltip">{selected ? 'Salva i dati e le note del partner.' : 'Salva i dati, avvia la connessione e conserva il piano di riconnessione.'}</span>
+        </span>
+        {#if selected}
+          {#if canEnableInbound}
+            <span class="action-help">
+              <button class="secondary" type="button" disabled={enabling || busy} onclick={() => enable()} aria-describedby="peer-enable-help">Abilita accesso in ingresso</button>
+              <span class="tooltip" id="peer-enable-help" role="tooltip">Consente al nodo remoto di collegarsi al tuo DXRegia. Per collegarti tu al partner, usa la sezione Collegamento in uscita.</span>
+            </span>
+          {/if}
+          <span class="action-help">
+            <button class="secondary" type="button" disabled={enabling || busy} onclick={refreshProvisioning} aria-describedby="peer-refresh-help">Aggiorna stato Mojo</button>
+            <span class="tooltip" id="peer-refresh-help" role="tooltip">Rilegge lo stato del collegamento e dell’abilitazione senza avviare una connessione.</span>
+          </span>
+        {:else}
+          <button class="secondary" type="submit" value="directory" disabled={busy || enabling}>Salva solo anagrafica</button>
+        {/if}
+      </div>
     </form>
     {#if selected?.Notes?.length}
       <h3>Storico note</h3>
@@ -376,6 +397,10 @@
   .led[data-tone=red] { background: #b32731; box-shadow: 0 0 0 3px #b3273129; }
   .led[data-tone=amber] { background: #ad6a10; box-shadow: 0 0 0 3px #ad6a1029; }
   .script-preview pre { padding: .65rem .9rem; background: #edf4f8; overflow: auto; }
+  .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .action-help { position: relative; }
+  .tooltip { position: absolute; z-index: 3; bottom: calc(100% + 8px); left: 0; width: max-content; max-width: min(260px, 70vw); padding: .55rem .7rem; border-radius: 6px; background: #153c52; color: #fff; font-size: .85rem; line-height: 1.4; font-weight: 450; visibility: hidden; pointer-events: none; }
+  .action-help:hover .tooltip, .action-help:focus-within .tooltip { visibility: visible; }
   .remote-auth { margin-top: 12px; max-width: 300px; }
   input, textarea, select { min-width: 0; padding: 8px; border: 1px solid #aab8c5; border-radius: 4px; font: inherit; min-height: 44px; }
 
