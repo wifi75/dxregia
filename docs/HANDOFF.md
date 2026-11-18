@@ -175,3 +175,5 @@ Il run 44279134901 mostra che il TCP della riconnessione raggiunge il partner e 
 Il feed aggiunge il nome dell'entita DXCC ricavato dalla stessa tabella dei prefissi di Mojo, caricata all'avvio. Il collaudo di propagazione verifica il nome Japan per JA1ABC. Le bandiere e le traduzioni gia presenti rimangono disponibili per le rispettive entita.
 
 Nel run 44280015487 entrambi i listener rispondono e la fotografia locale continua a essere scritta, ma il backend non la espone. L'hook ora serializza esplicitamente indicativo e stato come stringhe e orari come interi, anche quando gli scalari Perl hanno cambiato tipo durante la sessione. Il nuovo collaudo stampera la fotografia sintetica se la riconnessione fallisce ancora.
+
+Per l'assistenza 2FA il backend distingue i codici già usati da quelli che non corrispondono alla chiave e all'ora corrente. Accetta gli spazi inseriti dall'app quando si copia un codice. La finestra di tolleranza e il blocco del riutilizzo restano attivi. Su Proxmox LXC controllare l'orologio sul nodo host.

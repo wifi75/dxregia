@@ -214,10 +214,14 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 			if factor.Key == "" {
 				factor.Key = a.pendingKey
 			}
-			verified, ok := factor.verify(code, time.Now())
+			verified, ok, reused := factor.verify(code, time.Now())
 			if !ok {
 				a.nextFactor = time.Now().Add(time.Second)
-				http.Error(w, "Codice non valido o già usato.", http.StatusUnauthorized)
+				message := "Codice non valido. Controlla di usare la voce DXRegia corretta e che telefono e server abbiano l’ora sincronizzata."
+				if reused {
+					message = "Codice già usato. Attendi che l’app mostri un nuovo codice e riprova."
+				}
+				http.Error(w, message, http.StatusUnauthorized)
 				return
 			}
 			token, err := randomToken()

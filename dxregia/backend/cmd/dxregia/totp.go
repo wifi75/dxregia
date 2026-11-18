@@ -12,7 +12,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
+	"unicode"
 )
 
 var totpEncoding = base32.StdEncoding.WithPadding(base32.NoPadding)
@@ -43,19 +45,29 @@ func factorCode(key []byte, step int64) string {
 	return fmt.Sprintf("%06d", number%1000000)
 }
 
-func (f secondFactor) verify(code string, now time.Time) (secondFactor, bool) {
+func (f secondFactor) verify(code string, now time.Time) (verified secondFactor, accepted, reused bool) {
+	code = strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return -1
+		}
+		return r
+	}, code)
 	key, err := totpEncoding.DecodeString(f.Key)
 	if err != nil || len(key) != 20 || len(code) != 6 {
-		return f, false
+		return f, false, false
 	}
 	step := now.Unix() / 30
 	for _, candidate := range []int64{step, step - 1, step + 1} {
-		if candidate > f.LastStep && hmac.Equal([]byte(factorCode(key, candidate)), []byte(code)) {
-			f.LastStep = candidate
-			return f, true
+		if !hmac.Equal([]byte(factorCode(key, candidate)), []byte(code)) {
+			continue
 		}
+		if candidate > f.LastStep {
+			f.LastStep = candidate
+			return f, true, false
+		}
+		reused = true
 	}
-	return f, false
+	return f, false, reused
 }
 
 func saveFactor(path string, factor secondFactor) error {
