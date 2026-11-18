@@ -85,6 +85,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if err := registerPartners(mux, *setupRoot, auth); err != nil {
+		log.Fatal(err)
+	}
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
 	if err := registerSetup(service, mux, *setupRoot, *setupPerl, *setupInternal, number, *telnetBind, auth, func(port int) {

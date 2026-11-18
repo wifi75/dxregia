@@ -67,3 +67,7 @@ Il wizard propone la porta del listener impostata per l'anteprima. Verifica che 
 ## 2026-11-18 — Accesso sysop e pacchetto Linux
 
 Build Go e Svelte riuscite. Verificati blocco del wizard prima del cambio password, invalidazione della password temporanea, logout e accesso con password salvata dopo riavvio. Aggiunti Containerfile e script di installazione da sorgente per Linux con Docker. Verificare build ed esecuzione Docker su Linux. Funzioni restanti in TASK.md.
+
+## 2026-11-18 — Anagrafica partner
+
+Anagrafica aggiungibile e modificabile nella sezione Nodi partner. Il backend conserva note datate e data di registrazione in .dxregia-partners.json nella directory Mojo. Build web e Go riuscite. Prova API Windows su accesso, validazione, duplicati, modifica e persistenza dopo riavvio. Prossimo passo collegare le schede a Mojo e registrare la prima connessione confermata.

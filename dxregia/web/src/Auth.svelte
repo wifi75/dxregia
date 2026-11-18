@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import Setup from './Setup.svelte'
+  import Partners from './Partners.svelte'
 
   type Session = { signedIn: boolean; mustChange: boolean }
   let session = $state<Session>()
@@ -62,6 +63,7 @@
 {#if session}
   {#if session.signedIn && !session.mustChange}
     <Setup {onSaved} />
+    <Partners />
     <button type="button" onclick={logout}>Esci</button>
     {#if error}<p role="alert">{error}</p>{/if}
   {:else}

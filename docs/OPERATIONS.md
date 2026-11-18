@@ -30,3 +30,7 @@ Mostrare origine, ora UTC, gravità, categoria, esito e identificativo di correl
 ## Verifiche di accettazione
 
 Simulare la caduta di un collegamento e verificare che stato, cronologia, prossimo tentativo ed evento del log concordino. Verificare filtri, esportazione e oscuramento dei dati sensibili. Ripristinare su un'installazione di prova e controllare che utenti, filtri e partner siano recuperati. Provare un archivio corrotto e un ripristino interrotto.
+
+### Anagrafica dei nodi
+
+La scheda sysop conserva indicativo, nome del nodo, referente, email, host e porta remota. La data di registrazione viene assegnata alla creazione. Le note vengono aggiunte allo storico con data e ora. La prima connessione verrà registrata dopo la conferma del link da Mojo.

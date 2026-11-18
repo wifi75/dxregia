@@ -32,3 +32,6 @@ Collaudare l'immagine e lo script locale su un host Linux con Docker, poi comple
 ## Criterio per la prima versione operativa
 
 Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, riceve uno spot sul logger via Telnet e ritrova configurazione e collegamento dopo il riavvio.
+
+- [x] Anagrafica nodi partner con referente, email e storico note datate.
+- [ ] Collegare l'anagrafica a Mojo e registrare automaticamente la prima connessione confermata.
