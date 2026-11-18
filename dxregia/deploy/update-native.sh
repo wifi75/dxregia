@@ -199,6 +199,10 @@ for attempt in $(seq 1 25); do
         { [ "$configured" -eq 0 ] ||
             curl -fsS --max-time 3 "$url/api/listener" | python3 -c 'import json, sys; sys.exit(json.load(sys.stdin).get("state") != "ready")' 2>/dev/null; }; then
         success=1
+        # Le versioni precedenti servono solo per tornare indietro: si tengono le ultime tre (10–15 MB ciascuna).
+        as_root rmdir "$staged_engine" 2>/dev/null || true
+        for old in $(ls -1dt /opt/.dxregia-update-* 2>/dev/null | tail -n +4); do as_root rm -rf -- "$old"; done
+        for old in $(ls -1dt "$state"/.dxregia-engine-previous-* 2>/dev/null | tail -n +4); do as_root rm -rf -- "$old"; done
         indicator 32 "DXRegia aggiornato a $(printf '%.12s' "$revision")."
         printf 'Pannello (verifica locale): %s/admin\nVersione precedente: %s e %s\n' "$url" "$rollback" "$engine_rollback"
         exit 0
