@@ -22,12 +22,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && install -d -o dxregia -g dxregia /data
 COPY --from=backend /dxregia /usr/local/bin/dxregia
 COPY --from=web /src/dist /opt/dxregia/web
-COPY cmd /opt/mojo/cmd
-COPY connect /opt/mojo/connect
-COPY data /opt/mojo/data
-COPY filter /opt/mojo/filter
-COPY msg /opt/mojo/msg
-COPY perl /opt/mojo/perl
+COPY engine/cmd /opt/mojo/cmd
+COPY engine/connect /opt/mojo/connect
+COPY engine/data /opt/mojo/data
+COPY engine/filter /opt/mojo/filter
+COPY engine/msg /opt/mojo/msg
+COPY engine/perl /opt/mojo/perl
 COPY COPYING LICENSE /opt/mojo/
 COPY dxregia/deploy/backup_node.py /opt/dxregia/backup_node.py
 COPY dxregia/deploy/start-container.sh /usr/local/bin/dxregia-container

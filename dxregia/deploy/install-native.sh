@@ -66,7 +66,11 @@ if [ ! -f "$unit" ]; then
     if [ ! -d "$state/mojo" ]; then
         engine_stage=$(as_root mktemp -d "$state/.mojo-XXXXXX")
         for part in cmd connect data filter msg perl COPYING LICENSE; do
-            as_root cp -a "$root/$part" "$engine_stage/"
+            case $part in
+                COPYING|LICENSE) from="$root/$part" ;;
+                *) from="$root/engine/$part" ;;
+            esac
+            as_root cp -a "$from" "$engine_stage/"
         done
         as_root chown -hR dxregia:dxregia "$engine_stage"
         as_root mv -T "$engine_stage" "$state/mojo"

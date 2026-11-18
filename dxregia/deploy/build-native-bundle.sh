@@ -26,7 +26,11 @@ mkdir -p "$bundle/dxregia/prebuilt" "$bundle/dxregia/web/dist" "$bundle/dxregia/
     GOOS=linux GOARCH="$arch" CGO_ENABLED=0 go build -trimpath -o "$bundle/dxregia/prebuilt/dxregia" ./cmd/dxregia
 )
 printf '%s\n' "$arch" > "$bundle/dxregia/prebuilt/architecture"
-for name in perl cmd connect data filter msg COPYING LICENSE; do
+mkdir -p "$bundle/engine"
+for name in perl cmd connect data filter msg; do
+    cp -a "$root/engine/$name" "$bundle/engine/"
+done
+for name in COPYING LICENSE; do
     cp -a "$root/$name" "$bundle/"
 done
 for name in install-native.sh update-native.sh dxregia.service backup_node.py migrate_mojo.py check_telnet.py README.md; do

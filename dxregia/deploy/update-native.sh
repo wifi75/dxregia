@@ -38,7 +38,7 @@ if [ "$mode" = source ]; then
     available=$(git -C "$source" rev-parse HEAD)
 else
     printf '%s\n' 'Controllo aggiornamenti DXRegia su GitHub...'
-    remote_head=$(git ls-remote --exit-code "$remote" refs/heads/main) ||
+    remote_head=$(git ls-remote --exit-code "$remote" refs/heads/${DXREGIA_BRANCH:-main}) ||
         fail 'Impossibile controllare gli aggiornamenti su GitHub.'
     available=$(printf '%s\n' "$remote_head" | awk '{print $1}')
 fi
@@ -120,7 +120,7 @@ flock -n 9 || fail 'Un aggiornamento DXRegia è già in corso.'
 
 step 1 'Scarico il sorgente. Il nodo rimane online.'
 if [ "$mode" != source ]; then
-    git clone --quiet --depth 1 --branch main "$remote" "$work/source" ||
+    git clone --quiet --depth 1 --branch "${DXREGIA_BRANCH:-main}" "$remote" "$work/source" ||
         fail 'Download del sorgente non riuscito.'
     source=$work/source
 fi
@@ -153,7 +153,11 @@ as_root install -m 0755 "$work/dxregia" "$rollback/new-runtime/bin/dxregia"
 as_root install -m 0755 "$source/dxregia/deploy/backup_node.py" "$rollback/new-runtime/bin/dxregia-backup"
 as_root cp -R "$source/dxregia/web/dist/." "$rollback/new-runtime/web/"
 for part in $parts; do
-    as_root cp -a "$source/$part" "$staged_engine/"
+    case $part in
+        COPYING|LICENSE) from="$source/$part" ;;
+        *) from="$source/engine/$part" ;;
+    esac
+    as_root cp -a "$from" "$staged_engine/"
 done
 as_root chown -hR dxregia:dxregia "$staged_engine"
 as_root cp -a "$unit" "$rollback/dxregia.service"

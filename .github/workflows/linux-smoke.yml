@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, dxregia-linux-validation]
   pull_request:
-    paths: ['dxregia/**', 'perl/**', 'cmd/**', 'data/**', '.github/workflows/linux-smoke.yml']
+    paths: ['dxregia/**', 'engine/**', '.github/workflows/linux-smoke.yml']
   workflow_dispatch:
 
 permissions:

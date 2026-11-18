@@ -6,7 +6,7 @@ import (
 )
 
 func TestSpotEntitiesFromBundledMojoData(t *testing.T) {
-	root := filepath.Join("..", "..", "..", "..")
+	root := filepath.Join("..", "..", "..", "..", "engine")
 	entities := spotEntities(root)
 	if len(entities) < 300 {
 		t.Fatalf("parsed %d entities from the bundled Mojo data", len(entities))
