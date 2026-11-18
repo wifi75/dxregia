@@ -13,19 +13,19 @@ Prima di estendere il pannello, verificare due schermate con dati rappresentativ
 
 ## Marchio e icone
 
-Il marchio è l'icona **DX** (lettere D bianca e X ambra su fondo blu notte) seguita dalla parola **Regia**. I file sono in `dxregia/web/public/brand/` e sono serviti dal sito.
+Il logo è la scritta **DXREGIA** disegnata a mano, lettera per lettera, in stile «Blocchi pesanti»: linee spesse a punte piatte e spigoli vivi, della stessa altezza per tutte le lettere, con la **X in ambra**. Non usa nessun carattere tipografico, quindi gli SVG non dipendono da font installati. I file sono in `dxregia/web/public/brand/` e sono serviti dal sito.
 
 | File | Uso |
 | --- | --- |
-| `dxregia-logo.svg`, `dxregia-logo-2000.png` | Logo completo per sfondi chiari |
-| `dxregia-logo-dark.svg`, `dxregia-logo-dark-2000.png` | Logo completo per sfondi scuri (testo bianco) |
-| `dxregia-wordmark.svg`, `dxregia-wordmark-dark.svg` | Solo la parola «Regia», usata nella pagina di accesso sotto l'icona animata |
-| `varianti/` | Versioni messe da parte, non usate nel sito |
-| `dxregia-icon.svg`, `dxregia-icon-1024.png`, `-512.png`, `-256.png` | Solo l'icona, in alta definizione |
+| `dxregia-logo.svg`, `dxregia-logo-2000.png` | Logo per sfondi chiari (lettere blu notte, X ambra) |
+| `dxregia-logo-dark.svg`, `dxregia-logo-dark-2000.png` | Logo per sfondi scuri (lettere bianche, X ambra) |
+| `dxregia-icon.svg`, `dxregia-icon-1024.png`, `-512.png`, `-256.png` | Icona DX su fondo blu notte, in alta definizione |
 
-La parola «Regia» è disegnata a mano, lettera per lettera, con linee spesse a punte piatte e spigoli vivi, della stessa altezza della D e della X dell'icona: non usa nessun carattere tipografico, quindi gli SVG non dipendono da font installati. Lo stile scelto è «Blocchi netti»; è conservato anche in `varianti/dxregia-logo-blocchi-netti.svg` (e `-dark`). Colori: blu notte `#143a60`, ambra `#f0a23a`, azzurro `#3a82c0`, bianco. Lascia attorno al logo uno spazio pari almeno a metà dell'altezza dell'icona e non deformarlo né ricolorarlo.
+Colori: blu notte `#143a60`, ambra `#f0a23a`, azzurro `#3a82c0`, bianco. Lascia attorno al logo uno spazio pari almeno alla metà della sua altezza e non deformarlo né ricolorarlo.
 
-Nella radice di `dxregia/web/public/` ci sono le icone del sito: `favicon.svg`, `favicon.ico` (16, 32 e 48 px), `apple-touch-icon.png` (180 px), `icon-192.png`, `icon-512.png` e `site.webmanifest`, collegati da `index.html`. L'intestazione sceglie il logo chiaro o scuro in base al tema.
+Nella radice di `dxregia/web/public/` ci sono le icone del sito: `favicon.svg`, `favicon.ico` (16, 32 e 48 px), `apple-touch-icon.png` (180 px), `icon-192.png`, `icon-512.png` e `site.webmanifest`, collegati da `index.html`. L'intestazione sceglie il logo chiaro o scuro in base al tema; nella schermata di accesso il logo è animato e l'intestazione resta senza marchio.
+
+**Variante messa da parte.** «Blocchi netti» (icona DX seguita dalla parola Regia) non è usata nel sito: è conservata solo qui, in [`docs/brand/varianti/`](brand/varianti/) (versione chiara e scura).
 
 ## Area pubblica
 

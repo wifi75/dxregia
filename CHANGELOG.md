@@ -1,46 +1,45 @@
 # Changelog
 
-Formato [Keep a Changelog](https://keepachangelog.com/it/1.1.0/), versioni [SemVer](https://semver.org/lang/it/). Si riferisce a DXRegia (cartella `dxregia/`); il motore upstream mantiene la propria cronologia in `Changes`.
+All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/). The upstream engine keeps its own history in `Changes`.
 
-## [Non rilasciato]
+## [Unreleased]
 
-### Aggiunto
-- Nuovo logo (icona DX e parola Regia) in alta definizione, favicon e icone per telefono e sito installabile.
-- Centro di analytics nel pannello: pubblico del portale (visite, visitatori unici senza cookie, lingua, dispositivi, orari) e attività del cluster (spot per giorno e ora, bande, modi, entità, nominativi).
-- Pagina degli spot rifatta: filtri a selezione multipla su una riga, ricerca, lente sui nominativi, nuovi spot evidenziati con suono, modo dedotto dalla frequenza, tema chiaro e scuro, impaginazione per telefono e tablet.
-- Spedizioni DX annunciate (feed pubblico NG3K ADXO) con popup accanto al nominativo.
-- Portale e email in sei lingue (italiano, inglese, spagnolo, tedesco, francese, portoghese); email HTML ai partner con conferma al primo collegamento.
-- Configurazione automatica dei partner dal form Contatti, con interruttore e limite giornaliero.
-- Eliminazione di richieste e nodi partner; dashboard live con LED; login con utente e password; pannello su `/admin`.
+### Added
+- New logo: the word DXREGIA drawn by hand in heavy blocks with an amber X, plus the DX icon for the favicon, phone and installable-site icons, in high definition (SVG and PNG, light and dark).
+- Analytics center in the admin panel: portal audience (visits, unique visitors without cookies, language, devices, hours) and cluster activity (spots per day and hour, bands, modes, entities, callsigns).
+- Rebuilt public spots page: multi-select filters on one row, search, a lens on callsigns, new spots highlighted with an optional sound, mode inferred from the frequency, light and dark theme, phone and tablet layout, a slim footer with the visit count and a project link.
+- Announced DX operations (public NG3K ADXO feed) with a popup next to the callsign.
+- Portal and emails in six languages (Italian, English, Spanish, German, French, Portuguese; English for any other language); HTML emails to partners with a confirmation at the first connection.
+- Automatic partner setup from the Contact form, with a switch and a daily limit.
+- Deletion of contact requests and partner nodes (a deleted node is disconnected and its access revoked); live dashboard with status LEDs; sign-in with user and password; admin panel moved to `/admin`.
+- Documentation in six languages: README and installation and configuration guide (English first).
+
+### Changed
+- The sign-in step before the two-factor code now lasts 20 minutes.
 
 ## [0.2.0] - 2026-11-18
 
-### Aggiunto
-- Dashboard dello stato con LED, contatori, spot per banda e ultimi spot.
-- Pagina Nodi partner in due schede (uscita e ingresso), con «Abilita e invia l'email» e reinvio delle istruzioni.
-- Pannello Gestione → Server di posta con prova di invio.
-- Bandiere per tutte le entità DXCC nel cluster web.
+### Added
+- Status dashboard with LEDs, counters, spots per band and latest spots.
+- Partner nodes page in two cards (outgoing and incoming links), with "Enable and email" and a resend of the instructions.
+- Management → Mail server panel with a test message.
+- Flags for every DXCC entity on the web cluster.
 
-### Corretto
-- Salvare l'anagrafica non cancella più la password remota del partner.
-- Un account Mojo senza password non blocca più il collegamento in uscita.
-- Il passo di accesso prima del 2FA dura 20 minuti.
+### Fixed
+- Saving a partner's record no longer erases its remote password.
+- A Mojo account without a password no longer blocks the outgoing link.
 
 ## [0.1.0] - 2026-11-18
 
-Prima versione pubblicata, in fase di collaudo.
+First published version, still in testing.
 
-### Aggiunto
-- Pagina pubblica degli spot con filtri, nomi DXCC e layout mobile.
-- Area sysop con accesso protetto, cambio obbligatorio della password temporanea e conferma TOTP.
-- Wizard di primo avvio: configura, inizializza e avvia Mojo da browser.
-- Gestione dei nodi partner: stato in tempo reale, password remota, anteprima dello script di peering, provisioning degli account Mojo e riconnessione automatica.
-- Console Telnet locale autenticata e opzioni Telnet gestite dal pannello.
-- Installazione nativa Linux e Docker, con aggiornamento tramite `dxregia-update`.
+### Added
+- Public spots page with filters, DXCC names and a mobile layout.
+- Sysop area with protected sign-in, a mandatory change of the temporary password and TOTP confirmation.
+- First-run wizard: configures, initialises and starts Mojo from the browser.
+- Partner node management: live status, remote password, a preview of the peering script, Mojo account provisioning and automatic reconnection.
+- Authenticated local Telnet console and Telnet options managed from the panel.
+- Native Linux install and Docker, with updates through `dxregia-update`.
 
-### Modificato
-- La password remota del partner è facoltativa al salvataggio; disattivare la riconnessione conserva la password.
-
-### Limiti noti
-- Build e test Go dell'ultima modifica non eseguiti su questo host (Go non installato).
-- Collaudo con due nodi, feed DX e aggiornamento da release ancora in corso; vedi TASK.md.
+### Changed
+- A partner's remote password is optional when saving; turning off reconnection keeps the password.

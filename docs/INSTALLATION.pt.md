@@ -1,0 +1,147 @@
+# Guia de instalação e configuração
+
+[English](INSTALLATION.md) · [Italiano](INSTALLATION.it.md) · [Español](INSTALLATION.es.md) · [Deutsch](INSTALLATION.de.md) · [Français](INSTALLATION.fr.md) · **Português**
+
+[← Voltar à página do projeto](../README.pt.md)
+
+> O painel de administração está por agora em italiano. Quando este guia nomeia um menu ou um botão, o texto mostrado no ecrã vem entre parênteses.
+
+## 1. O que precisa
+
+- Um servidor ou PC Linux com systemd: Debian ou Ubuntu (testado em Ubuntu 24.04, amd64 e arm64). Uma máquina virtual ou um contentor LXC sem privilégios também serve.
+- Para instalar a partir do código: Git, Go 1.22+, Node.js 22.12+ com npm, curl e sudo (ou root). A alternativa é o Docker, que só precisa de Docker e curl.
+- Duas portas TCP: uma para o painel web (por omissão 8080) e outra para o Telnet (por omissão 7300). Se outros nós ou utilizadores têm de chegar até si pela Internet, redirecione a porta Telnet no router.
+
+## 2. Instalação
+
+**Instalação nativa a partir do código (recomendada).** Execute estes comandos no servidor:
+
+```sh
+git clone https://github.com/wifi75/dxregia.git
+cd dxregia
+sh dxregia/deploy/install-native.sh
+```
+
+O script compila o painel e o backend, instala as dependências Perl, cria um utilizador dedicado e inicia o serviço systemd `dxregia`. O programa fica em `/opt/dxregia` e os dados em `/var/lib/dxregia`. No fim mostra o endereço do painel e, na primeira vez, uma palavra-passe temporária. Executá-lo de novo inicia o serviço já instalado e mantém os dados. Instala também o comando `dxregia-update`.
+
+Para escolher as portas, defina-as antes:
+
+```sh
+DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-native.sh
+```
+
+**Docker.** Com Docker e curl já instalados:
+
+```sh
+sh dxregia/deploy/install-local.sh
+```
+
+Constrói a imagem e inicia um contentor com um volume persistente, e mostra o endereço e a palavra-passe temporária. Executá-lo de novo mantém o contentor e o volume. Valem as mesmas duas variáveis de portas.
+
+## 3. Abrir o painel
+
+O painel de administração está em `/admin` e não é ligado a partir das páginas públicas. Por omissão só escuta no próprio servidor (`127.0.0.1`). Escolha um caminho:
+
+- **No servidor:** abra `http://127.0.0.1:8080/admin`.
+- **A partir de outro PC da sua rede:** permita-o e abra `http://IP-DO-SERVIDOR:8080/admin`:
+- **De qualquer lugar com SSH:** abra um túnel e depois abra `http://127.0.0.1:8080/admin` no seu PC:
+
+```sh
+echo 'DXREGIA_HTTP_BIND=0.0.0.0' | sudo tee -a /etc/dxregia.env
+sudo systemctl restart dxregia
+```
+
+```sh
+ssh -L 8080:127.0.0.1:8080 USER@SERVER
+```
+
+O DXRegia nunca publica o painel na Internet nem abre portas do router para ele. Com Docker o painel fica no loopback do anfitrião: use o túnel SSH.
+
+## 4. Primeiro acesso
+
+1. Abra `/admin`. Entre com o utilizador `sysop` e a palavra-passe temporária mostrada pelo instalador.
+2. O DXRegia pede uma palavra-passe nova (pelo menos 12 caracteres). A temporária deixa de funcionar.
+3. Ative o acesso em dois passos: digitalize o código QR com uma aplicação de autenticação (ou escreva a chave à mão) e introduza o código de 6 dígitos. **Guarde os códigos de recuperação** num sítio seguro: servem para associar uma aplicação nova se perder o telemóvel.
+
+A partir daí cada acesso pede utilizador, palavra-passe e o código de 6 dígitos. O utilizador é o seu indicativo de sysop assim que completar a configuração (antes é `sysop`); maiúsculas ou minúsculas não importam.
+
+## 5. Primeira configuração (assistente)
+
+Depois de entrar, abra Nó → Configuração (Nodo → Configurazione) e preencha: indicativo do nó com SSID (por exemplo `IU3WJQ-7`), indicativo do sysop, locator, porta Telnet e, se quiser, nome, e-mail, QTH, coordenadas e um nome de host público. O host público é só uma referência: não altera o seu DNS nem o router. Se já usa o DXSpider, pode importar `DXVars.pm` e `Listeners.pm` na mesma página. Aplique: o DXRegia escreve os ficheiros de que o Mojo precisa e inicia o nó, e o painel confirma quando o Telnet responde.
+
+## 6. Configurar o resto
+
+- **Telnet e firewall.** Confirme que a porta Telnet está aberta na firewall. Para ser acessível pela Internet, redirecione-a no router para o servidor. As opções estão em Nó → Opções Telnet (Opzioni Telnet).
+- **Servidor de correio.** Gestão → Servidor de correio (Gestione → Server di posta). Escolha uma predefinição (Gmail, Aruba, Office 365) ou escreva servidor e porta, cifragem, remetente, utilizador e palavra-passe, grave e carregue em Enviar teste (Invia prova). A palavra-passe fica no servidor num ficheiro privado. Com o Gmail precisa de uma palavra-passe de aplicação. O correio serve para os avisos que recebe e para as instruções enviadas aos parceiros.
+- **Nós parceiros.** Ligações → Nós parceiros → Adicionar nó (Collegamenti → Nodi partner → Aggiungi nodo): indicativo, host, porta e, se o outro nó a pedir, a palavra-passe remota. Carregue em Guardar e ligar (Salva e connetti). Marque a caixa de nova tentativa para religar sozinho depois de uma queda.
+- **Deixar que outros peçam uma ligação.** A sua página de Contacto tem o pedido «Ligar o meu nó». Em Ligações → Pedidos recebidos (Richieste ricevute) um interruptor decide: ligado, o DXRegia cria o parceiro, envia-lhe por e-mail os seus dados de ligação no idioma dele e volta a escrever quando se liga (limite por omissão 10 por dia); desligado, aprova cada pedido à mão com «Preparar ficha de parceiro».
+- **Cópias de segurança.** Veja a secção 9.
+- **Idioma, tema e som.** Os ícones no canto superior direito das páginas públicas.
+
+## 7. Confirmar que funciona
+
+- Abra `http://SERVIDOR:8080/spots`: a página de spots em direto.
+- Nó → Estado e sessões (Stato e sessioni): os quatro painéis devem estar verdes.
+- A partir de um PC teste o Telnet; depois entre com um cliente Telnet ou um logger e escreva `show/dx`:
+
+```sh
+python3 dxregia/deploy/check_telnet.py HOST 7300
+```
+
+O Telnet envia os dados sem cifra: use os comandos de administração só numa rede de confiança.
+
+## 8. Atualizar
+
+Numa instalação nativa, execute a partir de qualquer diretório:
+
+```sh
+dxregia-update
+```
+
+Descarrega a versão mais recente, compila-a, guarda a cópia anterior e volta atrás sozinho se o painel ou o Telnet deixarem de responder. Dados, credenciais, portas e personalizações mantêm-se. `dxregia-update --check` só mostra a versão instalada e a disponível. O serviço reinicia: as ligações caem cerca de um minuto e restabelecem-se sozinhas, e volta a entrar no painel. As instalações feitas antes deste comando podem obter `dxregia/deploy/update-native.sh` e executá-lo com `sh update-native.sh`. Com Docker use `sh update-docker.sh`.
+
+## 9. Cópia de segurança e restauro
+
+A ferramenta offline requer Python 3.10+. Pare primeiro o serviço para a cópia ficar consistente:
+
+```sh
+sudo systemctl stop dxregia
+python3 dxregia/deploy/backup_node.py backup /var/lib/dxregia/mojo /path/to/node.zip
+python3 dxregia/deploy/backup_node.py verify /path/to/node.zip
+sudo systemctl start dxregia
+```
+
+Guarda o motor e os dados do nó, utilizadores, filtros, parceiros, definições e dados de acesso: trate o arquivo como confidencial. Para verificar um arquivo no painel use Gestão → Cópia de segurança (Gestione → Backup). Para restaurar, use um diretório novo e vazio:
+
+```sh
+python3 dxregia/deploy/backup_node.py restore /path/to/node.zip /path/to/restored-node
+```
+
+## 10. Mover um nó Mojo existente
+
+Num nó parado com base de utilizadores SQLite, faça uma cópia separada e inicie o DXRegia nela. Só substitua o nó em serviço depois de verificar Telnet, filtros e ligações na cópia:
+
+```sh
+python3 -B dxregia/deploy/migrate_mojo.py /path/to/mojo /path/to/mojo-dxregia
+```
+
+## 11. Resolução de problemas
+
+- **Não consigo entrar.** O utilizador é o seu indicativo de sysop (ou `sysop` antes da configuração), não o indicativo do nó. Depois de uma tentativa falhada espere um segundo.
+- **O código de dois fatores é recusado.** Os relógios têm de coincidir: ative a hora automática no telemóvel e verifique o servidor com `timedatectl status` (num contentor LXC, verifique o anfitrião). Se um código foi dado como já usado, passe ao seguinte. Em último caso use um código de recuperação.
+- **O painel não abre a partir de outro PC.** Siga a secção 3 e verifique a firewall para a porta web.
+- **O Telnet não é acessível.** Confirme que a porta está a escutar (`ss -ltn | grep 7300`), abra-a na firewall e, a partir da Internet, redirecione-a no router.
+- **Um parceiro não se liga.** Verifique host, porta e palavra-passe, e qual dos lados inicia a ligação: na ficha do parceiro, «liga-se ao seu nó» exige que a sua porta Telnet seja acessível do exterior.
+- **Registos.** No servidor:
+
+```sh
+sudo journalctl -u dxregia -f
+```
+
+O registo do motor também está em Nó → Registo DXSpider (Log DXSpider).
+
+## Mais
+
+- [Referência do instalador Linux](../dxregia/deploy/README.md) (em italiano)
+- [Operações do sysop](OPERATIONS.md) (em italiano)
+- [Registo de alterações](../CHANGELOG.md) (em inglês)

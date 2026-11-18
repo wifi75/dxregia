@@ -1,41 +1,147 @@
-# Installazione e configurazione
+# Installation and configuration guide
 
-## Installare DXRegia
+**English** · [Italiano](INSTALLATION.it.md) · [Español](INSTALLATION.es.md) · [Deutsch](INSTALLATION.de.md) · [Français](INSTALLATION.fr.md) · [Português](INSTALLATION.pt.md)
 
-Su Debian o Ubuntu con systemd puoi usare l'installatore nativo. Prepara le dipendenze Perl, il servizio e la directory dati, poi stampa l'URL del pannello e la password temporanea. Docker è disponibile come alternativa. Segui la [procedura Linux con porte personalizzabili](../dxregia/deploy/README.md). Installazione, primo avvio con TOTP, Telnet, backup offline e riavvio sono stati verificati su Ubuntu 24.04 amd64 e arm64. Il collaudo su Proxmox LXC è ancora aperto.
+[← Back to the project page](../README.md)
 
-Per verificare la raggiungibilità Telnet dal computer del logger, esegui `python3 dxregia/deploy/check_telnet.py HOST PORTA` usando l'indirizzo e la porta effettivi del nodo. Il test controlla il prompt. Per verificare anche il flusso degli spot, effettua il login con il logger o client Telnet e usa `show/dx`. I comandi amministrativi via Telnet vanno usati su una rete fidata perché il protocollo trasmette in chiaro.
+> The admin panel is currently in Italian. Where this guide names a menu or a button, the on-screen label is given in parentheses.
 
-## Primo avvio del pannello DXRegia
+## 1. What you need
 
-L'installatore avvia il pannello anche prima che DXSpider sia configurato. Dopo il cambio password, il sysop completa tutte le impostazioni del nodo dal browser. DXRegia genera e aggiorna i file interni richiesti da Mojo.
+- A Linux server or PC with systemd: Debian or Ubuntu (tested on Ubuntu 24.04, amd64 and arm64). A virtual machine or an unprivileged LXC container also works.
+- For the install from source: Git, Go 1.22+, Node.js 22.12+ with npm, curl and sudo (or root). Docker is the alternative and needs only Docker and curl.
+- Two TCP ports: one for the web panel (default 8080) and one for Telnet (default 7300). If other nodes or users must reach you from the Internet, forward the Telnet port on your router.
 
-1. **Installazione.** Esegui l'installatore dal checkout o dall'archivio nativo della tua architettura. Stampa URL del pannello, utente e password temporanea.
-2. **Primo accesso.** Apri l'URL e accedi con le credenziali mostrate. Imposta una nuova password prima di proseguire.
-3. **Configurazione del nodo.** Nel wizard inserisci nominativo del nodo, nominativo del sysop, locator e porta Telnet. Controlla il riepilogo e applica la configurazione.
-4. **Nodo partner.** Apri Nodi partner → Aggiungi nodo. Compila nominativo, host e porta remota. Usa Verifica indirizzo per controllare DNS e TCP e Salva e connetti per avviare il collegamento. Lo stato segue l'esito comunicato dal motore.
-5. **Verifica e backup.** Controlla che il logger riceva gli spot via Telnet e crea un backup completo con lo strumento offline descritto nella guida Linux. Dopo un riavvio verifica che configurazione e collegamenti siano recuperati.
+## 2. Install
 
-[Specifiche dell'installatore](../dxregia/deploy/README.md) · [Gestione dei nodi partner e backup](OPERATIONS.md) · [Stato di implementazione](../TASK.md)
+**Native install from source (recommended).** Run these commands on the server:
 
-## Codice 2FA rifiutato
+```sh
+git clone https://github.com/wifi75/dxregia.git
+cd dxregia
+sh dxregia/deploy/install-native.sh
+```
 
-Attiva data e ora automatiche sul telefono. Sul server Linux controlla la sincronizzazione con `timedatectl status`. Se DXRegia gira in un container LXC su Proxmox, esegui il controllo sull'host Proxmox. Se gira in una VM, controlla la VM. Quando il sistema risulta sincronizzato, seleziona nell'app la voce DXRegia associata a questa installazione e attendi il codice successivo.
+The script builds the panel and the backend, installs the Perl dependencies, creates a dedicated user and starts the `dxregia` systemd service. The program lives in `/opt/dxregia` and the data in `/var/lib/dxregia`. At the end it prints the panel address and, on the first run, a temporary password. Running it again starts the installed service and keeps your data. It also installs the `dxregia-update` command.
 
-Un codice rifiutato come già usato va sostituito con quello della finestra successiva. Se i codici nuovi continuano a essere rifiutati con gli orologi sincronizzati, puoi usare uno dei codici di recupero salvati durante l'attivazione per associare di nuovo l'app.
+To choose the ports, set them first:
 
-## Importazione della configurazione iniziale
+```sh
+DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-native.sh
+```
 
-Da Prima configurazione, apri Importa configurazione DXSpider e scegli DXVars.pm. Puoi poi scegliere Listeners.pm per importare la porta di un unico listener. Il modulo riconosce anche oggetti JSON di impostazioni con campi supportati. I file Perl vengono letti come testo e le assegnazioni letterali riconosciute compilano i campi. Controlla i dati e applica dal wizard. Gli export di utenti, le regole Perl personalizzate, i partner e i filtri richiedono procedure di migrazione dedicate.
+**Docker.** With Docker and curl already installed:
 
-Il wizard consente di configurare nome, indicativo, email, località, locator e coordinate del sysop, indicativo del nodo, porta Telnet e host pubblico. L'host pubblico serve come riferimento di configurazione. Non modifica DNS, firewall o inoltro porte. La porta web si imposta ancora all'avvio del backend e, in Docker, la porta pubblicata deve corrispondere alla configurazione del container.
+```sh
+sh dxregia/deploy/install-local.sh
+```
 
-## Migrare un nodo Mojo esistente
+It builds the image and starts a container with a persistent volume, then prints the address and the temporary password. Running it again keeps the container and the volume. The same two port variables apply.
 
-Su un nodo fermo con banca utenti SQLite e un listener Telnet raggiungibile da loopback, crea una copia separata:
+## 3. Open the panel
 
-~~~sh
-python3 -B dxregia/deploy/migrate_mojo.py /percorso/mojo /percorso/mojo-dxregia
-~~~
+The admin panel is at `/admin` and is not linked from the public pages. By default it listens only on the server itself (`127.0.0.1`). Pick one way in:
 
-Il comando conserva i file di configurazione, gli script e i dati, controlla la banca SQLite e verifica la presenza degli account del nodo e del sysop. I dati di gestione vengono aggiunti alla copia. Avvia il backend con la nuova directory tramite -setup-root e con Perl tramite -setup-perl. La prima credenziale del pannello è separata dagli account Mojo. Sostituisci il nodo in esercizio solo dopo aver verificato Telnet, filtri e collegamenti nella copia. Un Local.pm personalizzato viene conservato e può richiedere l'integrazione manuale con l'hook di presenza DXRegia. Le banche utenti precedenti a SQLite devono prima essere convertite con Mojo.
+- **On the server:** open `http://127.0.0.1:8080/admin`.
+- **From another PC on your network:** allow it, then open `http://SERVER-IP:8080/admin`:
+- **From anywhere with SSH:** open a tunnel, then open `http://127.0.0.1:8080/admin` on your own PC:
+
+```sh
+echo 'DXREGIA_HTTP_BIND=0.0.0.0' | sudo tee -a /etc/dxregia.env
+sudo systemctl restart dxregia
+```
+
+```sh
+ssh -L 8080:127.0.0.1:8080 USER@SERVER
+```
+
+DXRegia never publishes the panel on the Internet and never opens router ports for it. With Docker the panel stays on the loopback of the host: use the SSH tunnel.
+
+## 4. First sign-in
+
+1. Open `/admin`. Sign in with the user `sysop` and the temporary password printed by the installer.
+2. DXRegia asks for a new password (at least 12 characters). The temporary one stops working.
+3. Set up two-factor sign-in: scan the QR code with an authenticator app (or type the key by hand) and enter the 6-digit code. **Save the recovery codes** somewhere safe: they let you pair a new app if you lose the phone.
+
+From then on every sign-in asks for the user, the password and the 6-digit code. The user is your sysop callsign as soon as you have completed the setup (before that it is `sysop`); upper or lower case does not matter.
+
+## 5. First setup (wizard)
+
+After signing in, open Node → Configuration (Nodo → Configurazione) and fill in: node callsign with SSID (for example `IU3WJQ-7`), sysop callsign, locator, Telnet port, and optionally your name, email, QTH, coordinates and a public host name. The public host name is only a reference: it does not change your DNS or your router. If you already run DXSpider, you can import `DXVars.pm` and `Listeners.pm` from the same page. Apply the settings: DXRegia writes the files Mojo needs and starts the node, and the panel confirms when Telnet answers.
+
+## 6. Configure the rest
+
+- **Telnet and firewall.** Make sure the Telnet port is open in your firewall. To be reachable from the Internet, forward it on your router to the server. Options are in Node → Telnet options (Opzioni Telnet).
+- **Mail server.** Management → Mail server (Gestione → Server di posta). Pick a preset (Gmail, Aruba, Office 365) or type server and port, encryption, sender address, user and password, then Save and press Send test (Invia prova). The password stays on the server in a private file. With Gmail you need an app password. Mail is used for notices to you and for the instructions sent to partners.
+- **Partner nodes.** Links → Partner nodes → Add node (Collegamenti → Nodi partner → Aggiungi nodo): callsign, host, port, and the remote password if the other node asks for one. Press Save and connect (Salva e connetti). Tick the retry box to reconnect automatically after a drop.
+- **Let others ask for a link.** Your public Contact page has a "Link my node" request. In Links → Received requests (Richieste ricevute) a switch decides what happens: on, DXRegia creates the partner, emails them your connection details in their language and emails again when they connect (default limit 10 per day); off, you approve each request by hand with "Prepare partner card".
+- **Backups.** See section 9.
+- **Language, theme and sound.** The icons at the top right of the public pages.
+
+## 7. Check that it works
+
+- Open `http://SERVER:8080/spots`: the live spots page.
+- Node → Status and sessions (Stato e sessioni): the four tiles should be green.
+- From a PC, test Telnet, then log in with a Telnet client or a logger and type `show/dx`:
+
+```sh
+python3 dxregia/deploy/check_telnet.py HOST 7300
+```
+
+Telnet sends data in clear text: use admin commands only on a trusted network.
+
+## 8. Update
+
+On a native install, run this from any directory:
+
+```sh
+dxregia-update
+```
+
+It downloads the latest version, builds it, keeps the previous copy and rolls back by itself if the panel or Telnet stop answering. Your data, credentials, ports and customisations are kept. `dxregia-update --check` only shows the installed and the available version. The service restarts: links drop for about a minute and reconnect by themselves, and you sign in to the panel again. Installs made before this command existed can fetch `dxregia/deploy/update-native.sh` and run it with `sh update-native.sh`. For Docker use `sh update-docker.sh`.
+
+## 9. Backup and restore
+
+The offline tool needs Python 3.10+. Stop the service first so the copy is consistent:
+
+```sh
+sudo systemctl stop dxregia
+python3 dxregia/deploy/backup_node.py backup /var/lib/dxregia/mojo /path/to/node.zip
+python3 dxregia/deploy/backup_node.py verify /path/to/node.zip
+sudo systemctl start dxregia
+```
+
+It saves the engine and node data, users, filters, partners, settings and access data: treat the archive as confidential. To check an archive from the panel, use Management → Backup (Gestione → Backup). To restore, use a new, empty directory:
+
+```sh
+python3 dxregia/deploy/backup_node.py restore /path/to/node.zip /path/to/restored-node
+```
+
+## 10. Move an existing Mojo node
+
+On a stopped node with an SQLite user database, make a separate copy and start DXRegia on it. Replace the running node only after you have checked Telnet, filters and links on the copy:
+
+```sh
+python3 -B dxregia/deploy/migrate_mojo.py /path/to/mojo /path/to/mojo-dxregia
+```
+
+## 11. Troubleshooting
+
+- **I cannot sign in.** The user is your sysop callsign (or `sysop` before setup), not the node callsign. After a wrong attempt wait a second.
+- **The two-factor code is rejected.** The clocks must agree: turn on automatic time on the phone and check the server with `timedatectl status` (for an LXC container, check the host). Use the next code if one was reported as already used. As a last resort use a recovery code.
+- **The panel does not open from another PC.** Follow section 3 and check the firewall for the web port.
+- **Telnet is not reachable.** Check that the port is listening (`ss -ltn | grep 7300`), open it in the firewall and, from the Internet, forward it on the router.
+- **A partner does not connect.** Check host, port and password, and which side starts the link: in the partner card, "N2KI connects to you" needs your Telnet port to be reachable from outside.
+- **Logs.** On the server:
+
+```sh
+sudo journalctl -u dxregia -f
+```
+
+The engine log is also in Node → DXSpider log (Log DXSpider).
+
+## More
+
+- [Linux installer reference](../dxregia/deploy/README.md) (Italian)
+- [Sysop operations](OPERATIONS.md) (Italian)
+- [Changelog](../CHANGELOG.md)
