@@ -137,6 +137,12 @@
       reading = false
     }
   }
+  // Su smartphone: chiude la tastiera e porta alla tabella.
+  function showResults() {
+    (document.activeElement as HTMLElement | null)?.blur()
+    document.querySelector('.table-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  let menu = $state<'bands' | 'modes' | undefined>()
   let engine = $state('')
   onMount(async () => {
     try {
@@ -154,7 +160,7 @@
     void refresh()
     void loadAdxo()
     const adxoTimer = setInterval(loadAdxo, 30 * 60 * 1000)
-    const closePopup = () => { popup = undefined }
+    const closePopup = () => { popup = undefined; menu = undefined }
     window.addEventListener('click', closePopup)
     window.addEventListener('keydown', event => { if (event.key === 'Escape') popup = undefined })
     void fetch('/api/visits').then(async response => {
@@ -184,11 +190,42 @@
         <button class="chip" type="button" aria-pressed={noFt8} onclick={() => noFt8 = !noFt8}>{t('noFt8')}</button>
       </div>
     </div>
+    <div class="pickers">
+      <div class="picker">
+        <button type="button" class="pick-btn" aria-haspopup="true" aria-expanded={menu === 'bands'} onclick={event => { event.stopPropagation(); menu = menu === 'bands' ? undefined : 'bands' }}>
+          {t('bands')}{#if bandSel.length}&nbsp;· {bandSel.length}{/if}<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="currentColor"><path d="M5 7l5 6 5-6z" /></svg>
+        </button>
+        {#if menu === 'bands'}
+          <div class="pick-panel bands-panel" role="group" aria-label={t('bands')} onclick={event => event.stopPropagation()}>
+            <button type="button" class="pick-all" onclick={() => bandSel = []}>{t('allShort')}</button>
+            {#each bands as [band]}
+              <label class="pick-item"><input type="checkbox" checked={bandSel.includes(band)} onchange={() => bandSel = toggle(bandSel, band)} />{band.replace(' ', '')}</label>
+            {/each}
+          </div>
+        {/if}
+      </div>
+      <div class="picker">
+        <button type="button" class="pick-btn" aria-haspopup="true" aria-expanded={menu === 'modes'} onclick={event => { event.stopPropagation(); menu = menu === 'modes' ? undefined : 'modes' }}>
+          {t('modes')}{#if modeSel.length + (noFt8 ? 1 : 0)}&nbsp;· {modeSel.length + (noFt8 ? 1 : 0)}{/if}<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="currentColor"><path d="M5 7l5 6 5-6z" /></svg>
+        </button>
+        {#if menu === 'modes'}
+          <div class="pick-panel modes-panel" role="group" aria-label={t('modes')} onclick={event => event.stopPropagation()}>
+            {#each [['CW', 'CW'], ['SSB', 'SSB'], ['DIGI', t('digi')]] as [value, label]}
+              <label class="pick-item"><input type="checkbox" checked={modeSel.includes(value)} onchange={() => modeSel = toggle(modeSel, value)} />{label}</label>
+            {/each}
+            <label class="pick-item"><input type="checkbox" checked={noFt8} onchange={() => noFt8 = !noFt8} />{t('noFt8')}</label>
+          </div>
+        {/if}
+      </div>
+    </div>
     <div class="search-row">
       <span class="search">
         <input type="search" bind:value={query} aria-label={t('searchLabel')} placeholder={t('searchShort')} title={t('searchPlaceholder')} />
         {#if query}<button class="clear" type="button" aria-label={t('clear')} title={t('clear')} onclick={() => query = ''}>×</button>{/if}
       </span>
+      <button class="funnel" type="button" aria-label={t('filters')} title={t('filters')} onclick={showResults}>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z" /></svg>
+      </button>
     </div>
   </section>
   <div class="desk glass-enter">
@@ -307,31 +344,44 @@
   .mode[data-mode=CW] { --c: #fff0d7; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #7d430e; }
   .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { --c: #d7f0e3; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #1a6046; }
   .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31], .mode[data-mode=DIGI] { --c: #eee4ff; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #573894; }
+  .pickers { display: none; }
   @media (max-width: 700px) {
-    main { padding: 0 10px 20px; }
-    .filters { display: grid; grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 8px; margin-bottom: 10px; }
-    .chip-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
-    .search-row { display: flex; align-items: center; gap: 8px; }
-    .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
-    .chip { flex: 0 0 auto; min-height: 38px; font-size: .88rem; }
+    .chip-row { display: none; }
+    .filters { position: relative; z-index: 20; overflow: visible; }
+    .pickers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: relative; }
+    .picker { position: relative; min-width: 0; }
+    .pick-btn { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 0 16px; border-radius: 999px; font-size: 1rem; font-weight: 650; }
+    .pick-panel { position: absolute; z-index: 25; top: calc(100% + 6px); left: 0; display: grid; gap: 2px; min-width: 100%; max-height: 60vh; overflow: auto; padding: 8px; border: 1px solid #9db8cc; border-radius: 14px; background: #fff; box-shadow: 0 14px 34px #143a5940; }
+    .bands-panel { grid-template-columns: 1fr 1fr; width: calc(200% + 10px); }
+    .picker:nth-child(2) .pick-panel { left: auto; right: 0; }
+    .pick-all { grid-column: 1 / -1; min-height: 38px; font-size: 1rem; }
+    .pick-item { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 10px; border-radius: 8px; color: #14293a; font-size: 1rem; }
+    .pick-item:hover { background: #e3eef6; }
+    .pick-item input { width: 20px; min-height: 20px; margin: 0; accent-color: #1f6fa8; }
+  }
+  .funnel { display: none; }
+  @media (max-width: 700px) {
+    main { padding: 0 8px 20px; }
+    .filters { display: grid; grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 10px; margin-bottom: 10px; }
+    .chips { flex-wrap: wrap; gap: 8px; overflow: visible; }
+    .chips + .chips { padding-left: 0; border-left: 0; }
+    .chip { flex: 0 0 auto; min-height: 40px; padding: 0 16px; font-size: 1rem; }
+    .band-color { display: none; }
+    .search-row { display: flex; align-items: center; gap: 10px; }
     .search { flex: 1 1 auto; }
-    .search input { min-height: 38px; }
-        .table-wrap { overflow: visible; }
-    table, tbody { display: block; white-space: normal; }
-    thead { display: none; }
-    tbody tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "freq dx utc" "mode entity entity" "de comment comment"; align-items: center; gap: 3px 10px; padding: 10px 12px; border-bottom: 1px solid #dce5ed; }
-    td { padding: 0; border: 0; min-width: 0; }
-    td:nth-child(1) { grid-area: de; font-size: .82rem; }
-    td:nth-child(1) .lens { display: none; }
-    td:nth-child(1)::before { content: 'de '; color: #7a93a6; }
-    td:nth-child(2) { grid-area: freq; }
-    td:nth-child(3) { grid-area: mode; }
-    td:nth-child(3)[data-empty] { display: none; }
-    td:nth-child(4) { grid-area: dx; font-size: 1.08rem; }
-    td:nth-child(5) { grid-area: entity; font-size: .9rem; }
-    td:nth-child(6) { grid-area: comment; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
-    td:nth-child(7) { grid-area: utc; font-size: .85rem; }
-    .frequency { width: 10ch; }
+    .search input { width: 100%; min-height: 44px; border-radius: 999px; padding: 6px 16px; font-size: 1rem; }
+    .funnel { display: grid; flex: none; place-items: center; width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 50%; background: #1f86ff; color: #fff; box-shadow: none; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { table-layout: auto; width: max-content; min-width: 100%; }
+    th { width: auto !important; position: sticky; top: 0; padding: 8px 6px; font-size: .74rem; letter-spacing: .03em; }
+    td { padding: 3px 6px; font-size: .95rem; }
+    td:nth-child(2), td:nth-child(3) { overflow: visible; text-overflow: clip; }
+    th:nth-child(6), td:nth-child(6) { display: none; }
+    td:nth-child(5) { font-size: 0; }
+    td:nth-child(5) img { width: 36px; height: 25px; margin: 0; }
+    .frequency { width: auto; min-width: 7ch; padding: 1px 7px; font-size: .95rem; }
+    .mode { min-width: 3.6em; padding: 1px 6px; font-size: .88rem; }
+    .lens { width: 24px; min-height: 24px; }
   }
   .info { display: inline-grid; place-items: center; width: 24px; min-height: 24px; padding: 0; border-radius: 50%; --button-face: #e3f0fa; --button-edge: #7fb1d9; --button-ink: #175c82; box-shadow: none; flex: 0 0 auto; }
   .popup { position: absolute; z-index: 30; width: min(380px, calc(100% - 16px)); padding: 12px 14px; border: 1px solid #9db8cc; border-radius: 12px; background: #ffffffee; backdrop-filter: blur(10px); box-shadow: 0 14px 34px #143a5940; color: #14293a; font-size: .88rem; line-height: 1.45; white-space: normal; }

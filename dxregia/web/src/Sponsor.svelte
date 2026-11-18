@@ -62,8 +62,11 @@
   .close { position: absolute; top: 8px; right: 10px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: #fff; font-size: 1.4rem; line-height: 1; cursor: pointer; }
   .close:hover { background: #ffffff2e; }
   @media (max-width: 900px) {
-    .sponsor { flex-wrap: wrap; padding-right: 46px; }
-    .burst { display: none; }
-    .get { width: 100%; justify-content: center; box-sizing: border-box; }
+    .burst, .text, .modes, .tagline { display: none; }
+    .sponsor { gap: 12px; padding: 10px 44px 10px 12px; margin-bottom: 10px; }
+    .icon { width: 44px; height: 44px; border-radius: 10px; }
+    .name { font-size: 1.25rem; }
+    .get { margin-left: auto; padding: 8px 14px; font-size: .9rem; }
+    .close { top: 50%; transform: translateY(-50%); right: 8px; }
   }
 </style>
