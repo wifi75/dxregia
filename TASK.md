@@ -56,6 +56,9 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [ ] Consentire modifica dei dati sysop dopo l'avvio, cambio porta HTTP dal pannello e migrazione completa dei dati Mojo.
 
 - [x] Modulo pubblico contatto e peering, coda privata e scheda partner precompilata.
+- [x] Pannello Server di posta con prova di invio (verificato solo il backend con test; consegna reale da provare).
+- [x] Dashboard con LED, Nodi partner in due schede con reinvio email e bandiere DXCC complete (compilate, da verificare nel browser).
+- [ ] Form Contatti con configurazione automatica del partner e email di conferma alla prima connessione, dopo la scelta tra abilitazione automatica e con click del sysop.
 - [ ] Collaudare SMTP con un provider reale e completare approvazione, istruzioni al partner e verifica con esito via email.
 
 - [x] Abilitare dal pannello un partner in ingresso con password e conferma di Mojo.

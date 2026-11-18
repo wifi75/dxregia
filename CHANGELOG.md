@@ -2,6 +2,19 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it/1.1.0/), versioni [SemVer](https://semver.org/lang/it/). Si riferisce a DXRegia (cartella `dxregia/`); il motore upstream mantiene la propria cronologia in `Changes`.
 
+## [Non rilasciato]
+
+### Aggiunto
+- Dashboard dello stato con LED, contatori, spot per banda e ultimi spot.
+- Pagina Nodi partner in due schede (uscita e ingresso), con «Abilita e invia l'email» e reinvio delle istruzioni.
+- Pannello Gestione → Server di posta con prova di invio.
+- Bandiere per tutte le entità DXCC nel cluster web.
+
+### Corretto
+- Salvare l'anagrafica non cancella più la password remota del partner.
+- Un account Mojo senza password non blocca più il collegamento in uscita.
+- Il passo di accesso prima del 2FA dura 20 minuti.
+
 ## [0.1.0] - 2026-11-18
 
 Prima versione pubblicata, in fase di collaudo.

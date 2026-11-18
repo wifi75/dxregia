@@ -221,3 +221,18 @@ La password remota è ora opzionale al salvataggio di un partner: si può impost
 ## 2026-11-18 — Release 0.1.0
 
 Pubblicata la prima versione 0.1.0 (tag v0.1.0, CHANGELOG.md, dxregia/VERSION). Gate Go non eseguito: go assente su questo host. Prossimo passo: installare Go, eseguire go build e go test in dxregia/backend e proseguire i collaudi a due nodi.
+
+## 2026-11-18 — Release 0.1.0 e collaudo del collegamento a N2KI
+
+Pubblicata la 0.1.0 (tag v0.1.0, CHANGELOG.md, dxregia/VERSION). Il server di prova è un'installazione nativa su 192.168.1.124 (servizio dxregia, dati in /var/lib/dxregia/mojo), aggiornato con update-native.sh scaricato da main perché non ha ancora il comando dxregia-update. Ultima revisione installata c16a2dee.
+
+Il collegamento in uscita verso N2KI (dxc.n2ki.com:7300) è attivo e scambia dati. Tre difetti trovati e corretti nel collaudo:
+- Salvare l'anagrafica di un nodo esistente azzerava la password remota: ora il pannello invia la password solo se scelta «Con password» e la rimuove solo se si passa esplicitamente a «Senza password».
+- L'account Mojo creato con `registered` ma senza password bloccava «Prepara il collegamento» con «Account Mojo esistente da verificare». presence.pm ora accetta un account tipo S non bloccato senza password per il solo collegamento in uscita e gli assegna il marcatore «solo uscita». Poiché Local.pm è una copia di presence.pm, l'hash della versione precedente è stato aggiunto all'elenco degli aggiornabili in presence.go: ogni modifica futura di presence.pm richiede di aggiungere l'hash della versione precedente.
+- Il passo di accesso prima del 2FA e il recupero del secondo fattore durano 20 minuti invece di 5. La sessione completa resta di 8 ore, ma è in memoria: ogni riavvio del servizio richiede un nuovo login con 2FA. Salvarla su disco non è stato fatto.
+
+Novità del pannello: la pagina Stato e sessioni è una dashboard con LED (listener, cluster, partner, spot), contatori, spot per banda e ultimi spot, costruita sulle API esistenti. La pagina Nodi partner ha due schede, «Il tuo nodo si collega a…» e «… si collega al tuo nodo», con «Abilita e invia l'email» e «Reinvia le istruzioni via email» (POST /api/partners/{call}/resend). La password in ingresso generata all'abilitazione è conservata in local_data/dxregia-partners/<call>.inbound (0600), quindi il reinvio funziona solo per i nodi abilitati da questa versione in poi. Aggiunto il pannello Server di posta (API /api/smtp-settings, vedi OPERATIONS.md). Le bandiere coprono tutte le entità DXCC con un paese: 252 SVG di flag-icons (MIT) in dxregia/web/public/flags e tabella DXCC→paese in web/src/dxccFlags.ts.
+
+Verifiche: go vet e test del pacchetto sul server (Go non è installato sul PC di sviluppo; si copia backend/ sul server e si lancia go test con -skip TestSpotEntitiesFromBundledMojoData, che legge dati Mojo non presenti nella copia). Le pagine nuove compilano ma non sono state viste nel browser. La consegna email con un SMTP reale non è collaudata.
+
+Prossimo passo: form pubblico Contatti per la richiesta di collegamento con i soli campi utili, configurazione automatica del partner, invio dei dati di collegamento e email di conferma alla prima connessione. Decisione aperta: abilitazione completamente automatica o con un click del sysop (l'automatica permette di registrare un indicativo non proprio con un'email qualsiasi). Da fare anche: correggere l'IP di docker-vps nella skill SSH (ora 192.168.1.124).

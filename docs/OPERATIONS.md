@@ -47,6 +47,8 @@ Il modulo pubblico /contatti permette di inviare un messaggio o chiedere un coll
 
 Per la notifica al sysop, impostare DXREGIA_SMTP_ADDRESS (host:porta del provider SMTP), DXREGIA_SMTP_FROM, e se richiesti DXREGIA_SMTP_USER e DXREGIA_SMTP_PASSWORD nell'ambiente del backend. Per TLS implicito usa `DXREGIA_SMTP_TLS=implicit` (predefinito), normalmente sulla porta 465. Per i provider che richiedono STARTTLS usa `DXREGIA_SMTP_TLS=starttls`, normalmente sulla porta 587. DXRegia verifica il certificato prima di inviare credenziali o messaggi. Il destinatario è l'email sysop inserita nel wizard. Un worker invia le notifiche in coda e aggiorna l'esito. Impostare queste variabili anche nell'ambiente del container se si usa Docker. In assenza di SMTP le richieste restano consultabili dal pannello.
 
+In alternativa alle variabili d'ambiente, il sysop può configurare il server di posta da Gestione → Server di posta: server e porta, cifratura, mittente, utente e password, con preset e invio di una email di prova. Le impostazioni sono in `local_data/dxregia-smtp.json` (file riservato, la password non viene mai restituita dall'API) e valgono subito senza riavvio. Se il file esiste ha priorità sulle variabili `DXREGIA_SMTP_*`; un file non valido disattiva l'invio invece di ripiegare in silenzio sull'ambiente.
+
 Flusso da completare: approvazione o abilitazione automatica opzionale dopo verifica dell'indirizzo email e controllo della richiesta, invio dei parametri di collegamento ufficiali e successivo controllo del link reale in Mojo. Comunicare successo solo dopo lo stato operativo. In caso di fallimento riportare l'ultimo errore rilevato o chiedere i dati mancanti.
 
 ### Abilitazione in ingresso
