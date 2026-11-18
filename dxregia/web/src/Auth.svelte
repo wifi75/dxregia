@@ -144,6 +144,39 @@
     }
   })
 
+  // Sessione scaduta: si torna alla pagina di accesso, restando sulla stessa voce del menu.
+  function expire() {
+    if (!session?.signedIn || session.mustChange || session.mustVerify) return
+    session = { signedIn: false, mustChange: false }
+    password = ''
+    codes = []
+    error = 'Sessione scaduta. Accedi di nuovo.'
+  }
+  async function checkSession() {
+    if (!session?.signedIn || session.mustChange || session.mustVerify) return
+    try {
+      const response = await fetch('/api/auth', { cache: 'no-store' })
+      if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return
+      const next: Session = await response.json()
+      if (!next.signedIn) expire()
+    } catch {
+      // Server non raggiungibile: la sessione non è detto sia scaduta.
+    }
+  }
+  onMount(() => {
+    const timer = setInterval(checkSession, 30000)
+    const onVisible = () => { if (document.visibilityState === 'visible') checkSession() }
+    window.addEventListener('focus', checkSession)
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('dxregia-unauthorized', expire)
+    return () => {
+      clearInterval(timer)
+      window.removeEventListener('focus', checkSession)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('dxregia-unauthorized', expire)
+    }
+  })
+
   async function submit(event: SubmitEvent) {
     event.preventDefault()
     if (!session || busy) return

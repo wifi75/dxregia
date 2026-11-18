@@ -93,6 +93,7 @@ func registerAuth(mux *http.ServeMux, root, bootstrapFile string) (*sysopAuth, e
 		return nil, err
 	}
 	auth.registerWebPasswordChange(mux)
+	auth.registerSessionDuration(mux)
 	mux.HandleFunc("GET /api/auth", auth.route("status"))
 	mux.HandleFunc("POST /api/auth/login", auth.route("login"))
 	mux.HandleFunc("POST /api/auth/password", auth.route("password"))
@@ -271,7 +272,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				return
 			}
 			a.factor, a.pendingKey, a.factorOK = verified, "", true
-			a.session, a.expires = token, time.Now().Add(8*time.Hour)
+			a.session, a.expires = token, time.Now().Add(time.Duration(a.sessionHours())*time.Hour)
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
 				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
 		case "logout":

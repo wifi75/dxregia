@@ -5,6 +5,28 @@
   let code = $state('')
   let busy = $state(false)
   let status = $state('')
+  import { onMount } from 'svelte'
+  let hours = $state(8)
+  let choices = $state<number[]>([1, 2, 4, 8, 12, 24, 72, 168])
+  let durationStatus = $state('')
+  const label = (value: number) => value < 24 ? value + (value === 1 ? ' ora' : ' ore') : value / 24 + (value === 24 ? ' giorno' : ' giorni')
+  onMount(async () => {
+    try {
+      const response = await fetch('/api/session-duration')
+      if (response.ok) { const data = await response.json(); hours = data.Hours; choices = data.Choices }
+    } catch { /* si usa il valore predefinito */ }
+  })
+  async function saveDuration() {
+    durationStatus = ''
+    try {
+      const response = await fetch('/api/session-duration', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Hours: hours }),
+      })
+      durationStatus = response.ok ? 'Durata salvata: vale dal prossimo accesso e per quella in corso.' : (await response.text()).trim()
+    } catch {
+      durationStatus = 'Connessione interrotta.'
+    }
+  }
 
   async function change(event: SubmitEvent) {
     event.preventDefault()
@@ -66,11 +88,23 @@
     <button disabled={busy}>{busy ? 'Salvataggio…' : 'Cambia password'}</button>
   </form>
   {#if status}<p role="status">{status}</p>{/if}
+  <h2>Durata della sessione</h2>
+  <form onsubmit={(event) => { event.preventDefault(); saveDuration() }}>
+    <p>Dopo questo tempo il pannello torna alla pagina di accesso.</p>
+    <label>Sessione valida per
+      <select bind:value={hours}>
+        {#each choices as value}<option value={value}>{label(value)}</option>{/each}
+      </select>
+    </label>
+    <button>Salva durata</button>
+  </form>
+  {#if durationStatus}<p role="status">{durationStatus}</p>{/if}
 </section>
 
 <style>
   section { padding: 22px; }
   h1 { margin: 0 0 1rem; }
+  h2 { margin: 1.6rem 0 .8rem; font-size: 1.1rem; }
   form { display: grid; gap: .85rem; justify-items: start; }
   form p { margin: 0; color: #465e70; }
   label { display: grid; gap: .35rem; width: min(100%, 360px); font-weight: 650; }
