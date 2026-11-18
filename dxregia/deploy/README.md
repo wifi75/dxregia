@@ -1,5 +1,17 @@
 # Installazione Linux
 
+## Installazione nativa da sorgente
+
+Per Debian o Ubuntu con systemd, usa il checkout DXRegia e Go 1.22+, Node.js 22.12+ con npm, curl e sudo (o root).
+
+~~~sh
+DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-native.sh
+~~~
+
+Lo script compila frontend e backend, installa le dipendenze Perl e avvia il servizio systemd dxregia con il suo utente dedicato. Stampa l'indirizzo del pannello e, al primo avvio, la password temporanea. Le porte predefinite sono 8080 e 7300. I dati sono in /var/lib/dxregia e il runtime è in /opt/dxregia. Una nuova esecuzione avvia il servizio già installato e conserva i dati. L'accesso iniziale è sul loopback. Per un server remoto si può accedere al pannello con un tunnel SSH dalla propria postazione.
+
+La verifica automatica nativa è prevista su Ubuntu con systemd. Una LXC non privilegiata con systemd può usare lo stesso percorso; il collaudo Proxmox resta separato. Le immagini Docker rimangono disponibili.
+
 ## Installazione di prova da sorgente
 
 Da Linux con Docker e curl già disponibili, clonare il repository e lanciare `sh dxregia/deploy/install-local.sh` dalla sua radice. Lo script costruisce l'immagine, avvia un container con volume persistente e stampa URL e password temporanea. La riesecuzione conserva il container e il volume. La password temporanea è custodita nel volume fino al cambio obbligatorio.

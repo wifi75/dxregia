@@ -43,3 +43,33 @@ jobs:
           docker logs --tail 80 dxregia || true
           docker cp dxregia:/data/mojo/local_data/dxregia-startup.log "$RUNNER_TEMP/mojo-startup.log" || exit 0
           grep -E "Can't locate|Compilation failed|BEGIN failed|Permission denied|[Ee]rror|Address already in use" "$RUNNER_TEMP/mojo-startup.log" || true
+
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DXREGIA_SMOKE_NATIVE: '1'
+      DXREGIA_WEB_PORT: '8788'
+      DXREGIA_TELNET_PORT: '7374'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.24'
+          cache-dependency-path: dxregia/backend/go.sum
+      - name: Install a native systemd service
+        run: sh dxregia/deploy/install-native.sh > "$RUNNER_TEMP/dxregia-native-install.txt"
+      - name: Verify native setup, Telnet, restart and backup
+        run: python3 dxregia/deploy/smoke_linux.py
+      - name: Verify the native installer preserves existing data
+        run: sh dxregia/deploy/install-native.sh
+      - name: Report native service logs on failure
+        if: failure()
+        run: |
+          sudo journalctl -u dxregia.service --no-pager -n 80
+          sudo grep -E "Can't locate|Compilation failed|BEGIN failed|Permission denied|[Ee]rror|Address already in use" /var/lib/dxregia/mojo/local_data/dxregia-startup.log || true

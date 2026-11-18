@@ -20,10 +20,30 @@ WEB_PORT = int(os.environ.get("DXREGIA_WEB_PORT", "8080"))
 TELNET_PORT = int(os.environ.get("DXREGIA_TELNET_PORT", "7300"))
 BASE = f"http://{HOST}:{WEB_PORT}"
 CONTAINER = "dxregia"
+NATIVE = os.environ.get("DXREGIA_SMOKE_NATIVE") == "1"
 
 
 def docker(*args):
     return subprocess.run(["docker", *args], check=True, stdout=subprocess.PIPE, text=True).stdout
+
+
+def privileged(*args):
+    return subprocess.run(["sudo", *args], check=True, stdout=subprocess.PIPE, text=True).stdout
+
+
+def service(action):
+    if NATIVE:
+        privileged("systemctl", action, "dxregia.service")
+    else:
+        docker(action, CONTAINER)
+
+
+def copy_node(destination):
+    if NATIVE:
+        privileged("cp", "-a", "/var/lib/dxregia/mojo", str(destination))
+        privileged("chown", "-hR", f"{os.getuid()}:{os.getgid()}", str(destination))
+    else:
+        docker("cp", CONTAINER + ":/data/mojo", str(destination))
 
 
 def request(client, path, body=None, method=None):
@@ -85,7 +105,10 @@ def ready(client):
 
 def main():
     client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
-    virgin = docker("exec", CONTAINER, "cat", "/data/sysop-initial")
+    virgin = (
+        privileged("cat", "/var/lib/dxregia/sysop-initial")
+        if NATIVE else docker("exec", CONTAINER, "cat", "/data/sysop-initial")
+    )
     config = {"node": "Q1QQQ-2", "sysop": "Q1QQQ", "locator": "JN55AA", "port": TELNET_PORT}
     assert request(client, "/api/setup", config)[0] == 401
     status, login = request(client, "/api/auth/login", virgin)
@@ -104,11 +127,11 @@ def main():
     time.sleep(6)
     telnet_login(b"Q8QQQ", b"Profilo Linux")
     assert request(client, "/api/spots")[1]["Available"]
-    docker("stop", CONTAINER)
+    service("stop")
     with tempfile.TemporaryDirectory(prefix="dxregia-smoke-") as folder:
         base = Path(folder)
         source, restored, archive = base / "mojo", base / "restored", base / "node.zip"
-        docker("cp", CONTAINER + ":/data/mojo", str(source))
+        copy_node(source)
         tool = Path(__file__).with_name("backup_node.py")
         for arguments in [("backup", source, archive), ("verify", archive), ("restore", archive, restored)]:
             subprocess.run([sys.executable, str(tool), *map(str, arguments)], check=True)
@@ -122,7 +145,7 @@ def main():
         subprocess.run([sys.executable, "-B", str(migration), str(restored), str(adopted)], check=True)
         assert (adopted / "local/dxregia-initialized").is_file()
         assert (adopted / "local_data/dxusers.db").read_bytes() == (source / "local_data/dxusers.db").read_bytes()
-    docker("start", CONTAINER)
+    service("start")
     ready(client)
     time.sleep(6)
     telnet_login(b"Q7QQQ", b"Profilo Linux")
