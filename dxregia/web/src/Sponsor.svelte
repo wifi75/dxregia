@@ -59,14 +59,15 @@
   .burst span { max-width: 52px; }
   .get { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 999px; background: #fff; color: #0b3a4a; font-weight: 800; text-decoration: none; box-shadow: 0 3px 10px #0004; }
   .get:hover { background: #f1fbf7; }
-  .close { position: absolute; top: 8px; right: 10px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: #fff; font-size: 1.4rem; line-height: 1; cursor: pointer; }
-  .close:hover { background: #ffffff2e; }
+  .close { position: absolute; top: 10px; right: 12px; display: grid; place-items: center; width: 30px; height: 30px; min-height: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: none; color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; }
+  .close:hover:not(:disabled) { background: #ffffff2e; transform: none; filter: none; }
+  .close:active:not(:disabled) { transform: none; box-shadow: none; }
   @media (max-width: 900px) {
     .burst, .text, .modes, .tagline { display: none; }
     .sponsor { gap: 12px; padding: 10px 44px 10px 12px; margin-bottom: 10px; }
     .icon { width: 44px; height: 44px; border-radius: 10px; }
     .name { font-size: 1.25rem; }
     .get { margin-left: auto; padding: 8px 14px; font-size: .9rem; }
-    .close { top: 50%; transform: translateY(-50%); right: 8px; }
+    .close { top: 50%; margin-top: -15px; right: 8px; }
   }
 </style>
