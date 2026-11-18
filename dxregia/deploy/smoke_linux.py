@@ -163,6 +163,46 @@ def telnet_presence(client):
     wait_for("Telnet user to leave the sysop dashboard", lambda: not visible())
 
 
+def spot_delivery(primary, remote, peer, peer_port):
+    # An isolated documentation subnet lets the real PC61 source pass the
+    # existing RFC1918 check without changing any production filters.
+    network = "dxregia-spot-smoke"
+    sender_ip, receiver_ip = "192.0.2.10", "192.0.2.11"
+    docker("network", "create", "--internal", "--subnet", "192.0.2.0/24", network)
+    try:
+        docker("network", "connect", "--ip", sender_ip, network, CONTAINER)
+        docker("network", "connect", "--ip", receiver_ip, network, peer)
+        marker = "DXREGIA-SMOKE"
+        with (socket.create_connection((receiver_ip, peer_port), timeout=15) as logger,
+              socket.create_connection((sender_ip, TELNET_PORT), timeout=15) as spotter):
+            for connection, call in [(logger, b"Q9QQQ"), (spotter, b"Q7QQQ")]:
+                read_until(connection, b"login:")
+                connection.sendall(call + b"\r\n")
+                read_until(connection, b"dxspider >")
+            spotter.sendall(f"dx 14025 JA1ABC {marker}\r\n".encode())
+            read_until(spotter, b"dxspider >")
+            delivered = read_until(logger, marker.encode())
+            assert any(
+                line.startswith(b"DX de Q7QQQ") and b"JA1ABC" in line and marker.encode() in line
+                for line in delivered.splitlines()
+            )
+
+        def contains_spot(response):
+            status, feed = response
+            assert status == 200 and feed["Available"]
+            return any(spot["Call"] == "JA1ABC" and spot["Comment"].strip() == marker
+                       for spot in feed["Spots"])
+
+        wait_for("spot in both public feeds", lambda: (
+            contains_spot(request(primary, "/api/spots"))
+            and contains_spot(remote("/api/spots"))
+        ))
+    finally:
+        for container in (peer, CONTAINER):
+            subprocess.run(["docker", "network", "disconnect", network, container], check=False)
+        docker("network", "rm", network)
+
+
 def peer_link(primary):
     peer = "dxregia-peer-smoke"
     peer_port, peer_web = 7393, 18808
@@ -207,6 +247,7 @@ def peer_link(primary):
             and remote("/api/partners")[1][local_call]["Connection"] == "Attivo"
         ))
         wait_for("first connection timestamp", lambda: local_partner()["FirstConnectedAt"])
+        spot_delivery(primary, remote, peer, peer_port)
         docker("stop", peer)
         wait_for("disconnected partner status", lambda: local_partner()["Connection"] != "Attivo")
         docker("start", peer)
