@@ -29,7 +29,7 @@ DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-native.
 
 Lo script compila frontend e backend, installa le dipendenze Perl e avvia il servizio systemd dxregia con il suo utente dedicato. Stampa l'indirizzo del pannello e, al primo avvio, la password temporanea. Le porte predefinite sono 8080 e 7300. I dati sono in /var/lib/dxregia e il runtime è in /opt/dxregia. Una nuova esecuzione avvia il servizio già installato e conserva i dati. L'accesso iniziale è sul loopback. Per un server remoto si può accedere al pannello con un tunnel SSH dalla propria postazione.
 
-La verifica automatica nativa è prevista su Ubuntu con systemd. Una LXC non privilegiata con systemd può usare lo stesso percorso; il collaudo Proxmox resta separato. Le immagini Docker rimangono disponibili.
+Il collaudo automatico nativo è passato su Ubuntu 24.04 con systemd, su amd64 e arm64. Una LXC non privilegiata con systemd può usare lo stesso percorso; il collaudo Proxmox resta separato. Le immagini Docker rimangono disponibili.
 
 ## Installazione di prova da sorgente
 
@@ -41,7 +41,7 @@ Per scegliere le porte prima dell'installazione, esegui ad esempio:
 DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-local.sh
 ~~~
 
-I valori predefiniti restano 8080 e 7300. Le porte vengono pubblicate sul loopback e il wizard usa la porta Telnet effettivamente mappata. Nelle riesecuzioni usa gli stessi valori: Docker assegna le porte al momento della creazione del container. La build e il primo avvio con Docker sono stati verificati in CI su Ubuntu 24.04 amd64 con l'immagine Debian. La prova arm64 rimane aperta. La procedura da release firmata e l'accesso dalla LAN sono attività successive.
+I valori predefiniti restano 8080 e 7300. Le porte vengono pubblicate sul loopback e il wizard usa la porta Telnet effettivamente mappata. Nelle riesecuzioni usa gli stessi valori: Docker assegna le porte al momento della creazione del container. La build e il primo avvio con Docker sono stati verificati in CI su Ubuntu 24.04 amd64 e arm64 con l'immagine Debian. La procedura da release firmata e l'accesso dalla LAN sono attività successive.
 
 ## Esperienza di installazione
 
