@@ -20,6 +20,7 @@ type partnerDetails struct {
 	Call, Name, Contact, Email, Host string
 	Port                             int
 	Lang                             string `json:",omitempty"`
+	Person                           string `json:",omitempty"` // nome della persona, solo per l'anagrafica
 }
 
 type partnerStatus struct {
@@ -55,6 +56,7 @@ func (d *partnerDetails) validate() bool {
 	d.Email = strings.TrimSpace(d.Email)
 	d.Host = strings.TrimSpace(d.Host)
 	d.Lang = normalizeLang(d.Lang)
+	d.Person = strings.TrimSpace(d.Person)
 	if d.Email != "" {
 		address, err := mail.ParseAddress(d.Email)
 		if err != nil || address.Address != d.Email || len(d.Email) > 254 {
@@ -62,7 +64,7 @@ func (d *partnerDetails) validate() bool {
 		}
 	}
 	return len(d.Call) <= 12 && callsign.MatchString(d.Call) && len(d.Name) <= 120 &&
-		len(d.Contact) <= 120 && len(d.Host) <= 253 &&
+		len(d.Contact) <= 120 && len(d.Person) <= 120 && len(d.Host) <= 253 &&
 		(net.ParseIP(d.Host) != nil || partnerHost.MatchString(d.Host)) && d.Port >= 1 && d.Port <= 65535
 }
 

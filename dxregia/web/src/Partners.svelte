@@ -4,9 +4,9 @@
   import type { ContactRequest } from './ContactRequests.svelte'
   let { draft }: { draft?: ContactRequest } = $props()
 
-  type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string }
+  type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
   type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
-  const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '' })
+  const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
   let selected = $state<Partner>()
@@ -49,7 +49,7 @@
     emailStatus = ''
     selected = partner
     form = partner
-      ? { Call: partner.Call, Name: partner.Name, Contact: partner.Contact, Email: partner.Email, Host: partner.Host, Port: partner.Port, Lang: partner.Lang ?? '' }
+      ? { Call: partner.Call, Name: partner.Name, Contact: partner.Contact, Email: partner.Email, Host: partner.Host, Port: partner.Port, Lang: partner.Lang ?? '', Person: partner.Person ?? '' }
       : empty()
     note = ''
     error = ''
@@ -400,6 +400,10 @@
             <label>Indicativo <input bind:value={form.Call} maxlength="12" readonly={Boolean(selected)} required /></label>
             <label>Nome del nodo <input bind:value={form.Name} maxlength="120" /></label>
             <label>Nome del referente <input bind:value={form.Contact} maxlength="120" /></label>
+            <label>Nome della persona
+              <input bind:value={form.Person} maxlength="120" autocomplete="off" placeholder="Es. Anthony" />
+              <span class="hint">Solo per la nostra anagrafica: non entra nella configurazione del nodo.</span>
+            </label>
             <label>Email del referente <input type="email" bind:value={form.Email} maxlength="254" /></label>
             <label>Lingua delle email
               <select bind:value={form.Lang}>
