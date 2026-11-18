@@ -72,7 +72,7 @@ func registerAuth(mux *http.ServeMux, root, bootstrapFile string) (*sysopAuth, e
 			return nil, err
 		}
 		key, err := totpEncoding.DecodeString(auth.factor.Key)
-		if err != nil || len(key) != 20 {
+		if (err != nil || len(key) != 20) && !(auth.factor.Key == "" && auth.factor.ResetPending) {
 			return nil, errors.New("invalid sysop TOTP key")
 		}
 	} else if !os.IsNotExist(err) {
@@ -82,6 +82,7 @@ func registerAuth(mux *http.ServeMux, root, bootstrapFile string) (*sysopAuth, e
 	mux.HandleFunc("POST /api/auth/login", auth.route("login"))
 	mux.HandleFunc("POST /api/auth/password", auth.route("password"))
 	mux.HandleFunc("POST /api/auth/totp", auth.route("totp"))
+	mux.HandleFunc("POST /api/auth/recovery", auth.route("recovery"))
 	mux.HandleFunc("POST /api/auth/logout", auth.route("logout"))
 	return auth, nil
 }
@@ -133,6 +134,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
 			return
 		}
+		var recoveryCodes []string
 		switch action {
 		case "login", "password":
 			if action == "password" && (!a.signedIn(r) || !a.temporary) {
@@ -174,7 +176,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 			a.factorOK, a.pendingKey = false, ""
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
 				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
-		case "totp":
+		case "totp", "recovery":
 			if !a.signedIn(r) || a.temporary || a.factorOK {
 				http.Error(w, "Accesso con password richiesto.", http.StatusUnauthorized)
 				return
@@ -189,6 +191,25 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				http.Error(w, "Codice non valido.", http.StatusBadRequest)
 				return
 			}
+			if action == "recovery" {
+				if !a.factor.allowsRecovery(code) {
+					a.nextFactor = time.Now().Add(time.Second)
+					http.Error(w, "Codice di recupero non valido.", http.StatusUnauthorized)
+					return
+				}
+				key, err := newFactorKey()
+				if err == nil {
+					err = saveFactor(a.factorFile, secondFactor{ResetPending: true})
+				}
+				if err != nil {
+					log.Printf("Sysop recovery: %v", err)
+					http.Error(w, "Impossibile avviare il recupero.", http.StatusInternalServerError)
+					return
+				}
+				a.factor, a.pendingKey = secondFactor{ResetPending: true}, key
+				a.expires = time.Now().Add(5 * time.Minute)
+				break
+			}
 			factor := a.factor
 			if factor.Key == "" {
 				factor.Key = a.pendingKey
@@ -200,6 +221,9 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				return
 			}
 			token, err := randomToken()
+			if err == nil && len(verified.Recovery) == 0 {
+				recoveryCodes, err = createRecoveryCodes(&verified)
+			}
 			if err == nil {
 				err = saveFactor(a.factorFile, verified)
 			}
@@ -223,6 +247,9 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 		// The login response precedes the browser's next request with its new cookie.
 		signedIn := action == "login" || action == "password" || action == "totp" || a.signedIn(r)
 		result := map[string]any{"signedIn": signedIn, "mustChange": signedIn && a.temporary}
+		if len(recoveryCodes) > 0 {
+			result["recoveryCodes"] = recoveryCodes
+		}
 		if signedIn && !a.temporary && !a.factorOK {
 			result["mustVerify"] = true
 			if a.factor.Key == "" {

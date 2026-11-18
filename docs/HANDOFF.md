@@ -111,3 +111,7 @@ Collaudo su Windows completato con due Mojo reali: disconnessione via comando de
 ## Backup offline e ripristino
 
 Tool Python backup_node.py con backup, verifica integrità e ripristino in una directory nuova. Collaudo Windows su un nodo Mojo inizializzato: conservati database utenti e anagrafica, rifiutato archivio modificato e sovrascrittura, login Telnet dopo il ripristino. Gli script pendenti non vengono riprodotti dal backup. Il pannello può esportare le impostazioni del nodo in JSON reimportabile. Restano dal pannello la pianificazione, il backup completo e la gestione del ripristino.
+
+## Collaudo Linux e recupero sysop
+
+Il [runner Linux](https://github.com/wifi75/dxregia/actions/runs/44267305597) ha passato build immagine, installazione da sorgente, password temporanea, TOTP, wizard, login Telnet, backup con verifica e ripristino in directory nuova, e avvio sulla stessa porta dopo riavvio. Sono state aggiunte le dipendenze Perl mancanti e la gestione degli alias Mojo nel backup. Il ramo remoto di prova è dxregia-linux-validation. QR locale e recupero tramite codici monouso: verificati via API il reset, l'invalidazione dei vecchi codici e il blocco del pannello fino a conferma del nuovo TOTP.

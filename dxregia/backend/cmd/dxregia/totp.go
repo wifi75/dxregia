@@ -4,8 +4,10 @@ import (
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/base32"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,8 +18,10 @@ import (
 var totpEncoding = base32.StdEncoding.WithPadding(base32.NoPadding)
 
 type secondFactor struct {
-	Key      string
-	LastStep int64
+	Key          string
+	LastStep     int64
+	Recovery     []string
+	ResetPending bool
 }
 
 func newFactorKey() (string, error) {
@@ -68,4 +72,37 @@ func saveFactor(path string, factor secondFactor) error {
 		return err
 	}
 	return os.Rename(tmp.Name(), path)
+}
+
+func recoveryHash(code string) string {
+	digest := sha256.Sum256([]byte(code))
+	return hex.EncodeToString(digest[:])
+}
+
+func createRecoveryCodes(factor *secondFactor) ([]string, error) {
+	codes := make([]string, 8)
+	hashes := make([]string, len(codes))
+	for i := range codes {
+		code, err := randomToken()
+		if err != nil {
+			return nil, err
+		}
+		codes[i], hashes[i] = code, recoveryHash(code)
+	}
+	factor.Recovery = hashes
+	factor.ResetPending = false
+	return codes, nil
+}
+
+func (f secondFactor) allowsRecovery(code string) bool {
+	if f.Key == "" || len(code) != 48 {
+		return false
+	}
+	hash := recoveryHash(code)
+	for _, expected := range f.Recovery {
+		if hmac.Equal([]byte(hash), []byte(expected)) {
+			return true
+		}
+	}
+	return false
 }

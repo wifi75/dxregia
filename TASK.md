@@ -2,7 +2,7 @@
 
 ## Prossimo passo
 
-Collaudare l'immagine e lo script locale su un host Linux con Docker, poi completare la distribuzione da release e la gestione dei nodi partner. La procedura è in dxregia/deploy/README.md.
+Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazioni dopo il primo avvio. Estendere i collaudi Linux a due nodi, feed DX e aggiornamento da release. La procedura è in dxregia/deploy/README.md.
 
 ## Stato
 
@@ -15,16 +15,17 @@ Collaudare l'immagine e lo script locale su un host Linux con Docker, poi comple
 - [x] Autenticazione sysop con cambio obbligatorio della password temporanea e protezione del wizard lato API.
 - [x] Implementare la prima pagina spot pubblica con dati Mojo, filtri e layout mobile.
 - [ ] Completare la mappa delle entità DXCC e collaudare il feed con due nodi collegati su Linux.
-- [ ] Riprodurre l'avvio di Mojo su Linux e registrare dipendenze, configurazione minima e accesso locale alla console.
+- [x] Riprodurre l'avvio di Mojo su Linux e registrare dipendenze, configurazione minima e accesso locale alla console.
 - [ ] Verificare la baseline con due nodi locali e una sessione Telnet. Annotare gli scambi attesi e i criteri per spot, riconnessione e persistenza.
 - [x] Implementare la diagnostica locale Go/Svelte sul listener Telnet.
-- [ ] Verificare la diagnostica web contro Mojo reale su Linux.
+- [x] Verificare la diagnostica web contro Mojo reale su Linux.
 - [x] Collegare il modulo web di prima configurazione alla generazione dei file Mojo in una copia nuova.
 - [x] Provare avvio gestito di Mojo dopo il salvataggio e verificare la porta Telnet scelta su Windows.
 - [x] Verificare il riavvio gestito con la porta Telnet e la banca utenti persistenti su Windows.
 - [x] Proporre la porta Telnet configurata e rifiutare una porta occupata prima di salvare.
 - [ ] Realizzare il wizard di primo avvio e la gestione di un nodo partner interamente dal browser, dalla macchina appena installata al listener Telnet operativo, senza modifica manuale di file.
 - [ ] Verificare accesso al terminale classico via Telnet da un client esterno e da un logger. Integrare console sysop web con cronologia e aiuto, utenti e spot in diretta.
+- [x] Collaudare installazione da sorgente su Linux, backup offline, login Telnet e riavvio con volume persistente.
 - [ ] Distribuire OCI amd64/arm64 e realizzare lo [script di installazione Linux](dxregia/deploy/README.md) con URL del pannello, password temporanea e cambio obbligatorio al primo accesso. Verificare avvio, riavvio e riesecuzione su Linux.
 - [ ] Chiarire l'applicabilità di COPYING e LICENSE e censire le dipendenze prima della prima distribuzione.
 
@@ -42,7 +43,7 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [ ] Collaudare nella dashboard i collegamenti tra due nodi e le sessioni Web Mojo.
 - [x] Contatore pubblico e storico privato delle visualizzazioni giornaliere e dei domini di provenienza.
 - [ ] Integrare visitatori attivi stimati e paesi di provenienza nell'analytics sysop.
-- [ ] Integrare recupero accesso sysop e QR per l'iscrizione TOTP.
+- [x] Integrare recupero accesso sysop e QR per l'iscrizione TOTP.
 
 ## Prima release
 
