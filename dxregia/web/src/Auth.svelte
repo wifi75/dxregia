@@ -11,6 +11,7 @@
   import Partners from './Partners.svelte'
   import BackupVerify from './BackupVerify.svelte'
   import MailSettings from './MailSettings.svelte'
+  import NodeMessage from './NodeMessage.svelte'
   import Logo from './Logo.svelte'
   import Analytics from './Analytics.svelte'
   import ContactRequests from './ContactRequests.svelte'
@@ -21,7 +22,7 @@
   let session = $state<Session>()
   let { onSaved, nodeStatus }: { onSaved: () => void; nodeStatus: Snippet } = $props()
   const groups = [
-    { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet'], ['opzioni-telnet', 'Opzioni Telnet'], ['log-dxspider', 'Log DXSpider']] },
+    { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet'], ['opzioni-telnet', 'Opzioni Telnet'], ['messaggio', 'Messaggio e pianificazione'], ['log-dxspider', 'Log DXSpider']] },
     { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['richieste', 'Richieste ricevute']] },
     { label: 'Gestione', items: [['analytics', 'Analytics'], ['posta', 'Server di posta'], ['backup', 'Backup'], ['password', 'Password']] },
   ] as const
@@ -291,6 +292,8 @@
           }} />
         {:else if page === 'analytics'}
           <Analytics />
+        {:else if page === 'messaggio'}
+          <NodeMessage />
         {:else if page === 'posta'}
           <MailSettings />
         {:else if page === 'backup'}

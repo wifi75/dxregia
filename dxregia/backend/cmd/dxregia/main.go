@@ -95,6 +95,7 @@ func main() {
 	registerBackupVerification(mux, auth, *backupTool)
 	registerPresence(mux, *setupRoot, auth)
 	registerSMTP(mux, *setupRoot, auth)
+	registerNodeFiles(mux, *setupRoot, auth)
 	registerAutoPartner(mux, *setupRoot, auth)
 	registerLive(mux, *setupRoot, auth)
 	registerMojoLog(mux, auth, *setupRoot)

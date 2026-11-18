@@ -24,7 +24,9 @@ func validSessionHours(hours int) bool {
 	return false
 }
 
-func (a *sysopAuth) sessionFile() string { return filepath.Join(a.root, "local", "dxregia-session.json") }
+func (a *sysopAuth) sessionFile() string {
+	return filepath.Join(a.root, "local", "dxregia-session.json")
+}
 
 func (a *sysopAuth) sessionHours() int {
 	data, err := os.ReadFile(a.sessionFile())
