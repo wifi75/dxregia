@@ -53,6 +53,8 @@ _Les documents techniques ci-dessous sont rédigés en italien._
 - [TASK.md](TASK.md) — Plan de travail
 - [CHANGELOG.md](CHANGELOG.md) — Journal des modifications (en anglais)
 
+**Organisation du dépôt :** `dxregia/` contient le code propre à DXRegia (backend, panneau, installateurs), `engine/` le moteur DXSpider Mojo avec sa structure d'origine et `docs/` la documentation.
+
 ## État
 
 DXRegia est en développement actif (version 0.3.0). L'installation, la première connexion, Telnet, la sauvegarde et le redémarrage sont testés sur Ubuntu 24.04 (amd64 et arm64). Restent à faire : un test sur Proxmox LXC, la remise du courrier avec d'autres fournisseurs et un paquet de version signé. Les rapports et idées sont les bienvenus dans les [GitHub Issues](https://github.com/wifi75/dxregia/issues).

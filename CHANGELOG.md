@@ -2,6 +2,12 @@
 
 All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/). The upstream engine keeps its own history in `Changes`.
 
+## [Unreleased]
+
+### Changed
+- The DXSpider Mojo engine now lives in `engine/` (original structure kept); `COPYING` and `LICENSE` stay at the root. Installers, the Docker image, the bundle builder and the CI were updated.
+- `update-native.sh` accepts `DXREGIA_BRANCH` to update from a branch other than `main`.
+
 ## [0.3.0] - 2026-11-18
 
 ### Added

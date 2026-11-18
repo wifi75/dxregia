@@ -53,6 +53,8 @@ _The technical documents below are written in Italian._
 - [TASK.md](TASK.md) — Work plan
 - [CHANGELOG.md](CHANGELOG.md) — Changelog
 
+**Repository layout:** `dxregia/` is DXRegia's own code (backend, panel, installers), `engine/` is the DXSpider Mojo engine with its original structure, and `docs/` holds the documentation.
+
 ## Status
 
 DXRegia is in active development (version 0.3.0). Installation, first sign-in, Telnet, backup and restart are tested on Ubuntu 24.04 (amd64 and arm64). Still open: a Proxmox LXC test, delivery with more mail providers and a signed release package. Bug reports and ideas are welcome in [GitHub Issues](https://github.com/wifi75/dxregia/issues).

@@ -53,6 +53,8 @@ _Die folgenden technischen Dokumente sind auf Italienisch verfasst._
 - [TASK.md](TASK.md) — Arbeitsplan
 - [CHANGELOG.md](CHANGELOG.md) — Änderungsprotokoll (auf Englisch)
 
+**Aufbau des Repositorys:** `dxregia/` enthält den eigenen Code von DXRegia (Backend, Panel, Installer), `engine/` die DXSpider-Mojo-Engine mit ihrer ursprünglichen Struktur und `docs/` die Dokumentation.
+
 ## Stand
 
 DXRegia befindet sich in aktiver Entwicklung (Version 0.3.0). Installation, erste Anmeldung, Telnet, Backup und Neustart sind auf Ubuntu 24.04 (amd64 und arm64) getestet. Offen sind noch: ein Test auf Proxmox-LXC, E-Mail-Zustellung bei weiteren Anbietern und ein signiertes Release-Paket. Fehlermeldungen und Ideen sind in den [GitHub Issues](https://github.com/wifi75/dxregia/issues) willkommen.
