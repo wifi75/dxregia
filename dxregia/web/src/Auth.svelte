@@ -9,7 +9,6 @@
   import PasswordSettings from './PasswordSettings.svelte'
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
-  import Presence from './Presence.svelte'
   import BackupVerify from './BackupVerify.svelte'
   import Traffic from './Traffic.svelte'
   import ContactRequests from './ContactRequests.svelte'
@@ -162,7 +161,6 @@
       <div class="workspace-content glass-enter">
         {#if page === 'stato'}
           {@render nodeStatus()}
-          <Presence />
         {:else if page === 'configurazione'}
           <Setup {onSaved} />
         {:else if page === 'accesso-web'}
