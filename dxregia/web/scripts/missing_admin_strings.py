@@ -8,7 +8,7 @@ import sys
 SRC = 'src/'
 FILES = ['Auth', 'Analytics', 'ContactRequests', 'MailSettings', 'MojoLog', 'Partners', 'PasswordSettings',
          'BackupVerify', 'TelnetConsole', 'TelnetOptions', 'WebSettings', 'Setup', 'NodeMessage', 'NodeStartup',
-         'NodeLists', 'NodeHops', 'Dashboard', 'BarList', 'ColumnChart']
+         'NodeLists', 'NodeHops', 'NodeAccesses', 'Dashboard', 'BarList', 'ColumnChart']
 
 table = open(SRC + 'adminTranslations.ts', encoding='utf-8').read()
 keys = []

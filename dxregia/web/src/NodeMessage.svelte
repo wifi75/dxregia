@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount, tick } from 'svelte'
   import Hint from './Hint.svelte'
 
   type Entry = { Minute: string; Hour: string; Day: string; Month: string; Weekday: string; Command: string }
@@ -10,6 +10,14 @@
   let motdStatus = $state('')
   let cronStatus = $state('')
   let busy = $state(false)
+  // La casella si adatta al testo: alta quanto serve (almeno 6 righe), senza barra di scorrimento.
+  let box = $state<HTMLTextAreaElement>()
+  function fit() {
+    if (!box) return
+    box.style.height = 'auto'
+    box.style.height = Math.min(box.scrollHeight + 2, window.innerHeight * 0.8) + 'px'
+  }
+  $effect(() => { text; box; void tick().then(fit) })
   const blank = (): Entry => ({ Minute: '0', Hour: '3', Day: '*', Month: '*', Weekday: '*', Command: '' })
   const size = $derived(new TextEncoder().encode(text).length)
 
@@ -49,7 +57,7 @@
   <form onsubmit={saveMotd}>
     <p>Il banner appare appena ci si collega via Telnet, prima del prompt login. Salva un testo vuoto per nasconderlo.</p>
     <label>Testo<Hint text="Si mostra a chi si collega via Telnet, prima del prompt. Puoi andare a capo. Massimo 2000 byte: le lettere accentate ne occupano 2." />
-      <textarea bind:value={text} rows="6" disabled={busy} class="telnet-banner"></textarea>
+      <textarea bind:this={box} bind:value={text} rows="6" wrap="off" disabled={busy} class="telnet-banner"></textarea>
     </label>
     <small class:over={size > maxBytes}>{size} / {maxBytes} byte</small>
     <button disabled={busy || size > maxBytes}>Salva messaggio</button>
@@ -93,7 +101,7 @@
   form p { margin: 0; color: #465e70; }
   label { display: grid; gap: .35rem; width: min(100%, 560px); font-weight: 650; }
   textarea, input { width: 100%; box-sizing: border-box; border: 1px solid #a4bbc9; border-radius: 6px; padding: .45rem .65rem; font: inherit; }
-  textarea { resize: vertical; font-family: ui-monospace, monospace; }
+  textarea { resize: vertical; overflow: auto; white-space: pre; font-family: ui-monospace, monospace; }
   small.over { color: #b3261e; }
   .row { display: grid; grid-template-columns: repeat(5, 4.2rem) minmax(10rem, 1fr) auto; gap: .4rem; width: 100%; }
   .row input { min-height: 40px; }
