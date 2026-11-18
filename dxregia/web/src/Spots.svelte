@@ -190,7 +190,7 @@
     <!-- svelte-ignore a11y_no_noninteractive_tabindex (scrollable table needs keyboard focus) -->
     <div class="table-wrap" tabindex="0" role="region" aria-label={t('tableLabel')}>
       <table>
-        <thead><tr><th scope="col">{t('thDe')}</th><th scope="col">{t('thFreq')} <small>kHz</small></th><th>{t('thMode')}</th><th>{t('thDx')}</th><th>{t('thEntity')}</th><th>{t('thComment')}</th><th>{t('thUtc')}</th></tr></thead>
+        <thead><tr><th scope="col">{t('thDe')}</th><th scope="col">{t('thFreq')}</th><th>{t('thMode')}</th><th>{t('thDx')}</th><th>{t('thEntity')}</th><th>{t('thComment')}</th><th>{t('thUtc')}</th></tr></thead>
         <tbody>
           {#each rowsKeyed(filtered) as { spot, key, id } (key)}
             {@const m = modeInfo(spot)}
@@ -256,11 +256,11 @@
   table { width: 100%; table-layout: fixed; border-collapse: collapse; text-align: left; white-space: nowrap; }
   td { overflow: hidden; text-overflow: ellipsis; }
   th:nth-child(1) { width: 150px; } th:nth-child(2) { width: 150px; } th:nth-child(3) { width: 100px; }
-  th:nth-child(4) { width: 200px; } th:nth-child(5) { width: 210px; } th:nth-child(7) { width: 80px; }
+  th:nth-child(4) { width: 220px; } th:nth-child(5) { width: 210px; } th:nth-child(7) { width: 96px; }
+  @media (min-width: 701px) { th:nth-child(4), td:nth-child(4) { padding-left: calc(clamp(10px, 1.15vw, 20px) + 20px); } }
   td:nth-child(2), td:nth-child(3) { overflow: visible; text-overflow: clip; }
   th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #c4d6e3; }
   th { background: #ffffffa3; color: #1d5d8c; border-bottom: 2px solid #2972a0; font-size: .86rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-  th small { color: #536b7d; text-transform: none; }
   tbody tr:nth-child(odd) { background: #fbfdff; }
   tbody tr:nth-child(even) { background: #d6e8f3; }
   tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: fresh 14s ease-out both; }
