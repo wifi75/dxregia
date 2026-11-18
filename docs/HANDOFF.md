@@ -193,3 +193,5 @@ L'aggiornamento nativo indica commit installato e disponibile, supporta --check 
 La sezione Nodo → Accesso web consente di cambiare la porta HTTP nelle installazioni native gestite. Apre il nuovo listener prima di sostituire il precedente, salva la porta in /var/lib/dxregia/web-port e indica il nuovo URL. Installazione e aggiornamento usano la porta persistente per il controllo di salute. Le impostazioni di pubblicazione Docker rimangono gestite dall'host.
 
 Il listener pubblico Telnet Mojo e standard su 0.0.0.0 per ogni nodo gestito, senza opzione di bind. All'avvio viene normalizzato Listeners.pm, con copia della configurazione precedente. L'installatore e l'aggiornamento Docker pubblicano Telnet su tutte le interfacce IPv4. Pannello HTTP e listener interno Mojo restano separati.
+
+Il portale Spot usa una colonna sinistra con filtri per banda e modo e un registro a destra con ricerca, conteggio, orario dell'ultimo aggiornamento e controllo pausa. Su schermi stretti i filtri passano sopra il registro. Il sysop mantiene menu categorizzato a sinistra e area di lavoro a destra. Anteprima desktop renderizzata in Edge a 1440 px con spot di esempio.

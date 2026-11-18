@@ -137,6 +137,7 @@
   {:else if session.signedIn && !session.mustChange && !session.mustVerify}
     <div class="workspace">
       <aside class="sidebar">
+        <p class="sidebar-title">Amministrazione</p>
         <nav aria-label="Amministrazione DXRegia">
           {#each groups as group}
             <div class="nav-group">
@@ -210,7 +211,8 @@
   .auth-card { max-width: 560px; margin: 24px auto; padding: clamp(18px, 4vw, 32px); background: #fff; border: 1px solid #d7dfe7; border-radius: 12px; }
   .workspace { display: grid; grid-template-columns: clamp(190px, 19vw, 264px) minmax(0, 1fr); align-items: start; gap: clamp(14px, 2vw, 28px); }
   .workspace-content { min-width: 0; }
-  .sidebar { position: sticky; top: 18px; padding: 14px 12px; border: 1px solid #cbd9e4; border-radius: 8px; background: #f9fbfd; box-shadow: 0 2px 9px #12354f0c; }
+  .sidebar { position: sticky; top: 18px; padding: 16px 12px; min-height: calc(100vh - 112px); border: 1px solid #b7c9d5; border-top: 4px solid #186187; border-radius: 7px; background: #eef4f7; }
+  .sidebar-title { margin: 0 0 1.2rem; padding-inline: .7rem; font-size: 1.06rem; color: #143a54; font-weight: 760; }
   .sidebar ul { margin: 0; padding: 0; list-style: none; }
   .nav-group + .nav-group { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2eaf0; }
   .nav-group h2 { margin: 0 0 .25rem; padding-left: .7rem; color: #425d70; font-size: .75rem; letter-spacing: .075em; text-transform: uppercase; }
@@ -219,7 +221,7 @@
   .nav-group a[aria-current=page] { border-inline-start-color: #176c98; background: #e2eef7; color: #113e64; font-weight: 700; }
   @media (max-width: 650px) {
     .workspace { grid-template-columns: minmax(0, 1fr); }
-    .sidebar { position: static; }
+    .sidebar { position: static; min-height: 0; }
     .sidebar nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(145px, 100%), 1fr)); gap: .5rem; }
     .nav-group + .nav-group { margin-top: 0; padding-top: 0; border: 0; }
   }
