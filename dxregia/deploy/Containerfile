@@ -16,7 +16,7 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates perl git procps libev-perl libmojolicious-perl libjson-perl \
     libjson-xs-perl libdata-structure-util-perl libmath-round-perl libnet-cidr-lite-perl \
-    libdbd-sqlite3-perl libdbi-perl \
+    libdbd-sqlite3-perl libdbi-perl libtimedate-perl libio-socket-inet6-perl \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin dxregia \
     && install -d -o dxregia -g dxregia /data

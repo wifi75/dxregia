@@ -24,4 +24,7 @@ jobs:
         run: python3 dxregia/deploy/smoke_linux.py
       - name: Report container logs on failure
         if: failure()
-        run: docker logs --tail 80 dxregia
+        run: |
+          docker logs --tail 80 dxregia || true
+          docker cp dxregia:/data/mojo/local_data/dxregia-startup.log "$RUNNER_TEMP/mojo-startup.log" || exit 0
+          grep -E "Can't locate|Compilation failed|BEGIN failed|Permission denied|[Ee]rror|Address already in use" "$RUNNER_TEMP/mojo-startup.log" || true
