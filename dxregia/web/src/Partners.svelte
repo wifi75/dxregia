@@ -45,7 +45,7 @@
   function open(partner?: Partner) {
     peerPassword = ''
     outgoingPassword = ''
-    autoReconnect = false
+    autoReconnect = partner?.Reconnect === 'Abilitata'
     sendInstructions = false
     emailStatus = ''
     selected = partner
@@ -155,6 +155,7 @@
   async function save(event: SubmitEvent) {
     event.preventDefault()
     if (busy || enabling) return
+    const connectNow = !selected && (event.submitter as HTMLButtonElement | null)?.value !== 'directory'
     busy = true
     error = ''
     message = ''
@@ -162,7 +163,7 @@
       const response = await fetch('/api/partners' + (selected ? '/' + encodeURIComponent(selected.Call) : ''), {
         method: selected ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, Note: note }),
+        body: JSON.stringify({ ...form, Note: note, ConnectNow: connectNow }),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -171,7 +172,7 @@
       const saved: Partner = await response.json()
       partners = [...partners.filter(partner => partner.Call !== saved.Call), saved]
       open(saved)
-      message = 'Anagrafica salvata.'
+      message = connectNow ? 'Nodo salvato. DXRegia prepara il collegamento e riproverà anche dopo il riavvio.' : 'Anagrafica salvata.'
     } catch {
       error = 'Impossibile salvare il nodo partner.'
     } finally {
@@ -223,7 +224,7 @@
         <code>{peerPassword}</code>
       {/if}
     {/if}
-    {#if selected?.Provisioning === 'Abilitato in Mojo'}
+    {#if selected?.Provisioning === 'Abilitato in Mojo' || selected?.Provisioning === 'Pronto in uscita'}
       <p>Collegamento: {selected.Connection || 'Aggiorna lo stato per verificare'}</p>
       {#if selected.Reconnect}
         <p>Riconnessione automatica: {selected.Reconnect}</p>
@@ -237,7 +238,7 @@
       {/if}
       <form onsubmit={connect}>
         <label>Password impostata dal nodo remoto, se richiesta
-          <input type="password" bind:value={outgoingPassword} pattern="[A-Za-z0-9]{0,72}" maxlength="72" autocomplete="off" />
+          <input type="password" bind:value={outgoingPassword} pattern={'[A-Za-z0-9]{0,72}'} maxlength="72" autocomplete="off" />
         </label>
         <label class="mail-opt"><input type="checkbox" bind:checked={autoReconnect} /> Riprova automaticamente dopo una caduta del collegamento</label>
         <button disabled={enabling || busy}>Connetti nodo</button>
@@ -253,7 +254,10 @@
         <label>Porta remota <input type="number" bind:value={form.Port} min="1" max="65535" required /></label>
       </div>
       <label class="note">Aggiungi una nota <textarea bind:value={note} maxlength="4000" rows="3" placeholder="Es. Inviata email al referente"></textarea></label>
-      <button disabled={busy}>{busy ? 'Salvataggio…' : 'Salva anagrafica'}</button>
+      <button type="submit" value={selected ? 'directory' : 'connect'} disabled={busy || enabling}>
+        {busy ? 'Salvataggio…' : selected ? 'Salva anagrafica' : 'Salva e connetti'}
+      </button>
+      {#if !selected}<button class="secondary" type="submit" value="directory" disabled={busy || enabling}>Salva solo anagrafica</button>{/if}
     </form>
     {#if selected?.Notes?.length}
       <h3>Storico note</h3>

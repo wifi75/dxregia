@@ -169,9 +169,10 @@ sub provision_partners {
         my $result;
         open(my $request, '<:raw', "$dir/$file") or next;
         my $password = '';
-        read($request, $password, 49);
+        read($request, $password, 63);
         close($request);
-        if ($password !~ /\A[0-9a-f]{48}\z/) {
+        my $outgoing = $password =~ /\Aoutgoing-only:[0-9a-f]{48}\z/;
+        if (!$outgoing && $password !~ /\A[0-9a-f]{48}\z/) {
             $result = 'Richiesta non valida';
         } elsif (length($call) > 12 || $call eq $main::mycall || $call eq $main::myalias) {
             $result = 'Indicativo riservato';
@@ -185,11 +186,19 @@ sub provision_partners {
                     $user->sort('S');
                     $user->homenode($call);
                     $user->priv(1);
-                    $user->passwd($password);
+                    $user->passwd($outgoing ? '{DXREGIA-BCRYPT}' . $password : $password);
                     $user->close();
-                    $result = 'Abilitato in Mojo';
+                    $result = $outgoing ? 'Pronto in uscita' : 'Abilitato in Mojo';
                 } else {
-                    $result = $user->passwd eq $password ? 'Abilitato in Mojo' : 'Account Mojo esistente da verificare';
+                    if ($outgoing) {
+                        $result = $user->passwd =~ /\A\{DXREGIA-BCRYPT\}outgoing-only:/ ? 'Pronto in uscita' : 'Abilitato in Mojo';
+                    } elsif ($user->passwd =~ /\A\{DXREGIA-BCRYPT\}outgoing-only:/) {
+                        $user->passwd($password);
+                        $user->put;
+                        $result = 'Abilitato in Mojo';
+                    } else {
+                        $result = $user->passwd eq $password ? 'Abilitato in Mojo' : 'Account Mojo esistente da verificare';
+                    }
                 }
             }
         }

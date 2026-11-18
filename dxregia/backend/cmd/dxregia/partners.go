@@ -159,7 +159,8 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		var input struct {
 			partnerDetails
-			Note string
+			Note       string
+			ConnectNow bool
 		}
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192))
 		decoder.DisallowUnknownFields()
@@ -186,8 +187,19 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		if note := strings.TrimSpace(input.Note); note != "" {
 			entry.Notes = append(entry.Notes, partnerNote{Text: note, At: now})
 		}
+		auto := input.ConnectNow && !exists
+		if auto {
+			plan := reconnectPlan{Host: entry.Host, Port: entry.Port, AutoProvision: true}
+			if err := saveReconnect(root, call, plan); err != nil {
+				http.Error(w, "Impossibile salvare il collegamento automatico.", http.StatusInternalServerError)
+				return
+			}
+		}
 		partners[call] = entry
 		if err := savePartners(path, partners); err != nil {
+			if auto {
+				_ = os.Remove(reconnectPath(root, call))
+			}
 			if exists {
 				partners[call] = old
 			} else {
@@ -294,7 +306,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Mojo deve essere attivo con l’hook DXRegia aggiornato.", http.StatusServiceUnavailable)
 			return
 		}
-		if entry.Provisioning != "Abilitato in Mojo" {
+		if !canConnectPartner(entry.Provisioning) {
 			http.Error(w, "Abilita prima l’account partner in Mojo.", http.StatusConflict)
 			return
 		}
