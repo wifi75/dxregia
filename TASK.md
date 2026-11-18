@@ -67,3 +67,6 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Download dal pannello delle impostazioni sysop e del nodo come JSON reimportabile.
 - [ ] Integrare backup completo e pianificazione dal pannello con arresto e ripresa coordinati.
 - [x] Migrazione offline di Mojo SQLite in una nuova directory gestita e login Telnet su copia.
+
+- [x] Modificare i dati del profilo sysop a nodo avviato con applicazione nell'hook Mojo gestito.
+- [ ] Completare la modifica di porte e indicativi con migrazione e verifica dell'endpoint.

@@ -121,3 +121,7 @@ Il [runner Linux](https://github.com/wifi75/dxregia/actions/runs/44267305597) ha
 Il comando migrate_mojo.py prepara una copia gestita da un nodo Mojo SQLite esistente, con un singolo listener. Verificati su Windows utenti e impostazioni conservati, database invariato, avvio della copia sotto il backend DXRegia e login del sysop via Telnet. Aggiunta la prova di migrazione allo smoke test Linux con matrice amd64 e arm64. Importazione completa da browser e migrazioni di formati più vecchi di SQLite restano aperte.
 
 Checkpoint Git richiesti circa ogni 20 minuti di lavoro attivo. Il ramo dxregia-linux-validation riceve i commit da collaudare. Aggiornare main dopo aver verificato i risultati.
+
+## Modifica del profilo sysop a nodo avviato
+
+Configurazione sysop ora consente di modificare nome, email, QTH, locator, coordinate e host pubblico. Il JSON salvato viene letto dall'hook gestito da DXRegia e applicato alle impostazioni Mojo e ai record del nodo e del sysop. Le modifiche a indicativi e porta Telnet richiedono una migrazione coordinata e sono rifiutate da questa API. Gli hook personalizzati vengono conservati. Smoke test Linux esteso con modifica, verifica del saluto Telnet e ripartenza.

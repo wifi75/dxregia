@@ -13,6 +13,10 @@
     node: '', sysop: '', locator: '', port: 7300, name: '', qth: '', email: '', advertisedHost: '',
   })
   let profile = $state<SetupFields>()
+  let profileDraft = $state<SetupFields>()
+  let profileError = $state('')
+  let profileMessage = $state('')
+  let savingProfile = $state(false)
   let postponed = $state(false)
   let imported = $state('')
   let step = $state(1)
@@ -63,6 +67,38 @@
     link.download = 'dxregia-config.json'
     link.click()
     setTimeout(() => URL.revokeObjectURL(objectURL), 1000)
+  }
+
+  function editProfile() {
+    if (!profile) return
+    profileDraft = { ...profile }
+    profileError = ''
+    profileMessage = ''
+  }
+
+  async function updateProfile(event: SubmitEvent) {
+    event.preventDefault()
+    if (!profileDraft || savingProfile) return
+    savingProfile = true
+    profileError = ''
+    try {
+      const response = await fetch('/api/node-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileDraft),
+      })
+      if (!response.ok) {
+        profileError = (await response.text()).trim() || 'Impossibile salvare il profilo.'
+        return
+      }
+      profile = await response.json()
+      profileDraft = undefined
+      profileMessage = 'Profilo salvato. Mojo lo legge al prossimo aggiornamento.'
+    } catch {
+      profileError = 'Il servizio non risponde.'
+    } finally {
+      savingProfile = false
+    }
   }
 
   async function save(event: SubmitEvent) {
@@ -153,7 +189,27 @@
         <div><dt>Località e locator</dt><dd>{[profile.qth, profile.locator].filter(Boolean).join(' · ')}</dd></div>
         <div><dt>Host pubblico</dt><dd>{profile.advertisedHost || '—'}</dd></div>
       </dl>
-      <button type="button" class="secondary" onclick={exportSettings}>Scarica configurazione JSON</button>
+      {#if profileMessage}<p role="status">{profileMessage}</p>{/if}
+      {#if profileDraft}
+        <form onsubmit={updateProfile}>
+          <div class="fields">
+            <label>Nome del sysop <input bind:value={profileDraft.name} maxlength="120" /></label>
+            <label>Email <input type="email" bind:value={profileDraft.email} maxlength="254" /></label>
+            <label>Località (QTH) <input bind:value={profileDraft.qth} maxlength="120" /></label>
+            <label>Locator <input bind:value={profileDraft.locator} maxlength="6" required /></label>
+            <label>Latitudine <input type="number" bind:value={profileDraft.latitude} min="-90" max="90" step="any" /></label>
+            <label>Longitudine <input type="number" bind:value={profileDraft.longitude} min="-180" max="180" step="any" /></label>
+            <label>Host pubblico <input bind:value={profileDraft.advertisedHost} maxlength="253" /></label>
+          </div>
+          <p>Lascia vuote entrambe le coordinate per calcolarle dal locator.</p>
+          {#if profileError}<p class="error" role="alert">{profileError}</p>{/if}
+          <button disabled={savingProfile}>{savingProfile ? 'Salvataggio…' : 'Salva profilo'}</button>
+          <button type="button" class="secondary" disabled={savingProfile} onclick={() => profileDraft = undefined}>Annulla</button>
+        </form>
+      {:else}
+        <button type="button" onclick={editProfile}>Modifica profilo sysop</button>
+        <button type="button" class="secondary" onclick={exportSettings}>Scarica configurazione JSON</button>
+      {/if}
     {/if}
   </section>
 {/if}

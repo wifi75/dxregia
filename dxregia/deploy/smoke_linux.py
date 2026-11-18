@@ -23,11 +23,12 @@ def docker(*args):
     return subprocess.run(["docker", *args], check=True, stdout=subprocess.PIPE, text=True).stdout
 
 
-def request(client, path, body=None):
+def request(client, path, body=None, method=None):
     req = urllib.request.Request(
         BASE + path,
         data=None if body is None else json.dumps(body).encode(),
         headers={"Content-Type": "application/json"},
+        method=method,
     )
     try:
         with client.open(req, timeout=30) as response:
@@ -55,11 +56,14 @@ def read_until(conn, marker):
     return data
 
 
-def telnet_login(callsign):
+def telnet_login(callsign, location=None):
     with socket.create_connection((HOST, 7300), timeout=5) as conn:
         read_until(conn, b"login:")
         conn.sendall(callsign + b"\r\n")
-        assert callsign in read_until(conn, b"dxspider >")
+        welcome = read_until(conn, b"dxspider >")
+        assert callsign in welcome
+        if location is not None:
+            assert location in welcome
         conn.sendall(b"bye\r\n")
 
 
@@ -90,6 +94,12 @@ def main():
     assert request(client, "/api/auth/totp", totp(enroll["enrollmentKey"]))[0] == 200
     assert request(client, "/api/setup", config) == (200, {"started": True, "port": 7300})
     telnet_login(b"Q7QQQ")
+    edited = dict(config, name="Lab sysop", qth="Profilo Linux", email="lab@example.org", advertisedHost="node.example.org")
+    assert request(client, "/api/node-settings", dict(edited, port=7373), method="PUT")[0] == 409
+    assert request(client, "/api/node-settings", edited, method="PUT") == (200, edited)
+    # Snapshot hook applies the updated profile during the next five-second cycle.
+    time.sleep(6)
+    telnet_login(b"Q8QQQ", b"Profilo Linux")
     assert request(client, "/api/spots")[1]["Available"]
     docker("stop", CONTAINER)
     with tempfile.TemporaryDirectory(prefix="dxregia-smoke-") as folder:
@@ -111,7 +121,8 @@ def main():
         assert (adopted / "local_data/dxusers.db").read_bytes() == (source / "local_data/dxusers.db").read_bytes()
     docker("start", CONTAINER)
     ready(client)
-    telnet_login(b"Q7QQQ")
+    time.sleep(6)
+    telnet_login(b"Q7QQQ", b"Profilo Linux")
     print("Linux installer, setup with TOTP, Telnet, offline backup and persistent restart passed")
 
 

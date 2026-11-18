@@ -72,7 +72,8 @@ func installPresenceHook(local string) error {
 		sum := sha256.Sum256(current)
 		digest := hex.EncodeToString(sum[:])
 		if digest != "539ceccae21bcae0947532e152e99f180b0754aa34faece57c74f0b4a0439e61" &&
-			digest != "7205df58566bee8ccce1b013b4646642d268ff16927fe5b691b371e70464a239" {
+			digest != "7205df58566bee8ccce1b013b4646642d268ff16927fe5b691b371e70464a239" &&
+			digest != "54df299595d1d8f7bd08a8f2daff868cdc5d1d918802079171d3dc80b2ae4e72" {
 			return nil
 		}
 		return upgradePresenceHook(local, path)

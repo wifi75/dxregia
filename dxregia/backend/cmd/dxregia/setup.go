@@ -82,6 +82,7 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 		return err
 	}
 	local := filepath.Join(root, "local")
+	registerProfile(mux, local, auth)
 	mux.HandleFunc("GET /api/node-settings", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		if !auth.allowed(r) {

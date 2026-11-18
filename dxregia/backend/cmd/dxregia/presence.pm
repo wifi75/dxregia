@@ -4,11 +4,13 @@ use strict;
 use JSON ();
 
 my $last_write = 0;
+my $applied_profile = "";
 
 sub process {
     my $now = time;
     return if $now - $last_write < 5;
     $last_write = $now;
+    apply_node_profile();
     provision_partners();
     connect_partners();
     my @channels;
@@ -34,6 +36,45 @@ sub process {
     print $file JSON::encode_json({ At => $now, PartnerConnect => JSON::true, Channels => \@channels }) or die "DXRegia snapshot: $!";
     close($file) or die "DXRegia snapshot: $!";
     rename($tmp, $target) or die "DXRegia snapshot: $!";
+}
+
+sub apply_node_profile {
+    my $path = "$main::root/local/dxregia-node.json";
+    open(my $file, '<:raw', $path) or return;
+    my $bytes = "";
+    read($file, $bytes, 8193);
+    close($file);
+    return if !$bytes || length($bytes) > 8192 || $bytes eq $applied_profile;
+    my $config = eval { JSON::decode_json($bytes) };
+    return unless ref($config) eq 'HASH' && ($config->{node} || '') eq $main::mycall &&
+                  ($config->{sysop} || '') eq $main::myalias;
+    my $grid = $config->{locator};
+    return unless defined($grid) && $grid =~ /\A[A-R]{2}[0-9]{2}(?:[A-X]{2})?\z/;
+
+    my ($lat, $lon) = ($config->{latitude}, $config->{longitude});
+    if (!defined($lat) || !defined($lon)) {
+        my @grid = split(//, $grid);
+        $lon = (ord($grid[0]) - ord('A')) * 20 + $grid[2] * 2 - 180;
+        $lat = (ord($grid[1]) - ord('A')) * 10 + $grid[3] - 90;
+        $lon += @grid == 6 ? (ord($grid[4]) - ord('A') + .5) / 12 : 1;
+        $lat += @grid == 6 ? (ord($grid[5]) - ord('A') + .5) / 24 : .5;
+    }
+    return unless $lat >= -90 && $lat <= 90 && $lon >= -180 && $lon <= 180;
+    $main::myname = $config->{name} || $main::myalias;
+    $main::myqth = $config->{qth} || $grid;
+    $main::myemail = $config->{email} || '';
+    ($main::mylocator, $main::mylatitude, $main::mylongitude) = ($grid, $lat, $lon);
+    for my $call ($main::mycall, $main::myalias) {
+        my $user = DXUser::get_current($call) or next;
+        $user->name($main::myname);
+        $user->qth($main::myqth);
+        $user->email($main::myemail);
+        $user->qra($grid);
+        $user->lat($lat);
+        $user->long($lon);
+        $user->put;
+    }
+    $applied_profile = $bytes;
 }
 
 sub provision_partners {
