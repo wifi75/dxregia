@@ -74,6 +74,9 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 		if perl == "" {
 			return nil
 		}
+		if err := installPresenceHook(local); err != nil {
+			return err
+		}
 		if err := startMojo(service, perl, root, *saved); err == nil {
 			return nil
 		} else {
@@ -185,6 +188,9 @@ func writeMojoConfig(root, local, template string, config nodeConfig, internalPo
 	}
 	listeners := fmt.Sprintf("package main;\nour @listen = ([ '%s', %d ]);\n1;\n", telnetBind, config.Port)
 	if err := os.WriteFile(filepath.Join(stage, "Listeners.pm"), []byte(listeners), 0600); err != nil {
+		return err
+	}
+	if err := installPresenceHook(stage); err != nil {
 		return err
 	}
 	state, err := json.Marshal(config)

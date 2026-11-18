@@ -35,3 +35,9 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 
 - [x] Anagrafica nodi partner con referente, email e storico note datate.
 - [ ] Collegare l'anagrafica a Mojo e registrare automaticamente la prima connessione confermata.
+
+- [x] Proteggere configurazione, anagrafica e presenza con TOTP e blocco del riutilizzo.
+- [x] Mostrare sulla dashboard sysop nodi e sessioni da una fotografia recente di Mojo. Test reale Telnet su Windows.
+- [ ] Collaudare nella dashboard i collegamenti tra due nodi e le sessioni Web Mojo.
+- [ ] Aggiungere contatore pubblico e analytics sysop per portale web, con visite, sessioni attive stimate, storico, paesi e domini di provenienza.
+- [ ] Integrare recupero accesso sysop e QR per l'iscrizione TOTP.

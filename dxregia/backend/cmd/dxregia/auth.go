@@ -27,6 +27,11 @@ type sysopAuth struct {
 	session       string
 	expires       time.Time
 	nextLogin     time.Time
+	nextFactor    time.Time
+	factorFile    string
+	factor        secondFactor
+	pendingKey    string
+	factorOK      bool
 }
 
 func randomToken() (string, error) {
@@ -61,9 +66,22 @@ func registerAuth(mux *http.ServeMux, root, bootstrapFile string) (*sysopAuth, e
 		return nil, errors.New("invalid sysop password file")
 	}
 	auth.hash = hash
+	auth.factorFile = filepath.Join(root, ".dxregia-totp")
+	if data, err := os.ReadFile(auth.factorFile); err == nil {
+		if err := json.Unmarshal(data, &auth.factor); err != nil {
+			return nil, err
+		}
+		key, err := totpEncoding.DecodeString(auth.factor.Key)
+		if err != nil || len(key) != 20 {
+			return nil, errors.New("invalid sysop TOTP key")
+		}
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
 	mux.HandleFunc("GET /api/auth", auth.route("status"))
 	mux.HandleFunc("POST /api/auth/login", auth.route("login"))
 	mux.HandleFunc("POST /api/auth/password", auth.route("password"))
+	mux.HandleFunc("POST /api/auth/totp", auth.route("totp"))
 	mux.HandleFunc("POST /api/auth/logout", auth.route("logout"))
 	return auth, nil
 }
@@ -103,7 +121,7 @@ func (a *sysopAuth) signedIn(r *http.Request) bool {
 func (a *sysopAuth) allowed(r *http.Request) bool {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	return a.signedIn(r) && !a.temporary
+	return a.signedIn(r) && !a.temporary && a.factorOK
 }
 
 func (a *sysopAuth) route(action string) http.HandlerFunc {
@@ -152,20 +170,74 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				http.Error(w, "Impossibile completare l’operazione.", http.StatusInternalServerError)
 				return
 			}
+			a.session, a.expires = token, time.Now().Add(5*time.Minute)
+			a.factorOK, a.pendingKey = false, ""
+			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
+				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
+		case "totp":
+			if !a.signedIn(r) || a.temporary || a.factorOK {
+				http.Error(w, "Accesso con password richiesto.", http.StatusUnauthorized)
+				return
+			}
+			if time.Now().Before(a.nextFactor) {
+				http.Error(w, "Attendi prima di riprovare.", http.StatusTooManyRequests)
+				return
+			}
+			var code string
+			body := json.NewDecoder(http.MaxBytesReader(w, r.Body, 128))
+			if body.Decode(&code) != nil || body.Decode(new(any)) != io.EOF {
+				http.Error(w, "Codice non valido.", http.StatusBadRequest)
+				return
+			}
+			factor := a.factor
+			if factor.Key == "" {
+				factor.Key = a.pendingKey
+			}
+			verified, ok := factor.verify(code, time.Now())
+			if !ok {
+				a.nextFactor = time.Now().Add(time.Second)
+				http.Error(w, "Codice non valido o già usato.", http.StatusUnauthorized)
+				return
+			}
+			token, err := randomToken()
+			if err == nil {
+				err = saveFactor(a.factorFile, verified)
+			}
+			if err != nil {
+				log.Printf("Sysop TOTP: %v", err)
+				http.Error(w, "Impossibile completare la verifica.", http.StatusInternalServerError)
+				return
+			}
+			a.factor, a.pendingKey, a.factorOK = verified, "", true
 			a.session, a.expires = token, time.Now().Add(8*time.Hour)
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
 				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
 		case "logout":
 			if a.signedIn(r) {
-				a.session = ""
+				a.session, a.pendingKey, a.factorOK = "", "", false
 			}
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Path: "/", MaxAge: -1, HttpOnly: true,
 				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
 		}
 		w.Header().Set("Content-Type", "application/json")
 		// The login response precedes the browser's next request with its new cookie.
-		signedIn := action == "login" || action == "password" || a.signedIn(r)
-		json.NewEncoder(w).Encode(map[string]bool{"signedIn": signedIn, "mustChange": signedIn && a.temporary})
+		signedIn := action == "login" || action == "password" || action == "totp" || a.signedIn(r)
+		result := map[string]any{"signedIn": signedIn, "mustChange": signedIn && a.temporary}
+		if signedIn && !a.temporary && !a.factorOK {
+			result["mustVerify"] = true
+			if a.factor.Key == "" {
+				if a.pendingKey == "" {
+					key, err := newFactorKey()
+					if err != nil {
+						http.Error(w, "Impossibile generare la chiave di verifica.", http.StatusInternalServerError)
+						return
+					}
+					a.pendingKey = key
+				}
+				result["enrollmentKey"] = a.pendingKey
+			}
+		}
+		json.NewEncoder(w).Encode(result)
 	}
 }
 

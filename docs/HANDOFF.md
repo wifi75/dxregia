@@ -71,3 +71,9 @@ Build Go e Svelte riuscite. Verificati blocco del wizard prima del cambio passwo
 ## 2026-11-18 — Anagrafica partner
 
 Anagrafica aggiungibile e modificabile nella sezione Nodi partner. Il backend conserva note datate e data di registrazione in .dxregia-partners.json nella directory Mojo. Build web e Go riuscite. Prova API Windows su accesso, validazione, duplicati, modifica e persistenza dopo riavvio. Prossimo passo collegare le schede a Mojo e registrare la prima connessione confermata.
+
+## 2026-11-18 — Dashboard e autenticazione a due fattori
+
+TOTP richiesto dopo la password per proteggere configurazione, anagrafica e presenza. Verificati via API iscrizione, persistenza, codice valido e rifiuto del riutilizzo. La chiave rimane sul server in .dxregia-totp. L'iscrizione è manuale nell'app autenticatore. Recupero con codici di emergenza e QR restano da integrare.
+
+Per le installazioni gestite, il backend installa un hook Local.pm solo se assente. La dashboard mostra dati recenti sulle sessioni Mojo ogni cinque secondi. Verificato con Mojo reale Windows che Q7QQQ compare dopo login Telnet e scompare dopo disconnessione. Web Mojo e stato di partner non ancora collaudati in questa dashboard. Anagrafica e dashboard non modificano i collegamenti. Restano prima connessione persistente, visitatori del portale, contatore pubblico e analytics privato.

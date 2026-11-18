@@ -2,8 +2,9 @@
   import { onMount } from 'svelte'
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
+  import Presence from './Presence.svelte'
 
-  type Session = { signedIn: boolean; mustChange: boolean }
+  type Session = { signedIn: boolean; mustChange: boolean; mustVerify?: boolean; enrollmentKey?: string }
   let session = $state<Session>()
   let { onSaved }: { onSaved: () => void } = $props()
   let password = $state('')
@@ -27,7 +28,7 @@
     busy = true
     error = ''
     try {
-      const endpoint = session.mustChange ? 'password' : 'login'
+      const endpoint = session.mustChange ? 'password' : session.mustVerify ? 'totp' : 'login'
       const response = await fetch('/api/auth/' + endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,24 +62,31 @@
 </script>
 
 {#if session}
-  {#if session.signedIn && !session.mustChange}
+  {#if session.signedIn && !session.mustChange && !session.mustVerify}
     <Setup {onSaved} />
+    <Presence />
     <Partners />
     <button type="button" onclick={logout}>Esci</button>
     {#if error}<p role="alert">{error}</p>{/if}
   {:else}
     <section>
-      <h2>{session.mustChange ? 'Cambia la password temporanea' : 'Accesso sysop'}</h2>
+      <h2>{session.mustChange ? 'Cambia la password temporanea' : session.mustVerify ? 'Verifica in due passaggi' : 'Accesso sysop'}</h2>
+      {#if session.enrollmentKey}
+        <p>Aggiungi una voce DXRegia nella tua app di autenticazione, usando questa chiave per un codice a tempo.</p>
+        <p><code>{session.enrollmentKey}</code></p>
+      {/if}
       <form onsubmit={submit}>
         <label>
-          {session.mustChange ? 'Nuova password' : 'Password'}
-          <input type="password" required bind:value={password}
-            autocomplete={session.mustChange ? 'new-password' : 'current-password'}
+          {session.mustChange ? 'Nuova password' : session.mustVerify ? 'Codice a sei cifre' : 'Password'}
+          <input type={session.mustVerify ? 'text' : 'password'} required bind:value={password}
+            inputmode={session.mustVerify ? 'numeric' : undefined}
+            pattern={session.mustVerify ? '[0-9]{6}' : undefined}
+            autocomplete={session.mustChange ? 'new-password' : session.mustVerify ? 'one-time-code' : 'current-password'}
             minlength={session.mustChange ? 12 : undefined} />
         </label>
-        {#if session.mustChange}<p>Usa almeno 12 caratteri. Dopo il cambio puoi accedere alla configurazione.</p>{/if}
+        {#if session.mustChange}<p>Usa almeno 12 caratteri. Dopo il cambio imposterai il secondo fattore.</p>{/if}
         {#if error}<p role="alert">{error}</p>{/if}
-        <button disabled={busy}>{session.mustChange ? 'Salva password' : 'Accedi'}</button>
+        <button disabled={busy}>{session.mustChange ? 'Salva password' : session.mustVerify ? 'Verifica codice' : 'Accedi'}</button>
       </form>
     </section>
   {/if}

@@ -34,3 +34,9 @@ Simulare la caduta di un collegamento e verificare che stato, cronologia, prossi
 ### Anagrafica dei nodi
 
 La scheda sysop conserva indicativo, nome del nodo, referente, email, host e porta remota. La data di registrazione viene assegnata alla creazione. Le note vengono aggiunte allo storico con data e ora. La prima connessione verrà registrata dopo la conferma del link da Mojo.
+
+## Dashboard sysop e traffico web
+
+La dashboard legge da Mojo i nodi presenti e le relative sessioni. Mostra i partner registrati assenti come disconnessi soltanto se la fotografia di Mojo è recente. Le sessioni radioamatoriali riportano indicativo, canale Telnet o Web Mojo e orario di ingresso. Il registro amministrativo richiede password e codice TOTP. La prima volta si inserisce nell'app autenticatore la chiave mostrata dal pannello e si conferma un codice.
+
+Il portale pubblico mostrerà soltanto il totale delle visite. Nella dashboard privata: visitatori attivi stimati, visite e pagine viste per intervallo, paese quando determinabile, dominio di provenienza, pagina d'ingresso e pagine consultate. I visitatori pubblici senza login sono anonimi. Un referrer assente o una localizzazione indisponibile devono apparire come dati mancanti. L'analytics deve tenere distinti visitatori web del portale e sessioni operatore aperte nel motore.
