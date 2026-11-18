@@ -65,6 +65,7 @@
 <main aria-labelledby="spots-title">
   <div class="heading">
     <h1 id="spots-title">Spot DX</h1>
+    <a href="/contatti">Contatta il sysop o richiedi un collegamento</a>
     <button type="button" onclick={() => { paused = !paused; if (!paused) void refresh() }}>
       {paused ? 'Riprendi aggiornamenti' : 'Metti in pausa'}
     </button>

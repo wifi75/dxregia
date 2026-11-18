@@ -89,3 +89,7 @@ Il portale /spots interroga /api/spots ogni cinque secondi e legge fino a 100 sp
 ## 2026-11-18 — Contatore e statistiche del portale
 
 Contatore pubblico di visualizzazioni su /spots e storico giornaliero privato degli ultimi 90 giorni in Statistiche del portale. Il referrer viene ridotto al dominio, senza path o query. Test HTTP passed: solo caricamenti GET del portale incrementano il totale, ricariche del feed e richieste HEAD escluse; verifica privata via TOTP e persistenza al riavvio. Restano visitatori attivi stimati e paesi di provenienza.
+
+## 2026-11-18 — Contatto e richiesta peering
+
+Modulo pubblico e coda privata disponibili. Scheda partner precompilata e nota iniziale generate dal pannello. Connessione SMTP con TLS implicito configurabile dall'ambiente. Test HTTP locale verificato per validazione, persistenza, accesso con TOTP, richieste messaggio e peering. Consegna SMTP con un provider reale, abilitazione automatica e messaggi della verifica tecnica restano da collaudare o implementare.

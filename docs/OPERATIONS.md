@@ -40,3 +40,11 @@ La scheda sysop conserva indicativo, nome del nodo, referente, email, host e por
 La dashboard legge da Mojo i nodi presenti e le relative sessioni. Mostra i partner registrati assenti come disconnessi soltanto se la fotografia di Mojo è recente. Le sessioni radioamatoriali riportano indicativo, canale Telnet o Web Mojo e orario di ingresso. Il registro amministrativo richiede password e codice TOTP. La prima volta si inserisce nell'app autenticatore la chiave mostrata dal pannello e si conferma un codice.
 
 Il portale pubblico mostrerà soltanto il totale delle visite. Nella dashboard privata: visitatori attivi stimati, visite e pagine viste per intervallo, paese quando determinabile, dominio di provenienza, pagina d'ingresso e pagine consultate. I visitatori pubblici senza login sono anonimi. Un referrer assente o una localizzazione indisponibile devono apparire come dati mancanti. L'analytics deve tenere distinti visitatori web del portale e sessioni operatore aperte nel motore.
+
+## Richieste dal portale
+
+Il modulo pubblico /contatti permette di inviare un messaggio o chiedere un collegamento. La richiesta si conserva nella coda privata del sysop. Prepara scheda partner copia i campi e il messaggio nella scheda da verificare e salvare. Una richiesta ricevuta e una scheda salvata non equivalgono a un collegamento attivo.
+
+Per la notifica al sysop, impostare DXREGIA_SMTP_ADDRESS (host:porta SMTP con TLS implicito), DXREGIA_SMTP_FROM, e se richiesti DXREGIA_SMTP_USER e DXREGIA_SMTP_PASSWORD nell'ambiente del backend. Il destinatario è l'email sysop inserita nel wizard. Un worker invia le notifiche in coda e aggiorna l'esito. Impostare queste variabili anche nell'ambiente del container se si usa Docker. In assenza di SMTP le richieste restano consultabili dal pannello.
+
+Flusso da completare: approvazione o abilitazione automatica opzionale dopo verifica dell'indirizzo email e controllo della richiesta, invio dei parametri di collegamento ufficiali e successivo controllo del link reale in Mojo. Comunicare successo solo dopo lo stato operativo. In caso di fallimento riportare l'ultimo errore rilevato o chiedere i dati mancanti.

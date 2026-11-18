@@ -4,6 +4,9 @@
   import Partners from './Partners.svelte'
   import Presence from './Presence.svelte'
   import Traffic from './Traffic.svelte'
+  import ContactRequests from './ContactRequests.svelte'
+  import type { ContactRequest } from './ContactRequests.svelte'
+  let draft = $state<ContactRequest>()
 
   type Session = { signedIn: boolean; mustChange: boolean; mustVerify?: boolean; enrollmentKey?: string }
   let session = $state<Session>()
@@ -67,7 +70,8 @@
     <Setup {onSaved} />
     <Presence />
     <Traffic />
-    <Partners />
+    <ContactRequests onDraft={request => { draft = { ...request } }} />
+    <Partners {draft} />
     <button type="button" onclick={logout}>Esci</button>
     {#if error}<p role="alert">{error}</p>{/if}
   {:else}

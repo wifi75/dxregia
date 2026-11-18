@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte'
 
+  import type { ContactRequest } from './ContactRequests.svelte'
+  let { draft }: { draft?: ContactRequest } = $props()
+
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number }
   type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined })
@@ -36,6 +39,16 @@
     message = ''
     editing = true
   }
+
+  $effect(() => {
+    if (!draft) return
+    const request = draft
+    open()
+    form = { Call: request.Call, Name: request.Name, Contact: request.Contact, Email: request.Email, Host: request.Host, Port: request.Port }
+    note = ['Richiesta ricevuta dal portale il ' + date.format(new Date(request.ReceivedAt)), request.Message].filter(Boolean).join('\n\n')
+    message = 'Scheda precompilata. Controlla i dati prima di salvare.'
+    requestAnimationFrame(() => document.getElementById('partner-draft')?.focus())
+  })
 
   async function save(event: SubmitEvent) {
     event.preventDefault()
@@ -93,7 +106,7 @@
   {/if}
 
   {#if editing}
-    <h3>{selected ? selected.Call : 'Nuovo nodo partner'}</h3>
+    <h3 id="partner-draft" tabindex="-1">{selected ? selected.Call : 'Nuovo nodo partner'}</h3>
     {#if selected}
       <p>Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'Da rilevare'}</p>
     {/if}

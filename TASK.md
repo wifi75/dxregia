@@ -50,3 +50,6 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 
 - [x] Ampliare il wizard con dati sysop, rinvio e importazione iniziale dei campi supportati Mojo.
 - [ ] Consentire modifica dei dati sysop dopo l'avvio, cambio porta HTTP dal pannello e migrazione completa dei dati Mojo.
+
+- [x] Modulo pubblico contatto e peering, coda privata e scheda partner precompilata.
+- [ ] Collaudare SMTP con un provider reale e completare approvazione, istruzioni al partner e verifica con esito via email.

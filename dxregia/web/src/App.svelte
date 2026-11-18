@@ -2,7 +2,9 @@
   import { onMount } from 'svelte'
   import Auth from './Auth.svelte'
   import Spots from './Spots.svelte'
-  const publicPortal = window.location.pathname === '/spots'
+  import Contact from './Contact.svelte'
+  const contactPage = window.location.pathname === '/contatti'
+  const publicPortal = contactPage || window.location.pathname === '/spots'
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
   const labels = {
@@ -46,7 +48,9 @@
   <a class="section" href={publicPortal ? "/" : "/spots"}>{publicPortal ? "Pannello sysop" : "Portale spot"}</a>
 </header>
 
-{#if publicPortal}
+{#if contactPage}
+  <Contact />
+{:else if publicPortal}
   <Spots />
 {:else}
 <main>

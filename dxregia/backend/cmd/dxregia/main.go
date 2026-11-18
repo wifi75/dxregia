@@ -90,6 +90,9 @@ func main() {
 	}
 	registerPresence(mux, *setupRoot, auth)
 	registerSpots(mux, *setupRoot)
+	if err := registerContacts(service, mux, *setupRoot, auth); err != nil {
+		log.Fatal(err)
+	}
 	traffic, err := registerTraffic(mux, *setupRoot, auth)
 	if err != nil {
 		log.Fatal(err)
@@ -107,6 +110,9 @@ func main() {
 		if err := json.NewEncoder(w).Encode(checkListener(r.Context(), activeTarget.Load().(string))); err != nil {
 			log.Print(err)
 		}
+	})
+	mux.HandleFunc("GET /contatti", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
 	mux.HandleFunc("GET /spots", func(w http.ResponseWriter, r *http.Request) {
 		traffic.view(r)
