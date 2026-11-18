@@ -166,6 +166,9 @@ if as_root test -f /etc/dxregia.env; then
     web_host=$(as_root awk -F= '/^DXREGIA_HTTP_BIND=[0-9.]+$/ { host=$2 } END { print host }' /etc/dxregia.env)
     [ "${web_host:-127.0.0.1}" != 0.0.0.0 ] || web_host=127.0.0.1
 fi
+if as_root test -f "$state/web-port"; then
+    web_port=$(as_root cat "$state/web-port")
+fi
 url="http://${web_host:-127.0.0.1}:${web_port:-8080}"
 configured=0
 if as_root test -f "$engine/local/dxregia-initialized"; then configured=1; fi

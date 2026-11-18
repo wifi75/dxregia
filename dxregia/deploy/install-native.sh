@@ -91,7 +91,13 @@ if [ ! -f "$unit" ]; then
 else
     as_root systemctl start dxregia.service
 fi
-configured_port=$(as_root awk -F= '/^DXREGIA_WEB_PORT=[0-9]+$/ {print $2}' /etc/dxregia.env | tail -n 1)
+configured_port=8080
+if as_root test -f /etc/dxregia.env; then
+    configured_port=$(as_root awk -F= '/^DXREGIA_WEB_PORT=[0-9]+$/ {print $2}' /etc/dxregia.env | tail -n 1)
+fi
+if as_root test -f "$state/web-port"; then
+    configured_port=$(as_root cat "$state/web-port")
+fi
 url="http://127.0.0.1:${configured_port:-8080}"
 for attempt in $(seq 1 30); do
     if curl -fsS --max-time 2 "$url/api/auth" >/dev/null 2>&1; then

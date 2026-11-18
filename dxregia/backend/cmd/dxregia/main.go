@@ -64,6 +64,7 @@ func main() {
 	setupFixedPort := flag.Bool("setup-fixed-telnet-port", false, "require the Telnet port published by the container")
 	setupInternal := flag.Int("setup-internal-port", 27754, "Mojo internal loopback port")
 	backupTool := flag.String("backup-tool", "", "path to the installed backup utility")
+	webPortFile := flag.String("web-port-file", "", "persistent HTTP port settings for native installations")
 	flag.Parse()
 
 	if net.ParseIP(*httpBind) == nil || net.ParseIP(*telnetBind).To4() == nil {
@@ -125,21 +126,22 @@ func main() {
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
 	mux.Handle("GET /", http.FileServer(http.Dir(*web)))
-	address := net.JoinHostPort(*httpBind, strconv.Itoa(*port))
-	log.Printf("DXRegia: http://%s", address)
-	server := &http.Server{Addr: address, Handler: mux, ReadHeaderTimeout: 5 * time.Second, WriteTimeout: 25 * time.Second}
-	shutdownDone := make(chan struct{})
-	go func() {
-		defer close(shutdownDone)
-		<-service.Done()
-		shutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		_ = server.Shutdown(shutdown)
-	}()
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Print(err)
+	httpPort, err := loadWebPort(*webPortFile, *port)
+	if err != nil {
+		log.Fatalf("Load HTTP port: %v", err)
 	}
-	stop()
-	<-shutdownDone
+	server := &http.Server{Addr: net.JoinHostPort(*httpBind, strconv.Itoa(httpPort)), Handler: mux,
+		ReadHeaderTimeout: 5 * time.Second, WriteTimeout: 25 * time.Second}
+	webListener := &webListener{server: server, host: *httpBind, port: httpPort, path: *webPortFile}
+	webListener.listener, err = webListener.bind(httpPort)
+	if err != nil {
+		log.Fatalf("HTTP listen: %v", err)
+	}
+	webListener.register(mux, auth)
+	go webListener.serve(webListener.listener)
+	<-service.Done()
+	shutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_ = server.Shutdown(shutdown)
 	children.Wait()
 }

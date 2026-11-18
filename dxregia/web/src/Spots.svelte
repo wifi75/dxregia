@@ -64,24 +64,30 @@
 
 <main aria-labelledby="spots-title">
   <div class="heading">
-    <h1 id="spots-title">Spot DX</h1>
-    <a href="/contatti">Contatta il sysop o richiedi un collegamento</a>
-    <button type="button" onclick={() => { paused = !paused; if (!paused) void refresh() }}>
-      {paused ? 'Riprendi aggiornamenti' : 'Metti in pausa'}
-    </button>
+    <h1 id="spots-title">Cluster DX</h1>
+    <div class="feed-controls">
+      <span class="feed-state" class:live={available && !paused}>
+        {paused ? 'In pausa' : available === false ? 'Feed non disponibile' : available ? 'In diretta' : 'Connessione…'}
+      </span>
+      <button class="secondary" type="button" onclick={() => { paused = !paused; if (!paused) void refresh() }}>
+        {paused ? 'Riprendi' : 'Pausa'}
+      </button>
+    </div>
   </div>
+  <div class="toolbar">
   <div class="filters" aria-label="Filtra per banda">
     <button type="button" aria-pressed={selectedBand === ''} onclick={() => selectedBand = ''}>Tutte le bande</button>
     {#each bands as [band]}
       <button type="button" aria-pressed={selectedBand === band} onclick={() => selectedBand = band}>{band}</button>
     {/each}
   </div>
-  <div class="filters">
+  <div class="filters search">
     <input type="search" bind:value={query} aria-label="Cerca negli spot" placeholder="Nominativo o commento" />
     <select bind:value={mode} aria-label="Modo riportato nel commento">
       <option value="">Tutti i modi</option>
       {#each ['CW', 'SSB', 'FT8', 'FT4', 'RTTY', 'PSK31', 'USB', 'LSB'] as value}<option>{value}</option>{/each}
     </select>
+  </div>
   </div>
   {#if available === false}
     <p role="status">Archivio spot non disponibile.</p>
@@ -92,13 +98,13 @@
     <!-- svelte-ignore a11y_no_noninteractive_tabindex (scrollable table needs keyboard focus) -->
     <div class="table-wrap" tabindex="0" role="region" aria-label="Elenco degli spot">
       <table>
-        <thead><tr><th>Spotter</th><th>kHz</th><th>Modo</th><th>DX</th><th>Entità DXCC</th><th>Commento</th><th>UTC</th></tr></thead>
+        <thead><tr><th scope="col">DE</th><th scope="col">Frequenza <small>kHz</small></th><th>Modo</th><th>DX</th><th>Entità DXCC</th><th>Commento</th><th>UTC</th></tr></thead>
         <tbody>
           {#each filtered as spot}
             <tr>
               <td>{spot.Spotter}</td>
               <td><strong class="frequency" style:background={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
-              <td><span class="mode">{modeFor(spot.Comment) || '—'}</span></td>
+              <td><span class="mode" data-mode={modeFor(spot.Comment)}>{modeFor(spot.Comment) || '—'}</span></td>
               <td><strong>{spot.Call}</strong></td>
               <td>
                 {#if entities[spot.DXCC]}
@@ -108,7 +114,7 @@
                   {spot.Entity || (spot.DXCC > 0 && spot.DXCC !== 666 ? 'DXCC ' + spot.DXCC : '—')}
                 {/if}
               </td>
-              <td>{spot.Comment}</td>
+              <td class="comment">{spot.Comment}</td>
               <td>{utc.format(new Date(spot.At * 1000))}</td>
             </tr>
           {/each}
@@ -118,28 +124,44 @@
   {:else if available}
     <p>{spots.length ? 'Nessuno spot corrisponde ai filtri.' : 'Nessuno spot recente.'}</p>
   {/if}
-  {#if views !== undefined}<p>Visite al portale: {khz.format(views)}</p>{/if}
+  {#if views !== undefined}<p class="visits">Visite al portale: {khz.format(views)}</p>{/if}
 </main>
 
 <style>
-  main { width: 100%; padding: 22px clamp(14px, 2vw, 36px); }
-  .heading, .filters { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
-  .heading { justify-content: space-between; }
-  h1 { margin: 0; font-size: 1.65rem; }
-  input, select { border: 1px solid #aebfcc; border-radius: 4px; background: white; color: #173653; padding: 6px 10px; min-height: 38px; font: inherit; }
-  .filters button { min-height: 36px; padding: .3rem .75rem; border-radius: 9px; }
-  .filters button[aria-pressed=false] { --button-face: #fff; --button-edge: #a7bdcd; --button-ink: #234968; }
-  .filters button[aria-pressed=true] { --button-face: #17648e; --button-edge: #103f61; }
-  :focus-visible { outline: 2px solid #175586; outline-offset: 2px; }
-  .table-wrap { overflow: auto; margin-top: 16px; }
+  main { width: 100%; padding: 0 0 24px; }
+  .heading, .toolbar, .table-wrap, main > p { margin-inline: clamp(12px, 2vw, 32px); }
+  .heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 71px; }
+  h1 { margin: 0; font-size: clamp(1.35rem, 2vw, 1.95rem); color: #14334d; letter-spacing: -.025em; }
+  .feed-controls, .filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .feed-state { display: inline-flex; align-items: center; gap: .5rem; color: #53687a; font-weight: 600; font-size: .85rem; }
+  .feed-state::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #ad7118; }
+  .feed-state.live::before { background: #20845a; box-shadow: 0 0 0 3px #dcefe5; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; padding: 12px 14px 14px; background: #edf3f8; border: 1px solid #ccdbe7; border-radius: 8px 8px 0 0; }
+  .filters button { min-height: 34px; min-width: 48px; padding: .3rem .68rem; border-radius: 6px; font-variant-numeric: tabular-nums; }
+  .filters button[aria-pressed=false] { --button-face: #fff; --button-edge: #acbfce; --button-ink: #274760; }
+  .filters button[aria-pressed=true] { --button-face: #125e8b; --button-edge: #104165; }
+  input, select { border: 1px solid #acbfce; border-radius: 6px; background: #fff; color: #173653; padding: 6px 10px; min-height: 36px; font: inherit; }
+  .table-wrap { overflow: auto; background: #fff; border: 1px solid #ccdbe7; border-top: 0; border-radius: 0 0 8px 8px; }
   table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
-  th, td { padding: 7px 10px; border-bottom: 1px solid #d7e2ed; }
-  th { background: #dce9f5; color: #174e7a; border-bottom: 2px solid #4078a6; font-size: .85rem; }
-  tbody tr:nth-child(odd) { background: white; }
-  tbody tr:nth-child(even) { background: #eaf0f6; }
-  .frequency, .mode { padding: 2px 6px; border-radius: 4px; }
+  th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #dce5ed; }
+  th { background: #f9fbfd; color: #285879; border-bottom: 2px solid #2972a0; font-size: .78rem; letter-spacing: .065em; text-transform: uppercase; }
+  th small { color: #536b7d; text-transform: none; }
+  tbody tr:nth-child(even) { background: #edf3f8; }
+  tbody tr:first-child td:first-child { box-shadow: inset 4px 0 #20845a; }
+  tbody tr:hover { background: #e0eff8; }
+  .frequency, .mode { display: inline-block; padding: 2px 7px; border-radius: 4px; }
+  .frequency { min-width: 7ch; text-align: right; color: #142b39; }
   .frequency, td:last-child { font-variant-numeric: tabular-nums; }
-  img { object-fit: cover; vertical-align: middle; margin-right: 6px; }
-  .mode { color: #245d4c; font-size: .8rem; }
-  @media (max-width: 600px) { button, input, select { min-height: 44px; } }
+  td:first-child, td:last-child, .comment { color: #465f72; }
+  .comment { width: 100%; }
+  img { object-fit: cover; vertical-align: middle; margin-right: 7px; border: 1px solid #15263826; border-radius: 2px; }
+  .mode { color: #4c6374; font-size: .76rem; font-weight: 650; }
+  .mode[data-mode=CW] { background: #fff0d7; color: #7d430e; }
+  .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { background: #d7f0e3; color: #1a6046; }
+  .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31] { background: #eee4ff; color: #573894; }
+  .visits { margin-block: 14px 0; color: #526c7f; font-size: .85rem; }
+  @media (max-width: 600px) {
+    .filters button, input, select { min-height: 44px; }
+    .search, .search input { width: 100%; }
+  }
 </style>

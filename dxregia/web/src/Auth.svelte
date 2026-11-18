@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import type { Snippet } from 'svelte'
   import { toDataURL } from 'qrcode'
+  import WebSettings from './WebSettings.svelte'
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
   import Presence from './Presence.svelte'
@@ -15,7 +16,7 @@
   let session = $state<Session>()
   let { onSaved, nodeStatus }: { onSaved: () => void; nodeStatus: Snippet } = $props()
   const groups = [
-    { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['configurazione', 'Configurazione']] },
+    { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web']] },
     { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['richieste', 'Richieste ricevute']] },
     { label: 'Gestione', items: [['statistiche', 'Statistiche del portale'], ['backup', 'Backup']] },
   ] as const
@@ -158,6 +159,8 @@
           <Presence />
         {:else if page === 'configurazione'}
           <Setup {onSaved} />
+        {:else if page === 'accesso-web'}
+          <WebSettings />
         {:else if page === 'partner'}
           <Partners {draft} />
         {:else if page === 'richieste'}
@@ -207,10 +210,10 @@
   .auth-card { max-width: 560px; margin: 24px auto; padding: clamp(18px, 4vw, 32px); background: #fff; border: 1px solid #d7dfe7; border-radius: 12px; }
   .workspace { display: grid; grid-template-columns: clamp(190px, 19vw, 264px) minmax(0, 1fr); align-items: start; gap: clamp(14px, 2vw, 28px); }
   .workspace-content { min-width: 0; }
-  .sidebar { position: sticky; top: 18px; padding: 14px 12px; border: 1px solid #cbd9e4; border-radius: 12px; background: #fff; box-shadow: 0 2px 9px #12354f0c; }
+  .sidebar { position: sticky; top: 18px; padding: 14px 12px; border: 1px solid #cbd9e4; border-radius: 8px; background: #f9fbfd; box-shadow: 0 2px 9px #12354f0c; }
   .sidebar ul { margin: 0; padding: 0; list-style: none; }
   .nav-group + .nav-group { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2eaf0; }
-  .nav-group h2 { margin: 0 0 .25rem; padding-left: .7rem; color: #425d70; font-size: .8rem; }
+  .nav-group h2 { margin: 0 0 .25rem; padding-left: .7rem; color: #425d70; font-size: .75rem; letter-spacing: .075em; text-transform: uppercase; }
   .nav-group a { display: flex; align-items: center; min-height: 40px; padding: .45rem .65rem; text-decoration: none; color: #244662; border-inline-start: 3px solid transparent; border-radius: 5px; }
   .nav-group a:hover { background: #eef4f8; }
   .nav-group a[aria-current=page] { border-inline-start-color: #176c98; background: #e2eef7; color: #113e64; font-weight: 700; }

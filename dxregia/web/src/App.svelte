@@ -46,7 +46,7 @@
 </script>
 
 <header>
-  <div class="brand">DXRegia</div>
+  <a class="brand" href="/spots"><span class="signal-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DXRegia</a>
   <nav aria-label="Portale">
     <a href="/spots" aria-current={publicPortal && !contactPage ? 'page' : undefined}>Spot in diretta</a>
     <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>Contatti</a>
@@ -90,7 +90,7 @@
     margin: 0;
     min-width: 280px;
     min-height: 100vh;
-    background: #f7f8fa;
+    background: #f1f5f9;
     color: #182636;
     font: 15px/1.5 system-ui, sans-serif;
   }
@@ -100,9 +100,14 @@
     gap: 18px;
     background: #fff;
     border-bottom: 1px solid #d7dfe7;
-    padding: 12px clamp(16px, 4vw, 48px);
+    padding: 8px clamp(12px, 2vw, 32px);
   }
-  .brand { font-size: 1.15rem; font-weight: 750; color: #143a60; }
+  header .brand { display: inline-flex; gap: 9px; align-items: center; padding-inline: 0; font-size: 1.25rem; font-weight: 800; color: #143a60; }
+  .signal-mark { display: inline-flex; align-items: end; gap: 2px; height: 18px; }
+  .signal-mark i { display: block; width: 3px; height: 5px; background: #146690; border-radius: 1px; }
+  .signal-mark i:nth-child(2) { height: 9px; }
+  .signal-mark i:nth-child(3) { height: 13px; }
+  .signal-mark i:nth-child(4) { height: 18px; background: #e39221; }
   p, dt { color: #485b6d; }
   header { justify-content: space-between; align-items: center; flex-wrap: wrap; }
   header nav { display: flex; flex-wrap: wrap; gap: .35rem; }
