@@ -243,6 +243,8 @@
       <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>
       {t('projectLink')}
     </a>
+    <span class="dot" aria-hidden="true"></span>
+    <span class="author">By IU3WJQ - Tiziano Cassone</span>
   </footer>
   {#if popup}
     <div class="popup" role="dialog" aria-label={t('adxoTitle')} style:left={popup.x + 'px'} style:top={popup.y + 'px'} onclick={event => event.stopPropagation()} onmouseenter={keepInfo} onmouseleave={hideInfoSoon}>
@@ -343,4 +345,5 @@
   .project { color: #175c82; font-weight: 650; text-decoration: none; }
   .project:hover { text-decoration: underline; }
   .dot { width: 4px; height: 4px; border-radius: 50%; background: #8aa3b5; }
+  .author { color: inherit; opacity: .85; white-space: nowrap; }
 </style>
