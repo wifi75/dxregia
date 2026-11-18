@@ -119,3 +119,5 @@ Il [runner Linux](https://github.com/wifi75/dxregia/actions/runs/44267305597) ha
 ## Migrazione offline di un nodo Mojo
 
 Il comando migrate_mojo.py prepara una copia gestita da un nodo Mojo SQLite esistente, con un singolo listener. Verificati su Windows utenti e impostazioni conservati, database invariato, avvio della copia sotto il backend DXRegia e login del sysop via Telnet. Aggiunta la prova di migrazione allo smoke test Linux con matrice amd64 e arm64. Importazione completa da browser e migrazioni di formati più vecchi di SQLite restano aperte.
+
+Checkpoint Git richiesti circa ogni 20 minuti di lavoro attivo. Il ramo dxregia-linux-validation riceve i commit da collaudare. Aggiornare main dopo aver verificato i risultati.

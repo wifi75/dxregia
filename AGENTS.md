@@ -8,3 +8,4 @@
 6. Conserva avvisi e licenze upstream. Registra data e descrizione nel file upstream modificato, in attesa della verifica di licenza.
 7. Al termine aggiorna TASK.md e docs/HANDOFF.md con stato, verifiche, limiti e prossimo passo. Registra in docs/DECISIONS.md solo le decisioni che cambiano il progetto. Git conserva la cronologia delle modifiche.
 8. Quando puoi scegliere il modello, usa quello più economico adatto per bozze grafiche e lavori semplici. Riserva i modelli più capaci per protocollo, persistenza e cambiamenti architetturali.
+9. Durante il lavoro attivo, circa ogni 20 minuti salva i cambiamenti in un commit significativo, verifica il diff ed esegui il push. Per lavori ancora in collaudo, usa il ramo remoto di verifica. Evita commit vuoti e mantieni fuori da Git credenziali e dati di laboratorio.
