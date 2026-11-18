@@ -53,3 +53,6 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 
 - [x] Modulo pubblico contatto e peering, coda privata e scheda partner precompilata.
 - [ ] Collaudare SMTP con un provider reale e completare approvazione, istruzioni al partner e verifica con esito via email.
+
+- [x] Abilitare dal pannello un partner in ingresso con password e conferma di Mojo.
+- [ ] Collegare alla conferma dell'account le istruzioni al partner via email e alla conferma del link la notifica di esito.

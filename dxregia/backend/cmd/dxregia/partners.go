@@ -30,6 +30,7 @@ type partner struct {
 	partnerDetails
 	RegisteredAt     time.Time
 	FirstConnectedAt *time.Time
+	Provisioning     string
 	Notes            []partnerNote
 }
 
@@ -70,6 +71,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		return err
 	}
 	var lock sync.Mutex
+	readProvisioningResults(root, path, partners)
 	go func() {
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
@@ -81,6 +83,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
 				lock.Lock()
 				recordFirstConnections(path, partners, snapshot)
+				readProvisioningResults(root, path, partners)
 				lock.Unlock()
 			}
 		}
@@ -148,6 +151,40 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 	mux.HandleFunc("GET /api/partners", handler)
 	mux.HandleFunc("POST /api/partners", handler)
 	mux.HandleFunc("PUT /api/partners/{call}", handler)
+	mux.HandleFunc("POST /api/partners/{call}/enable", func(w http.ResponseWriter, r *http.Request) {
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
+			return
+		}
+		call := r.PathValue("call")
+		lock.Lock()
+		defer lock.Unlock()
+		entry, ok := partners[call]
+		if !ok {
+			http.Error(w, "Nodo non trovato.", http.StatusNotFound)
+			return
+		}
+		if entry.Provisioning == "In attesa di Mojo" || entry.Provisioning == "Abilitato in Mojo" {
+			w.WriteHeader(http.StatusAccepted)
+			return
+		}
+		password, err := queuePartner(root, call)
+		if err != nil {
+			log.Printf("Queue partner: %v", err)
+			http.Error(w, "Impossibile inviare la richiesta a Mojo.", http.StatusServiceUnavailable)
+			return
+		}
+		entry.Provisioning = "In attesa di Mojo"
+		partners[call] = entry
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		json.NewEncoder(w).Encode(map[string]string{"Password": password})
+	})
 	return nil
 }
 

@@ -93,3 +93,7 @@ Contatore pubblico di visualizzazioni su /spots e storico giornaliero privato de
 ## 2026-11-18 — Contatto e richiesta peering
 
 Modulo pubblico e coda privata disponibili. Scheda partner precompilata e nota iniziale generate dal pannello. Connessione SMTP con TLS implicito configurabile dall'ambiente. Test HTTP locale verificato per validazione, persistenza, accesso con TOTP, richieste messaggio e peering. Consegna SMTP con un provider reale, abilitazione automatica e messaggi della verifica tecnica restano da collaudare o implementare.
+
+## 2026-11-18 — Abilitazione partner in ingresso
+
+Il sysop autenticato può accodare la creazione dell'account Spider in Mojo. L'hook crea l'account con password casuale, scrive l'esito e rimuove la richiesta. Collaudato con Mojo reale su Windows: coda privata, creazione, richiesta della password via Telnet e assenza della password nei log debug di ingresso. Non verificato handshake nodo-nodo completo dopo la creazione. L'hook aggiorna solo la versione DXRegia nota e lascia intatti gli hook personalizzati. Per usare la modifica dei log ExtMsg.pm, avviare Mojo dalla base aggiornata. Mancano invio automatico delle istruzioni e dell'esito, connessione in uscita e collaudo Linux.

@@ -5,7 +5,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -16,6 +16,8 @@
   let error = $state('')
   let message = $state('')
   let busy = $state(true)
+  let peerPassword = $state('')
+  let enabling = $state(false)
 
   onMount(async () => {
     try {
@@ -30,6 +32,7 @@
   })
 
   function open(partner?: Partner) {
+    peerPassword = ''
     selected = partner
     form = partner
       ? { Call: partner.Call, Name: partner.Name, Contact: partner.Contact, Email: partner.Email, Host: partner.Host, Port: partner.Port }
@@ -50,9 +53,48 @@
     requestAnimationFrame(() => document.getElementById('partner-draft')?.focus())
   })
 
+  async function refreshProvisioning() {
+    const call = selected?.Call
+    if (!call) return
+    try {
+      const response = await fetch('/api/partners')
+      if (!response.ok) throw new Error()
+      const rows: Record<string, Partner> = await response.json()
+      if (rows[call] && selected?.Call === call) selected = rows[call]
+    } catch {
+      error = 'Impossibile leggere lo stato da Mojo.'
+    }
+  }
+
+  async function enable() {
+    const call = selected?.Call
+    if (!call || enabling) return
+    enabling = true
+    error = ''
+    message = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/enable', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      })
+      if (!response.ok) {
+        error = (await response.text()).trim()
+        return
+      }
+      if (selected?.Call !== call) return
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        peerPassword = (await response.json()).Password ?? ''
+      }
+      await refreshProvisioning()
+    } catch {
+      error = 'Impossibile inviare la richiesta di abilitazione.'
+    } finally {
+      enabling = false
+    }
+  }
+
   async function save(event: SubmitEvent) {
     event.preventDefault()
-    if (busy) return
+    if (busy || enabling) return
     busy = true
     error = ''
     message = ''
@@ -81,7 +123,7 @@
 <section aria-labelledby="partners-title">
   <div class="toolbar">
     <h2 id="partners-title">Nodi partner</h2>
-    <button type="button" onclick={() => open()} disabled={busy}>Aggiungi nodo</button>
+    <button type="button" onclick={() => open()} disabled={busy || enabling}>Aggiungi nodo</button>
   </div>
   {#if error}<p role="alert">{error}</p>{/if}
   {#if message}<p role="status">{message}</p>{/if}
@@ -92,7 +134,7 @@
         <tbody>
           {#each partners.toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
             <tr>
-              <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy}>{partner.Call}</button></td>
+              <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
               <td>{partner.Name || '—'}</td>
               <td>{partner.Contact || '—'}</td>
               <td>{date.format(new Date(partner.RegisteredAt))}</td>
@@ -109,6 +151,15 @@
     <h3 id="partner-draft" tabindex="-1">{selected ? selected.Call : 'Nuovo nodo partner'}</h3>
     {#if selected}
       <p>Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'Da rilevare'}</p>
+      <p>Accesso in ingresso: {selected.Provisioning || 'Non abilitato dal pannello'}</p>
+      {#if !selected.Provisioning || !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning)}
+        <button type="button" disabled={enabling || busy} onclick={enable}>Abilita accesso in ingresso</button>
+      {/if}
+      <button type="button" disabled={enabling} onclick={refreshProvisioning}>Aggiorna stato Mojo</button>
+      {#if peerPassword}
+        <p>Conserva la password del partner. Servirà per configurare il collegamento dal suo nodo.</p>
+        <code>{peerPassword}</code>
+      {/if}
     {/if}
     <form onsubmit={save}>
       <div class="fields">
@@ -153,5 +204,6 @@
   ul { padding: 0; list-style: none; }
   li { border-top: 1px solid #d7dfe7; padding: 8px 0; }
   li p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 3px 0; }
+  code { overflow-wrap: anywhere; }
   time { color: #485b6d; font-size: .85rem; }
 </style>

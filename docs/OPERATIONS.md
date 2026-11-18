@@ -48,3 +48,7 @@ Il modulo pubblico /contatti permette di inviare un messaggio o chiedere un coll
 Per la notifica al sysop, impostare DXREGIA_SMTP_ADDRESS (host:porta SMTP con TLS implicito), DXREGIA_SMTP_FROM, e se richiesti DXREGIA_SMTP_USER e DXREGIA_SMTP_PASSWORD nell'ambiente del backend. Il destinatario è l'email sysop inserita nel wizard. Un worker invia le notifiche in coda e aggiorna l'esito. Impostare queste variabili anche nell'ambiente del container se si usa Docker. In assenza di SMTP le richieste restano consultabili dal pannello.
 
 Flusso da completare: approvazione o abilitazione automatica opzionale dopo verifica dell'indirizzo email e controllo della richiesta, invio dei parametri di collegamento ufficiali e successivo controllo del link reale in Mojo. Comunicare successo solo dopo lo stato operativo. In caso di fallimento riportare l'ultimo errore rilevato o chiedere i dati mancanti.
+
+### Abilitazione in ingresso
+
+Dalla scheda salvata, il sysop può scegliere Abilita accesso in ingresso. La richiesta viene eseguita dall'hook Mojo gestito. La scheda mostra la password generata al momento dell'accodamento e l'esito di Mojo quando si aggiorna lo stato. La password serve per il collegamento sul nodo partner. L'account del sysop e gli account preesistenti incompatibili non vengono modificati. Un account abilitato può risultare ancora disconnesso.
