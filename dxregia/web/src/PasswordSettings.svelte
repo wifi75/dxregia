@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Hint from './Hint.svelte'
   let kind = $state<'web' | 'telnet'>('telnet')
   let password = $state('')
   let confirmation = $state('')
@@ -91,7 +92,7 @@
   <h2>Durata della sessione</h2>
   <form onsubmit={(event) => { event.preventDefault(); saveDuration() }}>
     <p>Dopo questo tempo il pannello torna alla pagina di accesso.</p>
-    <label>Sessione valida per
+    <label>Sessione valida per<Hint text="Dopo questo tempo il pannello chiede di nuovo l'accesso. Una durata breve è più sicura su computer condivisi; il riavvio del servizio chiude comunque la sessione." />
       <select bind:value={hours}>
         {#each choices as value}<option value={value}>{label(value)}</option>{/each}
       </select>

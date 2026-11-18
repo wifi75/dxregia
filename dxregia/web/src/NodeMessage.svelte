@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import Hint from './Hint.svelte'
 
   type Entry = { Minute: string; Hour: string; Day: string; Month: string; Weekday: string; Command: string }
   let text = $state('')
@@ -47,7 +48,7 @@
   <h1 id="motd-title">Messaggio del giorno</h1>
   <form onsubmit={saveMotd}>
     <p>Appare agli utenti subito dopo il collegamento Telnet. Lascialo vuoto per non mostrare nulla.</p>
-    <label>Testo
+    <label>Testo<Hint text="Si mostra a chi si collega via Telnet, prima del prompt. Puoi andare a capo. Massimo 2000 byte: le lettere accentate ne occupano 2." />
       <textarea bind:value={text} rows="6" disabled={busy}></textarea>
     </label>
     <small class:over={size > maxBytes}>{size} / {maxBytes} byte</small>
@@ -55,17 +56,17 @@
   </form>
   {#if motdStatus}<p role="status">{motdStatus}</p>{/if}
 
-  <h2>Pianificazione dei comandi</h2>
+  <h2>Pianificazione dei comandi<Hint text="Come il cron di Linux: ogni riga ha cinque campi di orario e un comando di DXSpider. Il nodo la rilegge da solo, senza riavvio." /></h2>
   <form onsubmit={saveCron}>
     <p>Comandi che il nodo esegue da solo agli orari indicati, nel formato cron: minuto, ora, giorno del mese, mese, giorno della settimana (0 = domenica). Usa <code>*</code> per «ogni».</p>
     {#each entries as entry, i}
       <div class="row">
-        <input aria-label="Minuto" bind:value={entry.Minute} />
-        <input aria-label="Ora" bind:value={entry.Hour} />
-        <input aria-label="Giorno del mese" bind:value={entry.Day} />
-        <input aria-label="Mese" bind:value={entry.Month} />
-        <input aria-label="Giorno della settimana" bind:value={entry.Weekday} />
-        <input class="command" aria-label="Comando" placeholder="es. export_users" bind:value={entry.Command} />
+        <input aria-label="Minuto" title="Minuto: 0–59, oppure * per ogni minuto, */5 per ogni 5" bind:value={entry.Minute} />
+        <input aria-label="Ora" title="Ora: 0–23 (UTC), oppure *" bind:value={entry.Hour} />
+        <input aria-label="Giorno del mese" title="Giorno del mese: 1–31, oppure *" bind:value={entry.Day} />
+        <input aria-label="Mese" title="Mese: 1–12 oppure jan–dec, oppure *" bind:value={entry.Month} />
+        <input aria-label="Giorno della settimana" title="Giorno della settimana: 0 (domenica)–6, oppure *" bind:value={entry.Weekday} />
+        <input class="command" aria-label="Comando" title="Comando DXSpider senza virgolette, ad esempio export_users" placeholder="es. export_users" bind:value={entry.Command} />
         <button type="button" class="ghost" onclick={() => entries.splice(i, 1)} aria-label="Elimina la riga">✕</button>
       </div>
     {:else}

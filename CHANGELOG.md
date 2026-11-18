@@ -4,6 +4,10 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+### Added
+- Admin panel: the sysop session ends with a return to the login page, and its length can be chosen (Password page).
+- Admin panel, Node menu: message of the day, crontab, startup script, block lists (words, DX callsigns, IP addresses), hop counts and filter inventory, each with tooltips. See `docs/NODE-SETTINGS.md`.
+
 ### Changed
 - The DXSpider Mojo engine now lives in `engine/` (original structure kept); `COPYING` and `LICENSE` stay at the root. Installers, the Docker image, the bundle builder and the CI were updated.
 - `update-native.sh` accepts `DXREGIA_BRANCH` to update from a branch other than `main`.

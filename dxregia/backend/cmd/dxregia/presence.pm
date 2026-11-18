@@ -13,6 +13,8 @@ sub process {
     apply_node_profile();
     apply_sysop_password();
     apply_telnet_options();
+    apply_hops();
+    reload_lists();
     provision_partners();
     connect_partners();
     remove_partners();
@@ -85,6 +87,52 @@ sub apply_telnet_options {
     $main::min_reconnection_rate = $value->{ReconnectSeconds};
     $main::max_ssid = $value->{MaxSSID};
     $applied_telnet = $bytes;
+}
+
+my $applied_hops = '';
+
+# Hop del protocollo: valore predefinito e tabella per numero PC (file scritto dal pannello).
+sub apply_hops {
+    my $path = "$main::root/local/dxregia-hops.json";
+    open(my $file, '<:raw', $path) or return;
+    my $bytes = '';
+    read($file, $bytes, 4097);
+    close($file);
+    return if !$bytes || length($bytes) > 4096 || $bytes eq $applied_hops;
+    my $value = eval { JSON::decode_json($bytes) };
+    return unless ref($value) eq 'HASH';
+    return unless defined $value->{Default} && $value->{Default} =~ /\A[0-9]+\z/ && $value->{Default} >= 1 && $value->{Default} <= 99;
+    return unless ref($value->{Table}) eq 'HASH';
+    my %table;
+    foreach my $pc (keys %{$value->{Table}}) {
+        my $hops = $value->{Table}{$pc};
+        return unless $pc =~ /\A[0-9]{1,3}\z/ && defined $hops && $hops =~ /\A[0-9]+\z/ && $hops >= 1 && $hops <= 99;
+        $table{$pc + 0} = $hops + 0;
+    }
+    $DXProt::def_hopcount = $value->{Default} + 0;
+    %DXProt::hopcount = %table;
+    $applied_hops = $bytes;
+}
+
+my %list_stamp;
+
+# Liste di blocco: quando il pannello riscrive un file, Mojo lo rilegge senza riavvio.
+sub reload_lists {
+    my %jobs = (
+        "$main::local_data/badword.new" => sub { BadWords::load() },
+        "$main::local_data/badip.local" => sub { DXCIDR::reload() },
+        "$main::local_data/baddx"       => sub { $DXProt::baddx = DXHash->new('baddx') },
+    );
+    foreach my $path (keys %jobs) {
+        my $stamp = join(':', (stat $path)[9, 7]);
+        if (!exists $list_stamp{$path}) {
+            $list_stamp{$path} = $stamp;
+            next;
+        }
+        next if $stamp eq $list_stamp{$path};
+        $list_stamp{$path} = $stamp;
+        eval { $jobs{$path}->(); 1 } or DXDebug::dbg("DXRegia list reload $path: $@");
+    }
 }
 
 sub apply_sysop_password {

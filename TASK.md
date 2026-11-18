@@ -84,5 +84,5 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [ ] Completare la modifica di porte e indicativi con migrazione e verifica dell'endpoint.
 - [x] Installazione nativa da sorgente con systemd, verificata su Ubuntu 24.04. Prova LXC Proxmox ancora aperta.
 
-- [ ] Portare nel pannello le opzioni Mojo con inventario di variabili e comandi, includendo filtri, protocolli e funzioni a configurazione avanzata. Il primo menu Opzioni Telnet gestisce accesso, registrazione, sessioni e riconnessioni. Messaggio e pianificazione gestisce motd e local_cmd/crontab (solo run_cmd validato). Restano startup, liste di blocco (badword, baddx, badip), hop e filtri.
+- [ ] Portare nel pannello le opzioni Mojo con inventario di variabili e comandi, includendo filtri, protocolli e funzioni a configurazione avanzata. Il primo menu Opzioni Telnet gestisce accesso, registrazione, sessioni e riconnessioni. Messaggio e pianificazione gestisce motd e local_cmd/crontab (solo run_cmd validato). Pagine Script di avvio, Liste di blocco e Hop e filtri (hop predefiniti e per PC, elenco e rimozione dei filtri; la creazione resta ai comandi accept/reject). Restano la creazione guidata dei filtri e la traduzione del pannello admin.
 - [x] Sessione sysop: ritorno alla pagina di accesso alla scadenza e durata configurabile (Password).
