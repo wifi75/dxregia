@@ -1,5 +1,9 @@
 # Installazione Linux
 
+## Installazione da release GitHub
+
+Quando saranno pubblicati i pacchetti della prima release, lo script `install-release.sh` scaricherà il pacchetto della macchina, verificherà il checksum e avvierà l'installatore nativo. Senza argomenti usa l'ultima release. Per fissare la versione, esegui ad esempio `sh dxregia/deploy/install-release.sh v1.0.0`. Se la release non contiene ancora i pacchetti, usa l'installazione da sorgente o un archivio di prova della CI.
+
 ## Pacchetto nativo precompilato
 
 Il pacchetto tar.gz contiene il backend, il frontend, Mojo e gli strumenti di installazione e backup. Per produrlo da un host Linux con Go e Node.js:
