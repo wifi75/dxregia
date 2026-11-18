@@ -13,6 +13,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
+import zipfile
 from pathlib import Path
 
 HOST = "127.0.0.1"
@@ -54,6 +55,25 @@ def backup_command(work, *args):
         docker("run", "--rm", "--network", "none", "--user", f"{os.getuid()}:{os.getgid()}",
                "--mount", f"type=bind,src={work},dst=/smoke", "--entrypoint", "python3",
                "dxregia:local", "/opt/dxregia/backup_node.py", args[0], *paths)
+
+
+def reject_corrupt_backup(work, original):
+    damaged = work / "damaged.zip"
+    destination = work / "damaged-restore"
+    with zipfile.ZipFile(original) as source, zipfile.ZipFile(damaged, "w") as output:
+        for name in source.namelist():
+            content = source.read(name)
+            if name == "local/DXVars.pm":
+                assert content
+                content = bytes([content[0] ^ 1]) + content[1:]
+            output.writestr(name, content)
+    try:
+        backup_command(work, "restore", damaged, destination)
+    except subprocess.CalledProcessError as error:
+        assert error.returncode == 1
+    else:
+        raise AssertionError("Restore accepted a modified file with a stale manifest")
+    assert not destination.exists(), "A failed restore published a partial node"
 
 
 def request(client, path, body=None, method=None, base=BASE):
@@ -320,6 +340,7 @@ def main():
         copy_node(source)
         for arguments in [("backup", source, archive), ("verify", archive), ("restore", archive, restored)]:
             backup_command(base, *arguments)
+        reject_corrupt_backup(base, archive)
         assert (restored / "local/DXVars.pm").read_bytes() == (source / "local/DXVars.pm").read_bytes()
         assert (restored / "local_data/dxusers.db").read_bytes() == (source / "local_data/dxusers.db").read_bytes()
         # Emulate an existing Mojo installation on this disposable copy.
