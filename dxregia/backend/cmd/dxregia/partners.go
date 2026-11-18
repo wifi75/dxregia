@@ -223,7 +223,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
 			return
 		}
-		var options struct{ SendMail bool }
+		var options struct{ SendMail, OutgoingOnly bool }
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256))
 		decoder.DisallowUnknownFields()
 		if err := decoder.Decode(&options); err != io.EOF && (err != nil || decoder.Decode(new(any)) != io.EOF) {
@@ -239,6 +239,20 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			return
 		}
 		if entry.Provisioning == "In attesa di Mojo" || entry.Provisioning == "Abilitato in Mojo" {
+			w.WriteHeader(http.StatusAccepted)
+			return
+		}
+		if options.OutgoingOnly {
+			if entry.Provisioning == "Pronto in uscita" {
+				w.WriteHeader(http.StatusAccepted)
+				return
+			}
+			if err := queueOutgoingPartner(root, call); err != nil {
+				http.Error(w, "Impossibile preparare il collegamento in uscita.", http.StatusServiceUnavailable)
+				return
+			}
+			entry.Provisioning = "In attesa di Mojo"
+			partners[call] = entry
 			w.WriteHeader(http.StatusAccepted)
 			return
 		}

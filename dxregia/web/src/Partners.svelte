@@ -75,13 +75,16 @@
       const response = await fetch('/api/partners')
       if (!response.ok) throw new Error()
       const rows: Record<string, Partner> = await response.json()
-      if (rows[call] && selected?.Call === call) selected = rows[call]
+      if (rows[call] && selected?.Call === call) {
+        selected = rows[call]
+        if (selected.Provisioning !== 'In attesa di Mojo' && selected.Provisioning !== 'Abilitato in Mojo') peerPassword = ''
+      }
     } catch {
       error = 'Impossibile leggere lo stato da Mojo.'
     }
   }
 
-  async function enable() {
+  async function enable(outgoingOnly = false) {
     const call = selected?.Call
     if (!call || enabling) return
     enabling = true
@@ -90,7 +93,7 @@
     try {
       const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/enable', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ SendMail: sendInstructions }),
+        body: JSON.stringify({ SendMail: !outgoingOnly && sendInstructions, OutgoingOnly: outgoingOnly }),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -215,16 +218,18 @@
       <p>Accesso in ingresso: {selected.Provisioning || 'Non abilitato dal pannello'}</p>
       {#if !selected.Provisioning || !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning)}
         {#if selected.Email}<label class="mail-opt"><input type="checkbox" bind:checked={sendInstructions} /> Invia le istruzioni e l’esito via email a {selected.Email}</label>{/if}
-        <button type="button" disabled={enabling || busy} onclick={enable}>Abilita accesso in ingresso</button>
+        <button type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita accesso in ingresso</button>
       {/if}
       <button type="button" disabled={enabling} onclick={refreshProvisioning}>Aggiorna stato Mojo</button>
       {#if selected.MailStatus || emailStatus}<p>Email: {selected.MailStatus || emailStatus}</p>{/if}
-      {#if peerPassword}
+      {#if peerPassword && selected.Provisioning === 'Abilitato in Mojo'}
         <p>Conserva la password del partner. Servirà per configurare il collegamento dal suo nodo.</p>
         <code>{peerPassword}</code>
       {/if}
     {/if}
-    {#if selected?.Provisioning === 'Abilitato in Mojo' || selected?.Provisioning === 'Pronto in uscita'}
+    {#if selected}
+      {@const outgoingReady = selected.Provisioning === 'Abilitato in Mojo' || selected.Provisioning === 'Pronto in uscita'}
+      <h3>Collegamento in uscita</h3>
       <p>Collegamento: {selected.Connection || 'Aggiorna lo stato per verificare'}</p>
       {#if selected.Reconnect}
         <p>Riconnessione automatica: {selected.Reconnect}</p>
@@ -241,7 +246,12 @@
           <input type="password" bind:value={outgoingPassword} pattern={'[A-Za-z0-9]{0,72}'} maxlength="72" autocomplete="off" />
         </label>
         <label class="mail-opt"><input type="checkbox" bind:checked={autoReconnect} /> Riprova automaticamente dopo una caduta del collegamento</label>
-        <button disabled={enabling || busy}>Connetti nodo</button>
+        {#if outgoingReady}
+          <button disabled={enabling || busy}>Connetti nodo</button>
+        {:else}
+          <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
+            onclick={() => enable(true)}>Prepara collegamento in uscita</button>
+        {/if}
       </form>
     {/if}
     <form onsubmit={save}>
