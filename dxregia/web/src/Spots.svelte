@@ -22,6 +22,33 @@
   let query = $state('')
   const spotKey = (spot: Spot) => spot.At + '|' + spot.Call + '|' + spot.Frequency
   let freshKeys = $state<Set<string>>(new Set())
+
+  // Spedizioni DX annunciate (feed pubblico NG3K ADXO, scaricato dal nodo): icona accanto al nominativo e popup con i dettagli.
+  type Adxo = { Call: string; Entity: string; Dates: string; QSL: string; Info: string; Link: string }
+  let adxo = $state<{ Source: string; Entries: Adxo[] | null }>()
+  let popup = $state<{ entry: Adxo; x: number; y: number }>()
+  let adxoMap = $derived(new Map((adxo?.Entries ?? []).map(entry => [entry.Call, entry])))
+  let adxoPrefixes = $derived((adxo?.Entries ?? []).filter(entry => /\d$/.test(entry.Call)))
+  function adxoFor(call: string): Adxo | undefined {
+    if (!adxoMap.size) return undefined
+    const full = call.toUpperCase()
+    const base = full.replace(/\/(P|QRP|M|MM|AM)$/, '')
+    return adxoMap.get(full) ?? adxoMap.get(base) ?? adxoPrefixes.find(entry => base.startsWith(entry.Call))
+  }
+  function openInfo(event: MouseEvent, entry: Adxo) {
+    event.stopPropagation()
+    const button = event.currentTarget as HTMLElement
+    const host = button.closest('main')!.getBoundingClientRect()
+    const rect = button.getBoundingClientRect()
+    const width = Math.min(380, host.width - 16)
+    popup = { entry, x: Math.max(8, Math.min(rect.left - host.left - 10, host.width - width - 8)), y: rect.bottom - host.top + 8 }
+  }
+  async function loadAdxo() {
+    try {
+      const response = await fetch('/api/adxo')
+      if (response.ok) adxo = await response.json()
+    } catch { /* senza il feed la pagina funziona uguale */ }
+  }
   let knownKeys: Set<string> | undefined
   let reading = false
   let views = $state<number>()
@@ -85,11 +112,16 @@
     window.addEventListener('pointerdown', unlock, { once: true })
     window.addEventListener('keydown', unlock, { once: true })
     void refresh()
+    void loadAdxo()
+    const adxoTimer = setInterval(loadAdxo, 30 * 60 * 1000)
+    const closePopup = () => { popup = undefined }
+    window.addEventListener('click', closePopup)
+    window.addEventListener('keydown', event => { if (event.key === 'Escape') popup = undefined })
     void fetch('/api/visits').then(async response => {
       if (response.ok) views = (await response.json()).Views
     }).catch(() => {})
     const timer = setInterval(refresh, 5000)
-    return () => { clearInterval(timer); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock) }
+    return () => { clearInterval(timer); clearInterval(adxoTimer); window.removeEventListener('click', closePopup); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock) }
   })
 </script>
 
@@ -134,9 +166,9 @@
           {#each rowsKeyed(filtered) as { spot, key, id } (key)}
             <tr class:fresh={freshKeys.has(id)}>
               <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Spotter} onclick={() => query = spot.Spotter}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>{spot.Spotter}</span></td>
-              <td><strong class="frequency" style:background={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
+              <td><strong class="frequency" style:--c={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
               <td data-empty={!modeFor(spot.Comment) || undefined}><span class="mode" data-mode={modeFor(spot.Comment)}>{modeFor(spot.Comment) || '—'}</span></td>
-              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><strong>{spot.Call}</strong></span></td>
+              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><strong>{spot.Call}</strong>{#if adxoFor(spot.Call)}{@const entry = adxoFor(spot.Call)!}<button class="info" type="button" title={t('adxoTitle') + ': ' + entry.Entity} aria-label={t('adxoTitle') + ': ' + entry.Entity} onclick={event => openInfo(event, entry)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg></button>{/if}</span></td>
               <td>
                 {#if dxccFlags[spot.DXCC]}
                   <img src={'/flags/' + dxccFlags[spot.DXCC] + '.svg'} alt="" width="26" height="19" loading="lazy" />
@@ -163,10 +195,18 @@
       </span>
     </div>
   {/if}
+  {#if popup}
+    <div class="popup" role="dialog" aria-label={t('adxoTitle')} style:left={popup.x + 'px'} style:top={popup.y + 'px'} onclick={event => event.stopPropagation()}>
+      <h4>{t('adxoTitle')}: {popup.entry.Entity}</h4>
+      <p class="dates"><strong>{popup.entry.Call}</strong> · {popup.entry.Dates}{#if popup.entry.QSL} · QSL: {popup.entry.QSL}{/if}</p>
+      <p>{popup.entry.Info}</p>
+      <p class="src"><a href={popup.entry.Link} target="_blank" rel="noopener noreferrer">{popup.entry.Call}</a> · <a href={adxo?.Source ?? 'https://www.ng3k.com/Misc/adxo.html'} target="_blank" rel="noopener noreferrer">{t('adxoSource')}</a></p>
+    </div>
+  {/if}
 </main>
 
 <style>
-  main { width: 100%; max-width: 1240px; margin: 0 auto; padding: 14px clamp(12px, 2vw, 32px) 24px; }
+  main { position: relative; width: 100%; max-width: 1240px; margin: 0 auto; padding: 14px clamp(12px, 2vw, 32px) 24px; }
   h1 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.25rem); color: #102e42; letter-spacing: -.04em; }
   @media (prefers-reduced-motion: reduce) { tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: none; background: #fff1a0; } }
   .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 7px 10px; margin-bottom: 12px; min-width: 0; }
@@ -185,7 +225,10 @@
   .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; padding: 12px 16px; border-bottom: 1px solid #ccdbe7; background: #ffffff80; color: #496174; }
   input { width: min(100%, 350px); min-height: 40px; border: 1px solid #acbfce; border-radius: 6px; background: #fff; color: #173653; padding: 6px 10px; font: inherit; }
   .table-wrap { overflow: auto; }
-  table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
+  table { width: 100%; table-layout: fixed; border-collapse: collapse; text-align: left; white-space: nowrap; }
+  td { overflow: hidden; text-overflow: ellipsis; }
+  th:nth-child(1) { width: 128px; } th:nth-child(2) { width: 118px; } th:nth-child(3) { width: 88px; }
+  th:nth-child(4) { width: 190px; } th:nth-child(5) { width: 210px; } th:nth-child(7) { width: 76px; }
   th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #c4d6e3; }
   th { background: #ffffffa3; color: #1d5d8c; border-bottom: 2px solid #2972a0; font-size: .86rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
   th small { color: #536b7d; text-transform: none; }
@@ -197,17 +240,16 @@
   .lens { display: inline-grid; place-items: center; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; --button-face: transparent; --button-edge: transparent; --button-ink: #3d5a70; box-shadow: none; }
   .lens:hover:not(:disabled) { --button-ink: #175c82; --button-face: #e3eef6; transform: none; filter: none; }
   tbody tr:hover, tbody tr:nth-child(even):hover { background: #c3dbec; }
-  .frequency, .mode { display: inline-block; padding: 3px 8px; border-radius: 5px; text-align: center; }
-  .frequency { width: 10.5ch; color: #142b39; font-weight: 700; }
+  .frequency, .mode { display: inline-block; padding: 2px 7px; border: 1.5px solid transparent; border-radius: 5px; text-align: center; }
+  .frequency { width: 10.5ch; color: #142b39; font-weight: 700; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 30%); }
   .frequency, td:last-child { font-variant-numeric: tabular-nums; }
   td { color: #14293a; font-weight: 500; }
   td:first-child, td:last-child, .comment { color: #1f3a4e; }
-  .comment { width: 100%; }
   img { object-fit: cover; vertical-align: middle; margin-right: 7px; border: 1px solid #15263826; border-radius: 2px; }
   .mode { min-width: 4.6em; color: #4c6374; font-size: .92rem; font-weight: 700; }
-  .mode[data-mode=CW] { background: #fff0d7; color: #7d430e; }
-  .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { background: #d7f0e3; color: #1a6046; }
-  .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31] { background: #eee4ff; color: #573894; }
+  .mode[data-mode=CW] { --c: #fff0d7; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #7d430e; }
+  .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { --c: #d7f0e3; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #1a6046; }
+  .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31] { --c: #eee4ff; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #573894; }
   @media (max-width: 700px) {
     main { padding: 0 10px 20px; }
     .filters { display: grid; grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 8px; margin-bottom: 10px; }
@@ -239,4 +281,11 @@
   .digits { display: flex; gap: 4px; }
   .digit { position: relative; display: grid; place-items: center; min-width: 30px; height: 42px; border-radius: 7px; background: linear-gradient(#2a5b79, #123448); color: #fff; font: 700 1.45rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 #0a2433, 0 3px 6px #143a5940; }
   .digit::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #00000040; }
+  .info { display: inline-grid; place-items: center; width: 24px; min-height: 24px; padding: 0; border-radius: 50%; --button-face: #e3f0fa; --button-edge: #7fb1d9; --button-ink: #175c82; box-shadow: none; flex: 0 0 auto; }
+  .popup { position: absolute; z-index: 30; width: min(380px, calc(100% - 16px)); padding: 12px 14px; border: 1px solid #9db8cc; border-radius: 12px; background: #ffffffee; backdrop-filter: blur(10px); box-shadow: 0 14px 34px #143a5940; color: #14293a; font-size: .88rem; line-height: 1.45; white-space: normal; }
+  .popup h4 { margin: 0 0 6px; font-size: .95rem; color: #143a60; }
+  .popup p { margin: 0 0 6px; color: #1f3a4e; overflow-wrap: anywhere; }
+  .popup .dates { font-weight: 600; }
+  .popup .src { margin: 8px 0 0; font-size: .82rem; }
+  .popup a { color: #175c82; font-weight: 600; }
 </style>
