@@ -16,8 +16,8 @@
   let available = $state<boolean>()
   let selectedBand = $state('')
   let mode = $state('')
+  let noFt8 = $state(false)
   let query = $state('')
-  let paused = $state(false)
   let reading = false
   let lastUpdate = $state<Date>()
   let views = $state<number>()
@@ -32,26 +32,26 @@
     23: ['Portogallo'], 25: ['Madeira'], 36: ['Canarie'], 95: ['Giappone'],
     124: ['Argentina'], 129: ['Austria'], 142: ['Brasile'], 226: ['Stati Uniti'], 277: ['Figi'],
   }
+  const groupOf = (value: string) => ['FT8', 'FT4', 'RTTY', 'PSK31'].includes(value) ? 'DIGI' : ['SSB', 'USB', 'LSB'].includes(value) ? 'SSB' : value
   let filtered = $derived(spots.filter(spot =>
     (!selectedBand || bandFor(spot.Frequency) === selectedBand) &&
-    (!mode || modeFor(spot.Comment) === mode) &&
+    (!mode || groupOf(modeFor(spot.Comment)) === mode) &&
+    (!noFt8 || modeFor(spot.Comment) !== 'FT8') &&
     (!query.trim() || [spot.Call, spot.Spotter, spot.Comment].some(value => value.toLowerCase().includes(query.trim().toLowerCase())))
   ))
 
   async function refresh() {
-    if (paused || reading) return
+    if (reading) return
     reading = true
     try {
       const response = await fetch('/api/spots', { signal: AbortSignal.timeout(6000) })
       if (!response.ok) throw new Error()
       const data = await response.json()
-      if (!paused) {
-        spots = data.Spots
-        available = data.Available
-        if (available) lastUpdate = new Date()
-      }
+      spots = data.Spots
+      available = data.Available
+      if (available) lastUpdate = new Date()
     } catch {
-      if (!paused) available = false
+      available = false
     } finally {
       reading = false
     }
@@ -69,43 +69,39 @@
 <main aria-labelledby="spots-title">
   <div class="heading">
     <div class="feed-controls">
-      <span class="feed-state" class:live={available && !paused}>
-        {paused ? t('paused') : available === false ? t('feedDown') : available ? t('live') : t('connecting')}
+      <span class="feed-state" class:live={available}>
+        {available === false ? t('feedDown') : available ? t('live') : t('connecting')}
       </span>
       {#if lastUpdate}<time title={t('lastUpdate')} datetime={lastUpdate.toISOString()}>{utc.format(lastUpdate)} UTC</time>{/if}
-      <button class="secondary" type="button" onclick={() => { paused = !paused; if (!paused) void refresh() }}>
-        {paused ? t('resume') : t('pause')}
-      </button>
     </div>
   </div>
-  <div class="desk glass-enter">
-    <aside class="receiver glass-panel" aria-label={t('filters')}>
-      <section>
-        <h2>{t('bands')}</h2>
-        <div class="band-grid">
-          <button class="all-bands" type="button" aria-pressed={selectedBand === ''} onclick={() => selectedBand = ''}>{t('allBands')}</button>
-          {#each bands as [band]}
-            <button type="button" aria-pressed={selectedBand === band} onclick={() => selectedBand = band}>
-              <span class="band-color" style:background={colors[band]}></span>{band}
-            </button>
-          {/each}
-        </div>
-      </section>
-      <section class="mode-filter">
-        <h2>{t('modes')}</h2>
-        <div class="band-grid">
-          <button class="all-bands" type="button" aria-pressed={mode === ''} onclick={() => mode = ''}>{t('allModes')}</button>
-          {#each ['CW', 'SSB', 'FT8', 'FT4', 'RTTY', 'PSK31', 'USB', 'LSB'] as value}
-            <button type="button" aria-pressed={mode === value} onclick={() => mode = value}>{value}</button>
-          {/each}
-        </div>
-      </section>
-    </aside>
-    <section class="log glass-panel" aria-label="Registro degli spot">
-      <div class="toolbar">
-        <input type="search" bind:value={query} aria-label={t('searchLabel')} placeholder={t('searchPlaceholder')} />
-        <span>{t(filtered.length === 1 ? 'shownOne' : 'shownMany', { n: filtered.length })}</span>
+  <section class="filters glass-panel glass-enter" aria-label={t('filters')}>
+    <div class="chip-row">
+      <div class="chips" role="group" aria-label={t('bands')}>
+        <button class="chip" type="button" aria-pressed={selectedBand === ''} onclick={() => selectedBand = ''}>{t('allShort')}</button>
+        {#each bands as [band]}
+          <button class="chip" type="button" aria-pressed={selectedBand === band} onclick={() => selectedBand = selectedBand === band ? '' : band}>
+            <span class="band-color" style:background={colors[band]}></span>{band.replace(' ', '')}
+          </button>
+        {/each}
       </div>
+      <div class="chips" role="group" aria-label={t('modes')}>
+        {#each [['CW', 'CW'], ['SSB', 'SSB'], ['DIGI', t('digi')]] as [value, label]}
+          <button class="chip" type="button" aria-pressed={mode === value} onclick={() => mode = mode === value ? '' : value}>{label}</button>
+        {/each}
+        <button class="chip" type="button" aria-pressed={noFt8} onclick={() => noFt8 = !noFt8}>{t('noFt8')}</button>
+      </div>
+    </div>
+    <div class="search-row">
+      <span class="search">
+        <input type="search" bind:value={query} aria-label={t('searchLabel')} placeholder={t('searchPlaceholder')} />
+        {#if query}<button class="clear" type="button" aria-label={t('clear')} title={t('clear')} onclick={() => query = ''}>×</button>{/if}
+      </span>
+      <span class="count">{t(filtered.length === 1 ? 'shownOne' : 'shownMany', { n: filtered.length })}</span>
+    </div>
+  </section>
+  <div class="desk glass-enter">
+    <section class="log glass-panel" aria-label="Registro degli spot">
   {#if available === false}
     <p role="status">{t('archiveDown')}</p>
   {:else if available === undefined}
@@ -117,12 +113,12 @@
       <table>
         <thead><tr><th scope="col">{t('thDe')}</th><th scope="col">{t('thFreq')} <small>kHz</small></th><th>{t('thMode')}</th><th>{t('thDx')}</th><th>{t('thEntity')}</th><th>{t('thComment')}</th><th>{t('thUtc')}</th></tr></thead>
         <tbody>
-          {#each filtered as spot}
-            <tr>
-              <td>{spot.Spotter}</td>
+          {#each filtered as spot, i}
+            <tr class:latest={i === 0}>
+              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Spotter} onclick={() => query = spot.Spotter}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>{spot.Spotter}</span></td>
               <td><strong class="frequency" style:background={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
               <td data-empty={!modeFor(spot.Comment) || undefined}><span class="mode" data-mode={modeFor(spot.Comment)}>{modeFor(spot.Comment) || '—'}</span></td>
-              <td><strong>{spot.Call}</strong></td>
+              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><strong>{spot.Call}</strong></span></td>
               <td>
                 {#if dxccFlags[spot.DXCC]}
                   <img src={'/flags/' + dxccFlags[spot.DXCC] + '.svg'} alt="" width="26" height="19" loading="lazy" />
@@ -155,16 +151,18 @@
   .feed-state.live::before { background: #20845a; box-shadow: 0 0 0 3px #dcefe5; animation: signal-pulse 2.6s ease-out infinite; }
   @keyframes signal-pulse { 0%, 100% { box-shadow: 0 0 0 2px #20845a24; } 48% { box-shadow: 0 0 0 5px #20845a0a; } }
   @media (prefers-reduced-motion: reduce) { .feed-state.live::before { animation: none; } }
-  .desk { display: grid; grid-template-columns: 218px minmax(0, 1fr); align-items: start; gap: 18px; }
-  .receiver { position: sticky; top: 12px; min-width: 0; padding: 14px; }
-  .receiver h2 { margin: 0 0 .6rem; color: #214963; font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; }
-  .mode-filter { margin-top: 16px; padding-top: 14px; border-top: 1px solid #c8d7e0; }
-  .band-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
-  .band-grid button { display: flex; justify-content: center; gap: .4rem; align-items: center; min-width: 0; min-height: 34px; padding: .35rem .4rem; border-radius: 5px; font-size: .83rem; }
-  .band-grid .all-bands { grid-column: 1 / -1; }
-  .band-grid button[aria-pressed=false] { --button-face: #fff; --button-edge: #a4bccb; --button-ink: #274760; }
-  .band-grid button[aria-pressed=true] { --button-face: #175c82; --button-edge: #0c3a56; }
-  .band-color { width: 9px; height: 9px; border-radius: 2px; box-shadow: inset 0 0 0 1px #223c4c30; }
+  .filters { display: grid; gap: 10px; padding: 12px 14px; margin-bottom: 14px; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { display: inline-flex; align-items: center; gap: .4rem; min-height: 34px; padding: .25rem .8rem; border-radius: 999px; font-size: .88rem; --button-face: #fff; --button-edge: #a4bccb; --button-ink: #274760; box-shadow: none; }
+  .chip[aria-pressed=true] { --button-face: #175c82; --button-edge: #0c3a56; --button-ink: #fff; }
+  .band-color { width: 9px; height: 9px; border-radius: 3px; box-shadow: inset 0 0 0 1px #223c4c30; }
+  .search-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .search { position: relative; flex: 1 1 280px; max-width: 460px; }
+  .search input { width: 100%; padding-right: 36px; }
+  .clear { position: absolute; right: 4px; top: 4px; width: 32px; min-height: 32px; padding: 0; border-radius: 6px; font-size: 1.2rem; line-height: 1; --button-face: transparent; --button-edge: transparent; --button-ink: #4c6374; box-shadow: none; }
+  .count { color: #496174; font-size: .9rem; }
+  .desk { min-width: 0; }
   .log { min-width: 0; padding: 0; overflow: hidden; }
   .log > p { margin: 14px 16px; }
   .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; padding: 12px 16px; border-bottom: 1px solid #ccdbe7; background: #ffffff80; color: #496174; }
@@ -172,10 +170,14 @@
   .table-wrap { overflow: auto; }
   table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
   th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #dce5ed; }
-  th { background: #ffffffa3; color: #285879; border-bottom: 2px solid #2972a0; font-size: .78rem; letter-spacing: .065em; text-transform: uppercase; }
+  th { background: #ffffffa3; color: #1d5d8c; border-bottom: 2px solid #2972a0; font-size: .86rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
   th small { color: #536b7d; text-transform: none; }
   tbody tr:nth-child(even) { background: #e5f1f7ab; }
-  tbody tr:first-child td:first-child { box-shadow: inset 4px 0 #20845a; }
+  tbody tr.latest, tbody tr.latest:nth-child(even) { background: #fff3b0; }
+  tbody tr.latest td:first-child { box-shadow: inset 4px 0 #20845a; }
+  .callcell { display: inline-flex; align-items: center; gap: 6px; }
+  .lens { display: inline-grid; place-items: center; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; --button-face: transparent; --button-edge: transparent; --button-ink: #6d8798; box-shadow: none; }
+  .lens:hover:not(:disabled) { --button-ink: #175c82; --button-face: #e3eef6; transform: none; filter: none; }
   tbody tr:hover { background: #e0eff8; }
   .frequency, .mode { display: inline-block; padding: 2px 7px; border-radius: 4px; }
   .frequency { min-width: 7ch; text-align: right; color: #142b39; }
@@ -188,32 +190,24 @@
   .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { background: #d7f0e3; color: #1a6046; }
   .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31] { background: #eee4ff; color: #573894; }
   .visits { margin-block: 14px 0; color: #526c7f; font-size: .85rem; }
-  @media (max-width: 900px) {
-    .desk { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-    .receiver { position: static; padding: 12px; }
-    .band-grid { grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); }
-    .band-grid .all-bands { grid-column: auto; }
-    .band-grid button { min-height: 42px; }
-  }
   @media (max-width: 700px) {
     main { padding: 0 10px 20px; }
     .heading { min-height: 48px; justify-content: space-between; }
     .feed-controls { width: 100%; justify-content: space-between; gap: 8px; }
-    .receiver { padding: 10px; }
-    .receiver h2 { margin-bottom: .4rem; }
-    .mode-filter { margin-top: 10px; padding-top: 10px; }
-    .band-grid { display: flex; gap: .4rem; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-    .band-grid button { flex: 0 0 auto; min-width: 66px; min-height: 40px; }
-    .toolbar { padding: 10px 12px; }
-    .toolbar input { width: 100%; }
+    .filters { padding: 10px; gap: 8px; margin-bottom: 10px; }
+    .chip-row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+    .chip { flex: 0 0 auto; min-height: 40px; }
+    .search { max-width: none; flex-basis: 100%; }
     .table-wrap { overflow: visible; }
     table, tbody { display: block; white-space: normal; }
     thead { display: none; }
     tbody tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "freq dx utc" "mode entity entity" "de comment comment"; align-items: center; gap: 3px 10px; padding: 10px 12px; border-bottom: 1px solid #dce5ed; }
-    tbody tr:first-child { box-shadow: inset 4px 0 #20845a; }
-    tbody tr:first-child td:first-child { box-shadow: none; }
+    tbody tr.latest td:first-child { box-shadow: none; }
+    tbody tr.latest { box-shadow: inset 4px 0 #20845a; }
     td { padding: 0; border: 0; min-width: 0; }
     td:nth-child(1) { grid-area: de; font-size: .82rem; }
+    td:nth-child(1) .lens { display: none; }
     td:nth-child(1)::before { content: 'de '; color: #7a93a6; }
     td:nth-child(2) { grid-area: freq; }
     td:nth-child(3) { grid-area: mode; }
