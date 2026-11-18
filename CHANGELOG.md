@@ -2,7 +2,7 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it/1.1.0/), versioni [SemVer](https://semver.org/lang/it/). Si riferisce a DXRegia (cartella `dxregia/`); il motore upstream mantiene la propria cronologia in `Changes`.
 
-## [Non rilasciato]
+## [0.2.0] - 2026-11-18
 
 ### Aggiunto
 - Dashboard dello stato con LED, contatori, spot per banda e ultimi spot.

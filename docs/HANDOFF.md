@@ -236,3 +236,5 @@ Novità del pannello: la pagina Stato e sessioni è una dashboard con LED (liste
 Verifiche: go vet e test del pacchetto sul server (Go non è installato sul PC di sviluppo; si copia backend/ sul server e si lancia go test con -skip TestSpotEntitiesFromBundledMojoData, che legge dati Mojo non presenti nella copia). Le pagine nuove compilano ma non sono state viste nel browser. La consegna email con un SMTP reale non è collaudata.
 
 Prossimo passo: form pubblico Contatti per la richiesta di collegamento con i soli campi utili, configurazione automatica del partner, invio dei dati di collegamento e email di conferma alla prima connessione. Decisione aperta: abilitazione completamente automatica o con un click del sysop (l'automatica permette di registrare un indicativo non proprio con un'email qualsiasi). Da fare anche: correggere l'IP di docker-vps nella skill SSH (ora 192.168.1.124).
+
+Versione 0.2.0 (tag v0.2.0): raccoglie dashboard, pagina Nodi partner, pannello Server di posta, bandiere DXCC e le correzioni del collaudo N2KI. Il server di prova 192.168.1.124 esegue c16a2dee, precedente al solo bump di versione.
