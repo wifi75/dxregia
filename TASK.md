@@ -92,3 +92,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Registrazione utenti dal portale con conferma via email (modulo, link, hook Mojo, pagina sysop Utenti registrati). Verificato: test automatico dell’intero percorso con email e Mojo simulati; hook Mojo su nodo reale (creazione, login con password, rifiuto della password errata, revoca); NON ancora provato l'invio dell'email e il clic sul link.
 - [x] Mostrare il pulsante di invio delle istruzioni ai partner anche quando lo stato Mojo lo disabilita.
 - [x] Dare riscontro visibile al controllo manuale dello stato del nodo partner.
+- [x] Mostrare il log della build web su errore o in modalita dettagliata.

@@ -132,9 +132,14 @@ fi
 indicator 32 'Sorgente pronto.'
 step 2 "Compilo il pannello web ($(printf '%.12s' "$revision"))."
 (
-    cd "$source/dxregia/web"
-    npm ci && npm run build
-) || fail 'Compilazione del pannello web non riuscita.'
+    cd "$source/dxregia/web" && npm ci && npm run build
+) > "$work/web-build.log" 2>&1 || {
+    cat "$work/web-build.log" >&2
+    fail 'Compilazione del pannello web non riuscita.'
+}
+if [ "${DXREGIA_VERBOSE:-0}" = 1 ]; then
+    cat "$work/web-build.log"
+fi
 indicator 32 'Pannello web compilato.'
 step 3 'Compilo il backend Go. Questa fase può restare silenziosa per qualche minuto.'
 (
