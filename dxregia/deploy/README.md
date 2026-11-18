@@ -41,6 +41,8 @@ Il collaudo automatico nativo è passato su Ubuntu 24.04 con systemd, su amd64 e
 
 Esegui `dxregia-update` da qualsiasi directory. Per le installazioni precedenti, scarica `update-native.sh` da `main` e avvialo con `sh update-native.sh`, oppure installalo con `sudo install -m 0755 update-native.sh /usr/local/bin/dxregia-update`. Servono Git, Go, Node.js con npm, curl, Python 3, flock e privilegi sudo o root. Lo script scarica `main`, compila backend e frontend, aggiorna il motore Mojo e lo strumento di backup e riavvia il servizio. Conserva dati, credenziali, porte e personalizzazioni in `local`, `local_cmd` e `local_data`. Le directory upstream distribuite con il programma vengono sostituite. Lo script conserva le copie precedenti e le ripristina se il pannello o il listener Telnet non risponde.
 
+Usa `sh update-native.sh --check` per vedere il commit installato e quello disponibile senza modificare il servizio. L'avvio normale salta l'aggiornamento se coincidono. Durante l'installazione lo script indica le cinque fasi e usa segni verdi per gli esiti positivi e rossi per gli errori su un terminale a colori.
+
 ## Installazione di prova da sorgente
 
 Da Linux con Docker e curl già disponibili, clonare il repository e lanciare `sh dxregia/deploy/install-local.sh` dalla sua radice. Lo script costruisce l'immagine, avvia un container con volume persistente e stampa URL e password temporanea. La riesecuzione conserva il container e il volume. La password temporanea è custodita nel volume fino al cambio obbligatorio.

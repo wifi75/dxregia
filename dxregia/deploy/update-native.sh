@@ -1,25 +1,68 @@
 #!/bin/sh
 set -eu
 
-fail() { printf '%s\n' "$*" >&2; exit 1; }
+indicator() {
+    if [ -t 1 ] && [ "${TERM:-dumb}" != dumb ] && [ -z "${NO_COLOR:-}" ]; then
+        printf '\033[%sm++++++++++\033[0m  %s\n' "$1" "$2"
+    else
+        printf '++++++++++  %s\n' "$2"
+    fi
+}
+fail() { indicator 31 "Errore: $*" >&2; exit 1; }
+step() { printf '\n[%s/5] %s\n' "$1" "$2"; }
 as_root() {
     if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi
 }
 
 [ "$(uname -s)" = Linux ] || fail 'Questo script richiede Linux.'
-[ "$#" -eq 0 ] || { [ "$#" -eq 2 ] && [ "$1" = --source ]; } ||
-    fail "Uso: sh $0 [--source CHECKOUT]"
+mode=update
+case "$#:${1:-}" in
+    0:) ;;
+    1:--check) mode=check ;;
+    2:--source) mode=source ;;
+    *) fail "Uso: sh $0 [--check | --source CHECKOUT]" ;;
+esac
 runtime=/opt/dxregia
 state=/var/lib/dxregia
 engine=$state/mojo
 unit=/etc/systemd/system/dxregia.service
 service=dxregia.service
 
-for tool in git go npm curl flock python3; do
-    command -v "$tool" >/dev/null 2>&1 || fail "Dipendenza richiesta: $tool"
-done
+command -v git >/dev/null 2>&1 || fail "Dipendenza richiesta: git"
 as_root test -f "$unit" && as_root test -d "$runtime" && as_root test -d "$engine" ||
     fail 'Installazione nativa DXRegia con systemd non trovata.'
+
+remote=https://github.com/wifi75/dxregia.git
+if [ "$mode" = source ]; then
+    source=$(CDPATH='' cd -- "$2" && pwd)
+    available=$(git -C "$source" rev-parse HEAD)
+else
+    printf '%s\n' 'Controllo aggiornamenti DXRegia su GitHub...'
+    remote_head=$(git ls-remote --exit-code "$remote" refs/heads/main) ||
+        fail 'Impossibile controllare gli aggiornamenti su GitHub.'
+    available=$(printf '%s\n' "$remote_head" | awk '{print $1}')
+fi
+current=
+if as_root test -f "$runtime/revision"; then
+    current=$(as_root cat "$runtime/revision")
+elif command -v go >/dev/null 2>&1; then
+    current=$(go version -m "$runtime/bin/dxregia" 2>/dev/null |
+        awk '$2 ~ /^vcs.revision=/ {sub(/^vcs.revision=/, "", $2); print $2; exit}')
+fi
+printf 'Installata: %.12s\nDisponibile: %.12s\n' "${current:-sconosciuta}" "$available"
+if [ "$current" = "$available" ] && [ "$mode" != source ]; then
+    indicator 32 'DXRegia è già aggiornato.'
+    exit 0
+fi
+if [ -n "$current" ] && [ "$current" != "$available" ]; then
+    indicator 32 'Aggiornamento disponibile.'
+elif [ -z "$current" ]; then
+    printf '%s\n' 'Questa installazione non registra ancora il commit. Dopo l’aggiornamento sarà possibile confrontarlo.'
+fi
+[ "$mode" != check ] || exit 0
+for tool in go npm curl flock python3; do
+    command -v "$tool" >/dev/null 2>&1 || fail "Dipendenza richiesta: $tool"
+done
 
 work=$(mktemp -d)
 rollback=
@@ -33,7 +76,7 @@ cleanup() {
     result=$?
     trap - EXIT
     if [ "$installed" -eq 1 ] && [ "$success" -eq 0 ]; then
-        printf '%s\n' 'Aggiornamento interrotto. Ripristino della versione precedente.' >&2
+        indicator 31 'Aggiornamento interrotto. Ripristino della versione precedente.' >&2
         set +e
         as_root systemctl stop "$service"
         if as_root test -d "$rollback/runtime"; then
@@ -73,29 +116,37 @@ as_root touch /run/lock/dxregia-update.lock
 exec 9< /run/lock/dxregia-update.lock
 flock -n 9 || fail 'Un aggiornamento DXRegia è già in corso.'
 
-if [ "$#" -eq 2 ]; then
-    source=$(CDPATH='' cd -- "$2" && pwd)
-else
-    git clone --quiet --depth 1 --branch main https://github.com/wifi75/dxregia.git "$work/source"
+step 1 'Scarico il sorgente. Il nodo rimane online.'
+if [ "$mode" != source ]; then
+    git clone --quiet --depth 1 --branch main "$remote" "$work/source" ||
+        fail 'Download del sorgente non riuscito.'
     source=$work/source
 fi
-revision=$(git -C "$source" rev-parse --short HEAD)
-printf 'Preparazione DXRegia %s. Il nodo resta attivo durante la compilazione.\n' "$revision"
+revision=$(git -C "$source" rev-parse HEAD)
+if [ "$revision" = "$current" ] && [ "$mode" != source ]; then
+    indicator 32 'DXRegia è già aggiornato.'
+    exit 0
+fi
+indicator 32 'Sorgente pronto.'
+step 2 "Compilo il pannello web ($(printf '%.12s' "$revision"))."
 (
     cd "$source/dxregia/web"
-    npm ci
-    npm run build
-)
+    npm ci && npm run build
+) || fail 'Compilazione del pannello web non riuscita.'
+indicator 32 'Pannello web compilato.'
+step 3 'Compilo il backend Go. Questa fase può restare silenziosa per qualche minuto.'
 (
-    cd "$source/dxregia/backend"
-    go test ./...
+    cd "$source/dxregia/backend" &&
     CGO_ENABLED=0 go build -trimpath -o "$work/dxregia" ./cmd/dxregia
-)
+) || fail 'Compilazione del backend Go non riuscita.'
+indicator 32 'Backend compilato.'
+printf '%s\n' "$revision" > "$work/revision"
 
 rollback=$(as_root mktemp -d /opt/.dxregia-update-XXXXXX)
 staged_engine=$(as_root mktemp -d "$state/.dxregia-engine-XXXXXX")
 engine_rollback=$(as_root mktemp -d "$state/.dxregia-engine-previous-XXXXXX")
 as_root install -d -m 0755 "$rollback/new-runtime/bin" "$rollback/new-runtime/web"
+as_root install -m 0644 "$work/revision" "$rollback/new-runtime/revision"
 as_root install -m 0755 "$work/dxregia" "$rollback/new-runtime/bin/dxregia"
 as_root install -m 0755 "$source/dxregia/deploy/backup_node.py" "$rollback/new-runtime/bin/dxregia-backup"
 as_root cp -R "$source/dxregia/web/dist/." "$rollback/new-runtime/web/"
@@ -108,11 +159,18 @@ if as_root test -f "$engine/local/Local.pm"; then
     as_root cp -a "$engine/local/Local.pm" "$rollback/Local.pm"
 fi
 
-web_port=$(as_root awk -F= '/^DXREGIA_WEB_PORT=[0-9]+$/ {print $2}' /etc/dxregia.env | tail -n 1)
-url="http://127.0.0.1:${web_port:-8080}"
+web_port=8080
+web_host=127.0.0.1
+if as_root test -f /etc/dxregia.env; then
+    web_port=$(as_root awk -F= '/^DXREGIA_WEB_PORT=[0-9]+$/ { port=$2 } END { print port }' /etc/dxregia.env)
+    web_host=$(as_root awk -F= '/^DXREGIA_HTTP_BIND=[0-9.]+$/ { host=$2 } END { print host }' /etc/dxregia.env)
+    [ "${web_host:-127.0.0.1}" != 0.0.0.0 ] || web_host=127.0.0.1
+fi
+url="http://${web_host:-127.0.0.1}:${web_port:-8080}"
 configured=0
 if as_root test -f "$engine/local/dxregia-initialized"; then configured=1; fi
 
+step 4 'Applico i file e riavvio il servizio.'
 installed=1
 as_root systemctl stop "$service"
 as_root mv -T "$runtime" "$rollback/runtime"
@@ -124,12 +182,14 @@ done
 as_root install -m 0644 "$source/dxregia/deploy/dxregia.service" "$unit"
 as_root systemctl daemon-reload
 as_root systemctl start "$service"
+step 5 'Verifico la risposta del pannello e, se configurato, di Telnet.'
 for attempt in $(seq 1 25); do
     if curl -fsS --max-time 2 "$url/api/auth" >/dev/null 2>&1 &&
         { [ "$configured" -eq 0 ] ||
             curl -fsS --max-time 3 "$url/api/listener" | python3 -c 'import json, sys; sys.exit(json.load(sys.stdin).get("state") != "ready")' 2>/dev/null; }; then
         success=1
-        printf 'DXRegia aggiornato a %s. Pannello: %s\nVersione precedente: %s e %s\n' "$revision" "$url" "$rollback" "$engine_rollback"
+        indicator 32 "DXRegia aggiornato a $(printf '%.12s' "$revision")."
+        printf 'Pannello (verifica locale): %s\nVersione precedente: %s e %s\n' "$url" "$rollback" "$engine_rollback"
         exit 0
     fi
     sleep 1

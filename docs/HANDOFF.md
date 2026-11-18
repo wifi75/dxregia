@@ -187,3 +187,5 @@ L'installatore nativo distribuisce lo script come /usr/local/bin/dxregia-update.
 Aggiornamento Docker tramite update-docker.sh sull'host che esegue il container standard. Conserva il volume e riusa mapping di porte, politica di riavvio e variabili DXRegia. Il collaudo esegue l'aggiornamento da una directory esterna e verifica contatore e porte.
 
 Navigazione sysop con menu e sottomenu a sinistra per Nodo, Collegamenti e Gestione. A destra si monta la sola pagina attiva, con link hash per cronologia e accesso diretto. La preselezione da una richiesta apre la pagina partner. Portale spot a larghezza piena, pulsanti condivisi con stati di clic, focus e movimento ridotto. Build Svelte verificata; il collaudo grafico sul server resta al sysop.
+
+L'aggiornamento nativo indica commit installato e disponibile, supporta --check e salta riavvio e compilazione se coincidono. Il runtime conserva il commit all'aggiornamento e lo recupera dai metadati Go delle versioni precedenti quando disponibili. Cinque fasi, indicatori verdi e rossi su terminale, controllo HTTP con impostazioni di rete locali e senza avvisi per il file env opzionale assente.
