@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { tr } from './adminI18n'
 
   import type { ContactRequest } from './ContactRequests.svelte'
   let { draft }: { draft?: ContactRequest } = $props()
@@ -157,7 +158,7 @@
   async function removePartner() {
     const call = selected?.Call
     if (!call || enabling) return
-    if (!confirm('Eliminare il nodo ' + call + '?\n\nIl nodo viene scollegato, il suo accesso al tuo cluster viene rimosso (la sua password smette di funzionare) e la scheda viene cancellata. Non si può annullare.')) return
+    if (!confirm(tr('Eliminare il nodo {}?\n\nIl nodo viene scollegato, il suo accesso al tuo cluster viene rimosso (la sua password smette di funzionare) e la scheda viene cancellata. Non si può annullare.', call))) return
     enabling = true
     error = ''
     message = ''

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tr } from './adminI18n'
   import { onMount } from 'svelte'
   export type ContactRequest = {
     ID: string; Kind: string; Call: string; Name: string; Contact: string; Email: string;
@@ -39,7 +40,7 @@
   }
 
   async function remove(request: ContactRequest) {
-    if (!confirm('Eliminare la richiesta di ' + request.Call + '? Non si può annullare. Un partner già configurato resta in Nodi partner.')) return
+    if (!confirm(tr('Eliminare la richiesta di {}? Non si può annullare. Un partner già configurato resta in Nodi partner.', request.Call))) return
     try {
       const response = await fetch('/api/contact-requests/' + encodeURIComponent(request.ID), { method: 'DELETE' })
       if (!response.ok) { autoError = (await response.text()).trim(); return }

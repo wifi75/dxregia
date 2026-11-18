@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tr } from './adminI18n'
   import { onMount } from 'svelte'
   import Hint from './Hint.svelte'
 
@@ -43,7 +44,7 @@
     } catch { status = 'Connessione interrotta.' } finally { busy = false }
   }
   async function remove(filter: Filter) {
-    if (!confirm('Eliminare il filtro ' + filter.Name + ' (' + (kinds[filter.Sort] ?? filter.Sort) + ')?')) return
+    if (!confirm(tr('Eliminare il filtro {}?', filter.Name))) return
     const response = await fetch('/api/filters/' + filter.Sort + '/' + filter.Name, { method: 'DELETE' })
     filterStatus = response.ok ? 'Filtro eliminato.' : (await response.text()).trim()
     if (response.ok) await loadFilters()

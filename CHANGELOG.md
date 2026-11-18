@@ -5,6 +5,9 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 ## [Unreleased]
 
 ### Added
+- Admin panel translated into the six portal languages (the language button is now in the admin header too). Texts live in `dxregia/web/src/adminTranslations.ts`; `scripts/missing_admin_strings.py` lists texts without a translation.
+- Partner card: shows whether the partner is connected to this node (incoming) and when it first did.
+- Portal footer: DXSpider version in use.
 - Admin panel: the sysop session ends with a return to the login page, and its length can be chosen (Password page).
 - Admin panel, Node menu: message of the day, crontab, startup script, block lists (words, DX callsigns, IP addresses), hop counts and filter inventory, each with tooltips. See `docs/NODE-SETTINGS.md`.
 

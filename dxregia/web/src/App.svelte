@@ -3,6 +3,7 @@
   import Auth from './Auth.svelte'
   import Dashboard from './Dashboard.svelte'
   import { languages, lang, setLang, t } from './i18n.svelte'
+  import { startAdminTranslation, translate } from './adminI18n'
   import { soundOn, toggleSound } from './sound.svelte'
   import { currentTheme, toggleTheme } from './theme.svelte'
   let langOpen = $state(false)
@@ -33,10 +34,18 @@
     }
   }
 
-  onMount(() => { if (!publicPortal) void refresh() })
+  let adminTranslator: ReturnType<typeof startAdminTranslation> | undefined
+  onMount(() => {
+    if (publicPortal) return
+    void refresh()
+    adminTranslator = startAdminTranslation(document.getElementById('app')!)
+    adminTranslator.setLanguage(lang())
+    return () => adminTranslator?.stop()
+  })
+  $effect(() => { adminTranslator?.setLanguage(lang()) })
 
   $effect(() => {
-    document.title = 'DXRegia – ' + (!publicPortal ? 'Amministrazione' : contactPage ? t('cTitle') : t('spotsTitle'))
+    document.title = 'DXRegia – ' + (!publicPortal ? translate('Amministrazione', lang() as never) : contactPage ? t('cTitle') : t('spotsTitle'))
   })
 </script>
 
@@ -68,7 +77,7 @@
       {#if currentTheme() === 'dark'}<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>{:else}<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>{/if}
     </svg>
   </button>
-  {#if publicPortal}
+  {#if true}
     <div class="lang">
       <button class="lang-btn" type="button" aria-haspopup="menu" aria-expanded={langOpen} title={t('langLabel')} aria-label={t('langLabel')}
         onclick={event => { event.stopPropagation(); langOpen = !langOpen }}>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { tr } from './adminI18n'
 
   const toggles = [
     ['PasswordRequired', 'Richiedi una password a tutti i collegamenti Telnet'],
@@ -43,7 +44,7 @@
     event.preventDefault()
     if (!options || busy) return
     if (options.PasswordRequired &&
-      !confirm('I collegamenti Telnet senza una password impostata verranno rifiutati. Vuoi continuare?')) return
+      !confirm(tr('I collegamenti Telnet senza una password impostata verranno rifiutati. Vuoi continuare?'))) return
     status = ''
     error = false
     busy = true
