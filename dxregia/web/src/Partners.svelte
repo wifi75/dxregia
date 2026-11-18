@@ -25,24 +25,16 @@
   let emailStatus = $state('')
   let localNode = $state('')
 
-  onMount(async () => {
-    try {
-      const response = await fetch('/api/partners')
-      if (!response.ok) throw new Error()
-      partners = Object.values(await response.json() as Record<string, Partner>)
-    } catch {
-      error = 'Impossibile caricare i nodi partner.'
-    } finally {
-      busy = false
-    }
-  })
+  let checkingStatus = false
+  let statusError = $state('')
 
   onMount(() => {
     void fetch('/api/node-settings', { cache: 'no-store' }).then(async response => {
       if (response.status === 200) localNode = (await response.json()).node || ''
     }).catch(() => {})
+    void refreshProvisioning().finally(() => { busy = false })
     const timer = setInterval(() => {
-      if (selected && !enabling && !busy) void refreshProvisioning()
+      if (!enabling && !busy) void refreshProvisioning()
     }, 5000)
     return () => clearInterval(timer)
   })
@@ -75,18 +67,22 @@
   })
 
   async function refreshProvisioning() {
-    const call = selected?.Call
-    if (!call) return
+    if (checkingStatus) return
+    checkingStatus = true
     try {
-      const response = await fetch('/api/partners')
+      const response = await fetch('/api/partners', { cache: 'no-store', signal: AbortSignal.timeout(4000) })
       if (!response.ok) throw new Error()
       const rows: Record<string, Partner> = await response.json()
-      if (rows[call] && selected?.Call === call) {
-        selected = rows[call]
+      partners = Object.values(rows)
+      statusError = ''
+      if (selected && rows[selected.Call]) {
+        selected = rows[selected.Call]
         if (selected.Provisioning !== 'In attesa di Mojo' && selected.Provisioning !== 'Abilitato in Mojo') peerPassword = ''
       }
     } catch {
-      error = 'Impossibile leggere lo stato da Mojo.'
+      statusError = 'Impossibile aggiornare lo stato dei nodi.'
+    } finally {
+      checkingStatus = false
     }
   }
 
@@ -211,23 +207,32 @@
   </div>
   {#if error}<p role="alert">{error}</p>{/if}
   {#if message}<p role="status">{message}</p>{/if}
+  {#if statusError}<p role="status">{statusError}</p>{/if}
   {#if partners.length}
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th>Registrato il</th></tr></thead>
+        <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th>Registrato il</th></tr></thead>
         <tbody>
           {#each partners.toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
+            {@const state = statusError ? 'Stato non aggiornato' : partner.Connection || 'Stato in attesa'}
             <tr>
               <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
               <td>{partner.Name || '—'}</td>
               <td>{partner.Contact || '—'}</td>
+              <td>
+                <span class="observed-state">
+                  <span class="led" data-tone={statusError ? 'neutral' : connectionTone(partner.Connection)}
+                    title={state} aria-hidden="true"></span>
+                  {state}
+                </span>
+              </td>
               <td>{date.format(new Date(partner.RegisteredAt))}</td>
             </tr>
           {/each}
         </tbody>
       </table>
     </div>
-  {:else if !busy && !error}
+  {:else if !busy && !error && !statusError}
     <p>Nessun nodo partner registrato.</p>
   {/if}
 
