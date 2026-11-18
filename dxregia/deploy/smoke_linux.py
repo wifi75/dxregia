@@ -4,6 +4,7 @@ import base64
 import hmac
 import http.cookiejar
 import json
+import os
 import secrets
 import socket
 import subprocess
@@ -15,7 +16,9 @@ import urllib.request
 from pathlib import Path
 
 HOST = "127.0.0.1"
-BASE = f"http://{HOST}:8080"
+WEB_PORT = int(os.environ.get("DXREGIA_WEB_PORT", "8080"))
+TELNET_PORT = int(os.environ.get("DXREGIA_TELNET_PORT", "7300"))
+BASE = f"http://{HOST}:{WEB_PORT}"
 CONTAINER = "dxregia"
 
 
@@ -57,7 +60,7 @@ def read_until(conn, marker):
 
 
 def telnet_login(callsign, location=None):
-    with socket.create_connection((HOST, 7300), timeout=5) as conn:
+    with socket.create_connection((HOST, TELNET_PORT), timeout=5) as conn:
         read_until(conn, b"login:")
         conn.sendall(callsign + b"\r\n")
         welcome = read_until(conn, b"dxspider >")
@@ -83,7 +86,7 @@ def ready(client):
 def main():
     client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
     virgin = docker("exec", CONTAINER, "cat", "/data/sysop-initial")
-    config = {"node": "Q1QQQ-2", "sysop": "Q1QQQ", "locator": "JN55AA", "port": 7300}
+    config = {"node": "Q1QQQ-2", "sysop": "Q1QQQ", "locator": "JN55AA", "port": TELNET_PORT}
     assert request(client, "/api/setup", config)[0] == 401
     status, login = request(client, "/api/auth/login", virgin)
     assert status == 200 and login["mustChange"]
@@ -92,10 +95,10 @@ def main():
     assert status == 200 and enroll["mustVerify"]
     assert request(client, "/api/setup", config)[0] == 401
     assert request(client, "/api/auth/totp", totp(enroll["enrollmentKey"]))[0] == 200
-    assert request(client, "/api/setup", config) == (200, {"started": True, "port": 7300})
+    assert request(client, "/api/setup", config) == (200, {"started": True, "port": TELNET_PORT})
     telnet_login(b"Q7QQQ")
     edited = dict(config, name="Lab sysop", qth="Profilo Linux", email="lab@example.org", advertisedHost="node.example.org")
-    assert request(client, "/api/node-settings", dict(edited, port=7373), method="PUT")[0] == 409
+    assert request(client, "/api/node-settings", dict(edited, port=TELNET_PORT + 1), method="PUT")[0] == 409
     assert request(client, "/api/node-settings", edited, method="PUT") == (200, edited)
     # Snapshot hook applies the updated profile during the next five-second cycle.
     time.sleep(6)

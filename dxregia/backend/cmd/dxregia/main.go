@@ -61,6 +61,7 @@ func main() {
 	bootstrapFile := flag.String("bootstrap-password-file", "", "private file for the temporary sysop password")
 	setupRoot := flag.String("setup-root", "", "fresh Mojo checkout for local setup")
 	setupPerl := flag.String("setup-perl", "", "Perl executable for starting Mojo during setup")
+	setupFixedPort := flag.Bool("setup-fixed-telnet-port", false, "require the Telnet port published by the container")
 	setupInternal := flag.Int("setup-internal-port", 27754, "Mojo internal loopback port")
 	flag.Parse()
 
@@ -101,7 +102,7 @@ func main() {
 	}
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
-	if err := registerSetup(service, &children, mux, *setupRoot, *setupPerl, *setupInternal, number, *telnetBind, auth, func(port int) {
+	if err := registerSetup(service, &children, mux, *setupRoot, *setupPerl, *setupInternal, number, *telnetBind, *setupFixedPort, auth, func(port int) {
 		activeTarget.Store(net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
 	}); err != nil {
 		log.Fatal(err)

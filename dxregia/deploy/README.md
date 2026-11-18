@@ -4,7 +4,13 @@
 
 Da Linux con Docker e curl già disponibili, clonare il repository e lanciare `sh dxregia/deploy/install-local.sh` dalla sua radice. Lo script costruisce l'immagine, avvia un container con volume persistente e stampa URL e password temporanea. La riesecuzione conserva il container e il volume. La password temporanea è custodita nel volume fino al cambio obbligatorio.
 
-L'anteprima pubblica sulla macchina locale le porte HTTP 8080 e Telnet 7300. Nel wizard usare la porta proposta 7300, che corrisponde alla mappatura del container. La build e il primo avvio con Docker sono stati verificati in CI su Ubuntu 24.04 amd64 con l'immagine Debian. La prova arm64 rimane aperta. La procedura da release firmata e l'accesso dalla LAN sono attività successive.
+Per scegliere le porte prima dell'installazione, esegui ad esempio:
+
+~~~sh
+DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-local.sh
+~~~
+
+I valori predefiniti restano 8080 e 7300. Le porte vengono pubblicate sul loopback e il wizard usa la porta Telnet effettivamente mappata. Nelle riesecuzioni usa gli stessi valori: Docker assegna le porte al momento della creazione del container. La build e il primo avvio con Docker sono stati verificati in CI su Ubuntu 24.04 amd64 con l'immagine Debian. La prova arm64 rimane aperta. La procedura da release firmata e l'accesso dalla LAN sono attività successive.
 
 ## Esperienza di installazione
 

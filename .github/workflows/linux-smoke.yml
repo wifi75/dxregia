@@ -15,8 +15,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        include:
+          - runner: ubuntu-24.04
+            web_port: '8080'
+            telnet_port: '7300'
+          - runner: ubuntu-24.04-arm
+            web_port: '8787'
+            telnet_port: '7373'
     runs-on: ${{ matrix.runner }}
+    env:
+      DXREGIA_WEB_PORT: ${{ matrix.web_port }}
+      DXREGIA_TELNET_PORT: ${{ matrix.telnet_port }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -26,6 +35,8 @@ jobs:
         run: sh dxregia/deploy/install-local.sh > "$RUNNER_TEMP/dxregia-install.txt"
       - name: Verify setup, two factors, Telnet, persistent restart and backup
         run: python3 dxregia/deploy/smoke_linux.py
+      - name: Verify installer can run again without replacing the node
+        run: sh dxregia/deploy/install-local.sh
       - name: Report container logs on failure
         if: failure()
         run: |

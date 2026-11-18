@@ -70,7 +70,7 @@ func (c *nodeConfig) validate() error {
 	return nil
 }
 
-func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.ServeMux, root, perl string, internalPort, suggestedPort int, telnetBind string, auth *sysopAuth, setTarget func(int)) error {
+func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.ServeMux, root, perl string, internalPort, suggestedPort int, telnetBind string, fixedPort bool, auth *sysopAuth, setTarget func(int)) error {
 	if root == "" {
 		return nil
 	}
@@ -119,6 +119,9 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 		if err := saved.validate(); err != nil {
 			return fmt.Errorf("invalid saved node configuration: %w", err)
 		}
+		if fixedPort && saved.Port != suggestedPort {
+			return fmt.Errorf("saved Telnet port %d differs from published port %d", saved.Port, suggestedPort)
+		}
 		setTarget(saved.Port)
 		if perl == "" {
 			return nil
@@ -150,7 +153,7 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 		defer lock.Unlock()
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "application/json")
-		response := map[string]any{"available": !done, "suggestedPort": suggestedPort}
+		response := map[string]any{"available": !done, "suggestedPort": suggestedPort, "fixedPort": fixedPort}
 		if !done && saved != nil {
 			response["saved"] = *saved
 		}
@@ -184,6 +187,10 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 		}
 		if saved == nil && config.Port == internalPort {
 			http.Error(w, "Scegli una porta Telnet diversa dalla porta interna di Mojo.", http.StatusBadRequest)
+			return
+		}
+		if fixedPort && config.Port != suggestedPort {
+			http.Error(w, fmt.Sprintf("Il container pubblica la porta Telnet %d.", suggestedPort), http.StatusBadRequest)
 			return
 		}
 		if saved != nil && !reflect.DeepEqual(*saved, config) {

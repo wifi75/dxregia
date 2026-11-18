@@ -5,6 +5,7 @@
 
   let available = $state(false)
   let alreadySaved = $state(false)
+  let fixedPort = $state(false)
   let result = $state<{ started: boolean; port: number }>()
   let { onSaved }: { onSaved: () => void } = $props()
   let pending = $state(false)
@@ -30,6 +31,7 @@
     try {
       if (file.size > 256 * 1024) throw new Error('Il file supera 256 KB.')
       const fields = readSetupImport(await file.text())
+      if (fixedPort) delete fields.port
       form = { ...form, ...fields }
       imported = 'Campi riconosciuti: ' + Object.keys(fields).length + '. Controlla i valori prima di applicare.'
     } catch (reason) {
@@ -48,6 +50,7 @@
       if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
         const setup = await response.json()
         available = setup.available === true
+        fixedPort = setup.fixedPort === true
         if (setup.suggestedPort) form.port = setup.suggestedPort
         if (setup.saved) {
           form = { ...form, ...setup.saved }
@@ -171,8 +174,9 @@
           <p>Nodo {form.node} · Sysop {form.sysop} · Locator {form.locator}</p>
           <div class="fields">
             <label>Host pubblico <input bind:value={form.advertisedHost} maxlength="253" readonly={alreadySaved} placeholder="cluster.example.org" /></label>
-            <label>Porta Telnet <input type="number" bind:value={form.port} min="1" max="65535" readonly={alreadySaved} required /></label>
+            <label>Porta Telnet <input type="number" bind:value={form.port} min="1" max="65535" readonly={alreadySaved || fixedPort} required /></label>
           </div>
+          {#if fixedPort}<p>La porta Telnet corrisponde a quella pubblicata dall’installatore.</p>{/if}
           <p>Il servizio web del pannello usa la porta {window.location.port || (window.location.protocol === 'https:' ? '443' : '80')} in questa sessione.</p>
         {/if}
         {#if error}<p class="error" role="alert">{error}</p>{/if}

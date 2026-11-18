@@ -125,3 +125,5 @@ Checkpoint Git richiesti circa ogni 20 minuti di lavoro attivo. Il ramo dxregia-
 ## Modifica del profilo sysop a nodo avviato
 
 Configurazione sysop ora consente di modificare nome, email, QTH, locator, coordinate e host pubblico. Il JSON salvato viene letto dall'hook gestito da DXRegia e applicato alle impostazioni Mojo e ai record del nodo e del sysop. Le modifiche a indicativi e porta Telnet richiedono una migrazione coordinata e sono rifiutate da questa API. Gli hook personalizzati vengono conservati. Smoke test Linux esteso con modifica, verifica del saluto Telnet e ripartenza.
+
+L'installatore Docker ora accetta porte host web e Telnet distinte tramite ambiente. Il wizard in container usa il listener pubblicato e i tentativi di cambiare la porta solo dal wizard vengono rifiutati. La matrice smoke usa valori personalizzati su arm64 ed esercita la riesecuzione dello script. Il cambio delle porte di un container esistente resta un'operazione di migrazione.
