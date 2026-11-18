@@ -173,7 +173,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				http.Error(w, "Impossibile completare l’operazione.", http.StatusInternalServerError)
 				return
 			}
-			a.session, a.expires = token, time.Now().Add(5*time.Minute)
+			a.session, a.expires = token, time.Now().Add(20*time.Minute)
 			a.factorOK, a.pendingKey = false, ""
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
 				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
@@ -208,7 +208,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 					return
 				}
 				a.factor, a.pendingKey = secondFactor{ResetPending: true}, key
-				a.expires = time.Now().Add(5 * time.Minute)
+				a.expires = time.Now().Add(20 * time.Minute)
 				break
 			}
 			factor := a.factor
