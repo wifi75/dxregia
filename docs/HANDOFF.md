@@ -217,3 +217,7 @@ Il form Aggiungi nodo accetta la password remota quando si seleziona Con passwor
 Il provisioning dal pannello applica anche registered(1), equivalente a set/register, oltre al tipo Spider e alla configurazione della password per l'ingresso. Per gli account esistenti il flusso verifica tipo e blocco prima di registrarli e preserva password non corrispondenti.
 
 La password remota è ora opzionale al salvataggio di un partner: si può impostare o aggiornare anche senza connettere subito, e se il campo manca resta quella già salvata. Se il salvataggio dell'anagrafica fallisce, il piano di riconnessione precedente viene ripristinato. Disattivare la riconnessione imposta il flag Disabled sul piano invece di cancellarlo, così la password resta disponibile per una riattivazione. Una password salvata senza connessione crea un piano disabilitato. Limite: build e test Go non eseguiti su questo host perché go non è nel PATH; la modifica non è collaudata a runtime.
+
+## 2026-11-18 — Release 0.1.0
+
+Pubblicata la prima versione 0.1.0 (tag v0.1.0, CHANGELOG.md, dxregia/VERSION). Gate Go non eseguito: go assente su questo host. Prossimo passo: installare Go, eseguire go build e go test in dxregia/backend e proseguire i collaudi a due nodi.
