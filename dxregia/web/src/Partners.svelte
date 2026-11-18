@@ -19,6 +19,7 @@
   let peerPassword = $state('')
   let enabling = $state(false)
   let outgoingPassword = $state('')
+  let remoteAuth = $state<'none' | 'password'>('none')
   let autoReconnect = $state(false)
   let sendInstructions = $state(false)
   let emailStatus = $state('')
@@ -45,6 +46,7 @@
   function open(partner?: Partner) {
     peerPassword = ''
     outgoingPassword = ''
+    remoteAuth = 'none'
     autoReconnect = partner?.Reconnect === 'Abilitata'
     sendInstructions = false
     emailStatus = ''
@@ -113,6 +115,13 @@
     }
   }
 
+  function connectionTone(state?: string) {
+    if (state === 'Attivo') return 'green'
+    if (state === 'In coda' || state === 'Collegamento in corso') return 'amber'
+    if (!state || state === 'Stato Mojo non disponibile') return 'neutral'
+    return 'red'
+  }
+
   async function connect(event: SubmitEvent) {
     event.preventDefault()
     const call = selected?.Call
@@ -122,7 +131,7 @@
     try {
       const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/connect' + (autoReconnect ? '?retry=true' : ''), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(outgoingPassword),
+        body: JSON.stringify(remoteAuth === 'password' ? outgoingPassword : ''),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -158,7 +167,8 @@
   async function save(event: SubmitEvent) {
     event.preventDefault()
     if (busy || enabling) return
-    const connectNow = !selected && (event.submitter as HTMLButtonElement | null)?.value !== 'directory'
+    const prepareOnly = !selected && remoteAuth === 'password' && (event.submitter as HTMLButtonElement | null)?.value !== 'directory'
+    const connectNow = !selected && !prepareOnly && (event.submitter as HTMLButtonElement | null)?.value !== 'directory'
     busy = true
     error = ''
     message = ''
@@ -175,6 +185,12 @@
       const saved: Partner = await response.json()
       partners = [...partners.filter(partner => partner.Call !== saved.Call), saved]
       open(saved)
+      if (prepareOnly) {
+        remoteAuth = 'password'
+        await enable(true)
+        message = 'Nodo salvato. Quando Mojo conferma, inserisci la password fornita dal partner e premi Connetti nodo.'
+        return
+      }
       message = connectNow ? 'Nodo salvato. DXRegia prepara il collegamento e riproverà anche dopo il riavvio.' : 'Anagrafica salvata.'
     } catch {
       error = 'Impossibile salvare il nodo partner.'
@@ -215,7 +231,11 @@
     <h3 id="partner-draft" tabindex="-1">{selected ? selected.Call : 'Nuovo nodo partner'}</h3>
     {#if selected}
       <p>Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'Da rilevare'}</p>
-      <p>Accesso in ingresso: {selected.Provisioning || 'Non abilitato dal pannello'}</p>
+      <p class="observed-state">
+        <span class="led" data-tone={selected.Provisioning === 'Abilitato in Mojo' ? 'green' : selected.Provisioning === 'In attesa di Mojo' ? 'amber' : selected.Provisioning?.includes('verificare') ? 'red' : 'neutral'}
+          title={selected.Provisioning || 'Accesso in ingresso non abilitato'} aria-hidden="true"></span>
+        Accesso in ingresso: {selected.Provisioning === 'Pronto in uscita' ? 'Non abilitato' : selected.Provisioning || 'Non abilitato dal pannello'}
+      </p>
       {#if !selected.Provisioning || !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning)}
         {#if selected.Email}<label class="mail-opt"><input type="checkbox" bind:checked={sendInstructions} /> Invia le istruzioni e l’esito via email a {selected.Email}</label>{/if}
         <button type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita accesso in ingresso</button>
@@ -230,7 +250,11 @@
     {#if selected}
       {@const outgoingReady = selected.Provisioning === 'Abilitato in Mojo' || selected.Provisioning === 'Pronto in uscita'}
       <h3>Collegamento in uscita</h3>
-      <p>Collegamento: {selected.Connection || 'Aggiorna lo stato per verificare'}</p>
+      <p class="observed-state" role="status">
+        <span class="led" data-tone={connectionTone(selected.Connection)}
+          title={selected.Connection || 'Mojo non ha ancora riportato lo stato'} aria-hidden="true"></span>
+        Collegamento: {selected.Connection || 'Stato in attesa'}
+      </p>
       {#if selected.Reconnect}
         <p>Riconnessione automatica: {selected.Reconnect}</p>
         {#if selected.LastConnectAttempt}
@@ -242,9 +266,17 @@
         <button type="button" disabled={enabling} onclick={disableReconnect}>Disattiva riconnessione</button>
       {/if}
       <form onsubmit={connect}>
-        <label>Password impostata dal nodo remoto, se richiesta
-          <input type="password" bind:value={outgoingPassword} pattern={'[A-Za-z0-9]{0,72}'} maxlength="72" autocomplete="off" />
+        <label>Autenticazione del nodo remoto
+          <select bind:value={remoteAuth} disabled={enabling || busy}>
+            <option value="none">Senza password</option>
+            <option value="password">Con password</option>
+          </select>
         </label>
+        {#if remoteAuth === 'password'}
+          <label>Password fornita dal nodo remoto
+            <input type="password" bind:value={outgoingPassword} pattern={'[A-Za-z0-9]{1,72}'} maxlength="72" autocomplete="off" required />
+          </label>
+        {/if}
         <label class="mail-opt"><input type="checkbox" bind:checked={autoReconnect} /> Riprova automaticamente dopo una caduta del collegamento</label>
         {#if outgoingReady}
           <button disabled={enabling || busy}>Connetti nodo</button>
@@ -263,9 +295,17 @@
         <label>Host <input bind:value={form.Host} maxlength="253" required /></label>
         <label>Porta remota <input type="number" bind:value={form.Port} min="1" max="65535" required /></label>
       </div>
+      {#if !selected}
+        <label class="remote-auth">Autenticazione del nodo remoto
+          <select bind:value={remoteAuth}>
+            <option value="none">Senza password</option>
+            <option value="password">Con password</option>
+          </select>
+        </label>
+      {/if}
       <label class="note">Aggiungi una nota <textarea bind:value={note} maxlength="4000" rows="3" placeholder="Es. Inviata email al referente"></textarea></label>
       <button type="submit" value={selected ? 'directory' : 'connect'} disabled={busy || enabling}>
-        {busy ? 'Salvataggio…' : selected ? 'Salva anagrafica' : 'Salva e connetti'}
+        {busy ? 'Salvataggio…' : selected ? 'Salva anagrafica' : remoteAuth === 'password' ? 'Salva e prepara' : 'Salva e connetti'}
       </button>
       {#if !selected}<button class="secondary" type="submit" value="directory" disabled={busy || enabling}>Salva solo anagrafica</button>{/if}
     </form>
@@ -292,7 +332,13 @@
   .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px 16px; }
   label { display: grid; min-width: 0; gap: 5px; font-weight: 600; }
   .note { margin: 12px 0; }
-  input, textarea { min-width: 0; padding: 8px; border: 1px solid #aab8c5; border-radius: 4px; font: inherit; min-height: 44px; }
+  .observed-state { display: flex; align-items: center; gap: .55rem; }
+  .led { width: 11px; height: 11px; flex: 0 0 11px; border-radius: 50%; background: #708391; box-shadow: 0 0 0 3px #70839123; }
+  .led[data-tone=green] { background: #167b50; box-shadow: 0 0 0 3px #167b5029; }
+  .led[data-tone=red] { background: #b32731; box-shadow: 0 0 0 3px #b3273129; }
+  .led[data-tone=amber] { background: #ad6a10; box-shadow: 0 0 0 3px #ad6a1029; }
+  .remote-auth { margin-top: 12px; max-width: 300px; }
+  input, textarea, select { min-width: 0; padding: 8px; border: 1px solid #aab8c5; border-radius: 4px; font: inherit; min-height: 44px; }
 
   .call { background: none; color: #214e80; border: 0; padding: 4px; min-height: 34px; text-decoration: underline; box-shadow: none; }
   :is(button,input,textarea):focus-visible { outline: 2px solid #214e80; outline-offset: 2px; }
