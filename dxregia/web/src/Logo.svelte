@@ -3,7 +3,7 @@
     <i class="wave"></i><i class="wave late"></i>
     <img src="/brand/dxregia-icon.svg" alt="" width="72" height="72">
   </span>
-  <img class="word" src="/brand/dxregia-wordmark.svg" alt="" width="94" height="36">
+  <img class="word" src="/brand/dxregia-wordmark.svg" alt="" width="143" height="36">
 </div>
 
 <style>

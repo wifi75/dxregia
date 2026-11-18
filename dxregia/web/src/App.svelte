@@ -44,7 +44,7 @@
 
 <header>
   <div class="brandline">
-    <a class="brand" href="/spots"><img class="brand-logo" src={currentTheme() === 'dark' ? '/brand/dxregia-logo-dark.svg' : '/brand/dxregia-logo.svg'} alt="DXRegia" width="115" height="36"></a>
+    <a class="brand" href="/spots"><img class="brand-logo" src={currentTheme() === 'dark' ? '/brand/dxregia-logo-dark.svg' : '/brand/dxregia-logo.svg'} alt="DXRegia" width="120" height="36"></a>
     {#if publicPortal && !contactPage}
       <span class="sep" aria-hidden="true">–</span>
       <h1 id="spots-title" class="page">{t('spotsTitle')}</h1>
