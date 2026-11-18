@@ -237,11 +237,11 @@
 <style>
   .auth-card { max-width: 440px; margin: 40px auto; padding: clamp(22px, 5vw, 36px); text-align: center; }
   .auth-card h2 { margin: 6px 0 22px; font-size: 1.25rem; text-align: center; }
-  .auth-card form { display: grid; gap: 18px; text-align: left; }
+  .auth-card form { display: grid; gap: 18px; text-align: left; max-width: 340px; margin: 0 auto; }
   .auth-card label { display: grid; gap: 8px; font-weight: 650; }
   .auth-card input { width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; }
   .auth-card .hint { margin: 0; font-size: .86rem; line-height: 1.4; font-weight: 450; color: #5b6e80; }
-  .auth-card form button { width: 100%; min-height: 46px; margin-top: 4px; }
+  .auth-card form button { justify-self: center; width: auto; min-width: 120px; min-height: 40px; padding: 0 28px; margin-top: 4px; }
   .auth-card > button { margin-top: 14px; }
   .auth-card img { display: block; margin: 10px auto; }
   .auth-card details, .auth-card > p { text-align: left; }
