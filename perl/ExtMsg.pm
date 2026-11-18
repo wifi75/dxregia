@@ -270,8 +270,10 @@ sub _docmd
 			}  
 		}
 		if ($cmd =~ /^\s*\'([^\']*)\'\s+\'([^\']*)\'/) {
-			$conn->_dochat($cmd, $msg, $1, $2);
-			last;
+			# DXRegia 2026-11-18: run the next directive after a matched prompt.
+			last unless $conn->_dochat($cmd, $msg, $1, $2);
+			undef $msg;
+			next;
 		}
 		if ($cmd =~ /^\s*cl\w+\s+(.*)/i) {
 			$conn->_doclient($1);
@@ -367,12 +369,13 @@ sub _dochat
 					$conn->send_later("D$conn->{call}|$send");
 				}
 				delete $conn->{msg}; # get rid any input if a match
-				return;
+				return 1;
 			}
 		}
 	}
 	$conn->{state} = 'WC';
 	unshift @{$conn->{cmd}}, $cmd;
+	return 0;
 }
 
 sub _timedout

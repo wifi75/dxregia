@@ -23,6 +23,7 @@
   let autoReconnect = $state(false)
   let sendInstructions = $state(false)
   let emailStatus = $state('')
+  let localNode = $state('')
 
   onMount(async () => {
     try {
@@ -37,6 +38,9 @@
   })
 
   onMount(() => {
+    void fetch('/api/node-settings', { cache: 'no-store' }).then(async response => {
+      if (response.status === 200) localNode = (await response.json()).node || ''
+    }).catch(() => {})
     const timer = setInterval(() => {
       if (selected && !enabling && !busy) void refreshProvisioning()
     }, 5000)
@@ -265,6 +269,16 @@
         {/if}
         <button type="button" disabled={enabling} onclick={disableReconnect}>Disattiva riconnessione</button>
       {/if}
+      <details class="script-preview">
+        <summary>Anteprima dello script Mojo</summary>
+        <pre>{[
+          'timeout 15',
+          'connect telnet ' + selected.Host + ' ' + selected.Port,
+          "'login' '" + (localNode || 'INDICATIVO NODO LOCALE') + "'",
+          ...(remoteAuth === 'password' ? ["'password:' '••••••••'"] : []),
+          'client ' + selected.Call + ' telnet',
+        ].join('\n')}</pre>
+      </details>
       <form onsubmit={connect}>
         <label>Autenticazione del nodo remoto
           <select bind:value={remoteAuth} disabled={enabling || busy}>
@@ -337,6 +351,7 @@
   .led[data-tone=green] { background: #167b50; box-shadow: 0 0 0 3px #167b5029; }
   .led[data-tone=red] { background: #b32731; box-shadow: 0 0 0 3px #b3273129; }
   .led[data-tone=amber] { background: #ad6a10; box-shadow: 0 0 0 3px #ad6a1029; }
+  .script-preview pre { padding: .65rem .9rem; background: #edf4f8; overflow: auto; }
   .remote-auth { margin-top: 12px; max-width: 300px; }
   input, textarea, select { min-width: 0; padding: 8px; border: 1px solid #aab8c5; border-radius: 4px; font: inherit; min-height: 44px; }
 
