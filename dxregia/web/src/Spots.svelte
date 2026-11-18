@@ -217,14 +217,19 @@
   {/if}
     </section>
   </div>
-  {#if views !== undefined}
-    <div class="visits-box" role="group" aria-label={t('visitsLabel')}>
-      <span class="visits-label">{t('visitsLabel')}</span>
-      <span class="digits">
-        {#each String(views).padStart(6, '0').split('') as digit, i (i)}<span class="digit">{digit}</span>{/each}
+  <footer class="foot">
+    {#if views !== undefined}
+      <span class="stat" title={t('visitsLabel')}>
+        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+        <strong>{khz.format(views)}</strong> {t('visitsShort')}
       </span>
-    </div>
-  {/if}
+      <span class="dot" aria-hidden="true"></span>
+    {/if}
+    <a class="project" href="https://github.com/wifi75/dxregia" target="_blank" rel="noopener noreferrer" title={t('projectNote')}>
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>
+      {t('projectLink')}
+    </a>
+  </footer>
   {#if popup}
     <div class="popup" role="dialog" aria-label={t('adxoTitle')} style:left={popup.x + 'px'} style:top={popup.y + 'px'} onclick={event => event.stopPropagation()} onmouseenter={keepInfo} onmouseleave={hideInfoSoon}>
       <h4>{t('adxoTitle')}: {popup.entry.Entity}</h4>
@@ -310,11 +315,6 @@
     td:nth-child(7) { grid-area: utc; font-size: .85rem; }
     .frequency { width: 10ch; }
   }
-  .visits-box { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 26px; }
-  .visits-label { color: #2a4558; font-size: .74rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
-  .digits { display: flex; gap: 4px; }
-  .digit { position: relative; display: grid; place-items: center; min-width: 30px; height: 42px; border-radius: 7px; background: linear-gradient(#2a5b79, #123448); color: #fff; font: 700 1.45rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 #0a2433, 0 3px 6px #143a5940; }
-  .digit::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #00000040; }
   .info { display: inline-grid; place-items: center; width: 24px; min-height: 24px; padding: 0; border-radius: 50%; --button-face: #e3f0fa; --button-edge: #7fb1d9; --button-ink: #175c82; box-shadow: none; flex: 0 0 auto; }
   .popup { position: absolute; z-index: 30; width: min(380px, calc(100% - 16px)); padding: 12px 14px; border: 1px solid #9db8cc; border-radius: 12px; background: #ffffffee; backdrop-filter: blur(10px); box-shadow: 0 14px 34px #143a5940; color: #14293a; font-size: .88rem; line-height: 1.45; white-space: normal; }
   .popup h4 { margin: 0 0 6px; font-size: .95rem; color: #143a60; }
@@ -322,4 +322,11 @@
   .popup .dates { font-weight: 600; }
   .popup .src { margin: 8px 0 0; font-size: .82rem; }
   .popup a { color: #175c82; font-weight: 600; }
+  .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; margin: 22px auto 0; padding: 9px 18px; width: fit-content; max-width: 100%; border: 1px solid #b9cbd9; border-radius: 999px; background: #ffffffb3; backdrop-filter: blur(10px); color: #274760; font-size: .88rem; }
+  .stat, .project { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .stat strong { font-variant-numeric: tabular-nums; color: #143a60; font-weight: 800; }
+  .stat svg, .project svg { color: #3a82c0; }
+  .project { color: #175c82; font-weight: 650; text-decoration: none; }
+  .project:hover { text-decoration: underline; }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: #8aa3b5; }
 </style>

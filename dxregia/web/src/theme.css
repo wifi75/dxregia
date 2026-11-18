@@ -13,5 +13,5 @@ html[data-theme=dark] body {
 html[data-theme=dark] #app { filter: invert(1) hue-rotate(180deg); }
 
 html[data-theme=dark] #app :is(
-  img, .band-color, .frequency, .mode, .led, .dot, .pulse, .signal-mark i, .bar i, .step, .count, .digit, .sidebar, .logo .mark
+  img, .band-color, .frequency, .mode, .led, .dot, .pulse, .signal-mark i, .bar i, .step, .count, .sidebar, .logo .mark
 ) { filter: invert(1) hue-rotate(180deg); }
