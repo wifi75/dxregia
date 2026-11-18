@@ -5,7 +5,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -23,7 +23,6 @@
   let remoteAuth = $state<'none' | 'password'>('none')
   let storedPassword = false
   let autoReconnect = $state(false)
-  let sendInstructions = $state(false)
   let emailStatus = $state('')
   let localNode = $state('')
 
@@ -47,7 +46,6 @@
     remoteAuth = 'none'
     storedPassword = false
     autoReconnect = partner?.Reconnect === 'Abilitata'
-    sendInstructions = false
     emailStatus = ''
     selected = partner
     form = partner
@@ -102,7 +100,7 @@
     }
   }
 
-  async function enable(outgoingOnly = false) {
+  async function enable(outgoingOnly = false, mail = false) {
     const call = selected?.Call
     if (!call || enabling) return
     enabling = true
@@ -111,7 +109,7 @@
     try {
       const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/enable', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ SendMail: !outgoingOnly && sendInstructions, OutgoingOnly: outgoingOnly }),
+        body: JSON.stringify({ SendMail: !outgoingOnly && mail, OutgoingOnly: outgoingOnly }),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -129,6 +127,34 @@
     } finally {
       enabling = false
     }
+  }
+
+  async function resend() {
+    const call = selected?.Call
+    if (!call || enabling) return
+    enabling = true
+    error = ''
+    message = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/resend', { method: 'POST' })
+      if (!response.ok) {
+        error = (await response.text()).trim()
+        return
+      }
+      message = 'Email accodata: il partner riceve di nuovo host, porta e password.'
+      await refreshProvisioning()
+    } catch {
+      error = 'Impossibile reinviare le istruzioni.'
+    } finally {
+      enabling = false
+    }
+  }
+
+  function inboundInfo(provisioning?: string) {
+    if (provisioning === 'Abilitato in Mojo') return { tone: 'green', text: 'Abilitato: il partner può collegarsi al tuo nodo.' }
+    if (provisioning === 'In attesa di Mojo') return { tone: 'amber', text: 'Operazione in corso: attendi qualche secondo.' }
+    if (provisioning?.includes('verificare')) return { tone: 'red', text: 'Esiste già un account con questo indicativo: va verificato prima di abilitare.' }
+    return { tone: 'neutral', text: 'Non abilitato: il partner non può collegarsi al tuo nodo.' }
   }
 
   function connectionTone(state?: string) {
@@ -236,7 +262,7 @@
         <tbody>
           {#each partners.toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
             {@const state = statusError ? 'Stato non aggiornato' : partner.Connection || 'Stato in attesa'}
-            <tr>
+            <tr class:current={selected?.Call === partner.Call}>
               <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
               <td>{partner.Name || '—'}</td>
               <td>{partner.Contact || '—'}</td>
@@ -258,131 +284,154 @@
   {/if}
 
   {#if editing}
-    {@const canEnableInbound = selected && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '')}
-    <h3 id="partner-draft" tabindex="-1">{selected ? selected.Call : 'Nuovo nodo partner'}</h3>
-    {#if selected}
-      <p>Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'Da rilevare'}</p>
-      <p class="observed-state">
-        <span class="led" data-tone={selected.Provisioning === 'Abilitato in Mojo' ? 'green' : selected.Provisioning === 'In attesa di Mojo' ? 'amber' : selected.Provisioning?.includes('verificare') ? 'red' : 'neutral'}
-          title={selected.Provisioning || 'Accesso in ingresso non abilitato'} aria-hidden="true"></span>
-        Accesso in ingresso: {selected.Provisioning === 'Pronto in uscita' ? 'Non abilitato' : selected.Provisioning || 'Non abilitato dal pannello'}
-      </p>
-      {#if selected.MailStatus || emailStatus}<p>Email: {selected.MailStatus || emailStatus}</p>{/if}
-      {#if peerPassword && selected.Provisioning === 'Abilitato in Mojo'}
-        <p>Conserva la password del partner. Servirà per configurare il collegamento dal suo nodo.</p>
-        <code>{peerPassword}</code>
-      {/if}
-    {/if}
-    {#if selected}
-      {@const outgoingReady = selected.Provisioning === 'Abilitato in Mojo' || selected.Provisioning === 'Pronto in uscita'}
-      <h3>Collegamento in uscita</h3>
-      <p class="observed-state" role="status">
-        <span class="led" data-tone={connectionTone(selected.Connection)}
-          title={selected.Connection || 'Mojo non ha ancora riportato lo stato'} aria-hidden="true"></span>
-        Collegamento: {selected.Connection || 'Stato in attesa'}
-      </p>
-      {#if selected.Reconnect}
-        <p>Riconnessione automatica: {selected.Reconnect}</p>
-        {#if selected.LastConnectAttempt}
-          <p>Ultimo tentativo {new Date(selected.LastConnectAttempt).toLocaleString('it-IT', { timeZone: 'UTC' })} UTC</p>
-        {/if}
-        {#if selected.RetryEligibleAt}
-          <p>Nuovo tentativo consentito dal {new Date(selected.RetryEligibleAt).toLocaleString('it-IT', { timeZone: 'UTC' })} UTC</p>
-        {/if}
-        <button type="button" disabled={enabling} onclick={disableReconnect}>Disattiva riconnessione</button>
-      {/if}
-      <details class="script-preview">
-        <summary>Anteprima dello script Mojo</summary>
-        <pre>{[
-          'timeout 15',
-          'connect telnet ' + selected.Host + ' ' + selected.Port,
-          "'login' '" + (localNode || 'INDICATIVO NODO LOCALE') + "'",
-          ...(remoteAuth === 'password' ? ["'password:' '••••••••'"] : []),
-          'client ' + selected.Call + ' telnet',
-        ].join('\n')}</pre>
-      </details>
-      <form onsubmit={connect}>
-        <label>Autenticazione del nodo remoto
-          <select bind:value={remoteAuth} disabled={enabling || busy}>
-            <option value="none">Senza password</option>
-            <option value="password">Con password</option>
-          </select>
-        </label>
-        {#if remoteAuth === 'password'}
-          <label>Password fornita dal nodo remoto
-            <input type="text" bind:value={outgoingPassword} pattern={'[A-Za-z0-9]{1,72}'} maxlength="72" autocomplete="off" spellcheck="false" required />
-          </label>
-        {/if}
-        <label class="mail-opt"><input type="checkbox" bind:checked={autoReconnect} /> Riprova automaticamente dopo una caduta del collegamento</label>
-        {#if outgoingReady}
-          <button disabled={enabling || busy}>Connetti nodo</button>
-        {:else}
-          <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
-            onclick={() => enable(true)}>Prepara collegamento in uscita</button>
-        {/if}
-      </form>
-    {/if}
-    <form onsubmit={save}>
-      <div class="fields">
-        <label>Indicativo <input bind:value={form.Call} maxlength="12" readonly={Boolean(selected)} required /></label>
-        <label>Nome del nodo <input bind:value={form.Name} maxlength="120" /></label>
-        <label>Nome del referente <input bind:value={form.Contact} maxlength="120" /></label>
-        <label>Email <input type="email" bind:value={form.Email} maxlength="254" /></label>
-        <label>Host <input bind:value={form.Host} maxlength="253" required /></label>
-        <label>Porta remota <input type="number" bind:value={form.Port} min="1" max="65535" required /></label>
-      </div>
-      {#if !selected}
-        <label class="remote-auth">Autenticazione del nodo remoto
-          <select bind:value={remoteAuth}>
-            <option value="none">Senza password</option>
-            <option value="password">Con password</option>
-          </select>
-        </label>
-        {#if remoteAuth === 'password'}
-          <label class="remote-auth">Password del nodo remoto
-            <input type="text" bind:value={outgoingPassword} maxlength="72" autocomplete="off" spellcheck="false" />
-          </label>
-        {/if}
-      {/if}
-      <label class="note">Aggiungi una nota <textarea bind:value={note} maxlength="4000" rows="3" placeholder="Es. Inviata email al referente"></textarea></label>
-      {#if canEnableInbound && selected?.Email}
-        <label class="mail-opt action-help">
-          <input type="checkbox" bind:checked={sendInstructions} aria-describedby="peer-email-help" />
-          Invia le istruzioni e l’esito via email a {selected.Email}
-          <span class="tooltip" id="peer-email-help" role="tooltip">Invia i dati al referente dopo l’abilitazione, se SMTP è configurato. Usa l’indirizzo salvato nella scheda.</span>
-        </label>
-      {/if}
-      <div class="form-actions">
-        <span class="action-help">
-          <button type="submit" value={selected ? 'directory' : 'connect'} disabled={busy || enabling} aria-describedby="peer-save-help">
-            {busy ? 'Salvataggio…' : selected ? 'Salva anagrafica' : 'Salva e connetti'}
-          </button>
-          <span class="tooltip" id="peer-save-help" role="tooltip">{selected ? 'Salva i dati e le note del partner.' : 'Salva i dati, avvia la connessione e conserva il piano di riconnessione.'}</span>
-        </span>
+    {@const inbound = inboundInfo(selected?.Provisioning)}
+    {@const canEnableInbound = selected && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '') && !selected.Provisioning?.includes('verificare')}
+    {@const outgoingReady = selected?.Provisioning === 'Abilitato in Mojo' || selected?.Provisioning === 'Pronto in uscita'}
+    <div class="detail">
+      <header class="detail-head">
+        <h3 id="partner-draft" tabindex="-1">{selected ? selected.Call : 'Nuovo nodo partner'}</h3>
         {#if selected}
-          {#if canEnableInbound}
-            <span class="action-help">
-              <button class="secondary" type="button" disabled={enabling || busy} onclick={() => enable()} aria-describedby="peer-enable-help">Abilita accesso in ingresso</button>
-              <span class="tooltip" id="peer-enable-help" role="tooltip">Consente al nodo remoto di collegarsi al tuo DXRegia. Per collegarti tu al partner, usa la sezione Collegamento in uscita.</span>
-            </span>
-          {/if}
-          <span class="action-help">
-            <button class="secondary" type="button" disabled={enabling || busy} onclick={refreshProvisioning} aria-describedby="peer-refresh-help">Aggiorna stato Mojo</button>
-            <span class="tooltip" id="peer-refresh-help" role="tooltip">Rilegge lo stato del collegamento e dell’abilitazione senza avviare una connessione.</span>
-          </span>
-        {:else}
-          <button class="secondary" type="submit" value="directory" disabled={busy || enabling}>Salva solo anagrafica</button>
+          <p class="observed-state">
+            <span class="led" data-tone={connectionTone(selected.Connection)} aria-hidden="true"></span>
+            {selected.Connection || 'Stato in attesa'}
+            <span class="muted">· Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'non ancora rilevata'}</span>
+          </p>
         {/if}
-      </div>
-    </form>
-    {#if selected?.Notes?.length}
-      <h3>Storico note</h3>
-      <ul>
-        {#each selected.Notes.toReversed() as entry}
-          <li><time datetime={entry.At}>{date.format(new Date(entry.At))}</time><p>{entry.Text}</p></li>
-        {/each}
-      </ul>
-    {/if}
+        <button class="secondary close" type="button" onclick={() => { editing = false; selected = undefined }}>Chiudi</button>
+      </header>
+
+      {#if selected}
+        <div class="cards">
+          <article class="card">
+            <h4><span class="step">1</span> Il tuo nodo si collega a {selected.Call}</h4>
+            <p class="hint">Usa questa sezione per collegarti tu al nodo del partner (ad esempio per ricevere i suoi spot).</p>
+            <p class="observed-state" role="status">
+              <span class="led" data-tone={connectionTone(selected.Connection)} aria-hidden="true"></span>
+              {selected.Connection || 'Stato in attesa'}
+            </p>
+            {#if selected.Reconnect}
+              <p class="muted">Riconnessione automatica: {selected.Reconnect}.
+                {#if selected.LastConnectAttempt}Ultimo tentativo {new Date(selected.LastConnectAttempt).toLocaleString('it-IT', { timeZone: 'UTC' })} UTC.{/if}
+                {#if selected.RetryEligibleAt}Prossimo tentativo dopo le {new Date(selected.RetryEligibleAt).toLocaleString('it-IT', { timeZone: 'UTC' })} UTC.{/if}
+              </p>
+            {/if}
+            <form onsubmit={connect}>
+              <label>Il nodo remoto richiede una password?
+                <select bind:value={remoteAuth} disabled={enabling || busy}>
+                  <option value="none">No, senza password</option>
+                  <option value="password">Sì, ha una password</option>
+                </select>
+              </label>
+              {#if remoteAuth === 'password'}
+                <label>Password che ti ha dato il nodo remoto
+                  <input type="text" bind:value={outgoingPassword} pattern={'[A-Za-z0-9]{1,72}'} maxlength="72" autocomplete="off" spellcheck="false" required />
+                </label>
+              {/if}
+              <label class="check"><input type="checkbox" bind:checked={autoReconnect} /> Riprova da solo se il collegamento cade</label>
+              <div class="actions">
+                {#if outgoingReady}
+                  <button disabled={enabling || busy}>Connetti ora</button>
+                {:else}
+                  <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
+                    onclick={() => enable(true)}>Prepara il collegamento</button>
+                  <span class="hint">Prima va preparato l’account sul tuo nodo; poi compare «Connetti ora».</span>
+                {/if}
+                {#if selected.Reconnect}
+                  <button class="secondary" type="button" disabled={enabling} onclick={disableReconnect}>Disattiva riconnessione</button>
+                {/if}
+              </div>
+            </form>
+            <details class="script-preview">
+              <summary>Mostra lo script di connessione</summary>
+              <pre>{[
+                'timeout 15',
+                'connect telnet ' + selected.Host + ' ' + selected.Port,
+                "'login' '" + (localNode || 'INDICATIVO NODO LOCALE') + "'",
+                ...(remoteAuth === 'password' ? ["'password:' '••••••••'"] : []),
+                'client ' + selected.Call + ' telnet',
+              ].join('\n')}</pre>
+            </details>
+          </article>
+
+          <article class="card">
+            <h4><span class="step">2</span> {selected.Call} si collega al tuo nodo</h4>
+            <p class="hint">Serve solo se il partner deve collegarsi lui al tuo server. Gli dai host, porta e una password dedicata.</p>
+            <p class="observed-state" role="status">
+              <span class="led" data-tone={inbound.tone} aria-hidden="true"></span>
+              {inbound.text}
+            </p>
+            {#if selected.MailStatus || emailStatus}<p class="muted">Email: {selected.MailStatus || emailStatus}</p>{/if}
+            {#if peerPassword && selected.Provisioning === 'Abilitato in Mojo'}
+              <p>Password del partner (mostrata ora, annotala):</p>
+              <code>{peerPassword}</code>
+            {/if}
+            <div class="actions">
+              {#if canEnableInbound}
+                {#if selected.Email}
+                  <button type="button" disabled={enabling || busy} onclick={() => enable(false, true)}>Abilita e invia l’email a {selected.Email}</button>
+                  <button class="secondary" type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita senza email</button>
+                {:else}
+                  <button type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita l’accesso</button>
+                  <span class="hint">Aggiungi l’email del referente in «Dati del nodo» per poter inviare le istruzioni.</span>
+                {/if}
+              {/if}
+              {#if selected.Provisioning === 'Abilitato in Mojo'}
+                <button type="button" disabled={enabling || busy || !selected.CanResend} onclick={resend}>Reinvia le istruzioni via email</button>
+                {#if !selected.CanResend}<span class="hint">Per reinviare servono l’email del referente e una password conservata da questa versione in poi.</span>{/if}
+              {/if}
+              <button class="secondary" type="button" disabled={enabling || busy} onclick={refreshProvisioning}>Aggiorna stato</button>
+            </div>
+          </article>
+        </div>
+      {/if}
+
+      <article class="card">
+        <h4>{selected ? 'Dati del nodo' : 'Dati del nuovo nodo'}</h4>
+        <form onsubmit={save}>
+          <div class="fields">
+            <label>Indicativo <input bind:value={form.Call} maxlength="12" readonly={Boolean(selected)} required /></label>
+            <label>Nome del nodo <input bind:value={form.Name} maxlength="120" /></label>
+            <label>Nome del referente <input bind:value={form.Contact} maxlength="120" /></label>
+            <label>Email del referente <input type="email" bind:value={form.Email} maxlength="254" /></label>
+            <label>Host del nodo <input bind:value={form.Host} maxlength="253" required /></label>
+            <label>Porta <input type="number" bind:value={form.Port} min="1" max="65535" required /></label>
+          </div>
+          {#if !selected}
+            <label class="remote-auth">Il nodo remoto richiede una password?
+              <select bind:value={remoteAuth}>
+                <option value="none">No, senza password</option>
+                <option value="password">Sì, ha una password</option>
+              </select>
+            </label>
+            {#if remoteAuth === 'password'}
+              <label class="remote-auth">Password del nodo remoto
+                <input type="text" bind:value={outgoingPassword} maxlength="72" autocomplete="off" spellcheck="false" />
+              </label>
+            {/if}
+          {/if}
+          <label class="note">Nota <textarea bind:value={note} maxlength="4000" rows="3" placeholder="Es. Inviata email al referente"></textarea></label>
+          <div class="actions">
+            <button type="submit" value={selected ? 'directory' : 'connect'} disabled={busy || enabling}>
+              {busy ? 'Salvataggio…' : selected ? 'Salva dati' : 'Salva e connetti'}
+            </button>
+            {#if !selected}
+              <button class="secondary" type="submit" value="directory" disabled={busy || enabling}>Salva solo anagrafica</button>
+            {/if}
+          </div>
+        </form>
+      </article>
+
+      {#if selected?.Notes?.length}
+        <article class="card">
+          <h4>Storico note</h4>
+          <ul>
+            {#each selected.Notes.toReversed() as entry}
+              <li><time datetime={entry.At}>{date.format(new Date(entry.At))}</time><p>{entry.Text}</p></li>
+            {/each}
+          </ul>
+        </article>
+      {/if}
+    </div>
   {/if}
 </section>
 
@@ -390,35 +439,45 @@
   section { margin-top: 20px; padding: 16px; }
   .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
   h2 { margin: 0; font-size: 1.15rem; }
-  h3 { margin: 18px 0 6px; font-size: 1rem; }
+  h3 { margin: 0; font-size: 1.2rem; }
+  h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 1rem; }
   .table-wrap { overflow: auto; margin-top: 12px; }
   table { width: 100%; text-align: left; border-collapse: collapse; white-space: nowrap; }
   th, td { padding: 5px 8px; border-bottom: 1px solid #d7dfe7; }
   th { background: #edf3f9; }
+  tr.current td { background: #e4eef7; }
+  .detail { margin-top: 18px; display: grid; gap: 14px; }
+  .detail-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; }
+  .detail-head p { margin: 0; }
+  .close { margin-left: auto; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+  .card { padding: 14px 16px; border: 1px solid #cdd9e4; border-radius: 8px; background: #ffffffb8; }
+  .card p { margin: 6px 0; }
+  .card form { display: grid; gap: 10px; margin-top: 8px; }
+  .step { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #214e80; color: #fff; font-size: .85rem; }
+  .hint, .muted { color: #485b6d; font-size: .9rem; font-weight: 450; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .check { display: flex; align-items: center; gap: 8px; font-weight: 450; }
+  .check input { min-height: auto; }
   .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px 16px; }
   label { display: grid; min-width: 0; gap: 5px; font-weight: 600; }
   .note { margin: 12px 0; }
-  .observed-state { display: flex; align-items: center; gap: .55rem; }
+  .observed-state { display: flex; align-items: center; flex-wrap: wrap; gap: .55rem; }
   .led { width: 11px; height: 11px; flex: 0 0 11px; border-radius: 50%; background: #708391; box-shadow: 0 0 0 3px #70839123; }
   .led[data-tone=green] { background: #167b50; box-shadow: 0 0 0 3px #167b5029; }
   .led[data-tone=red] { background: #b32731; box-shadow: 0 0 0 3px #b3273129; }
   .led[data-tone=amber] { background: #ad6a10; box-shadow: 0 0 0 3px #ad6a1029; }
+  .script-preview { margin-top: 10px; }
   .script-preview pre { padding: .65rem .9rem; background: #edf4f8; overflow: auto; }
-  .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-  .action-help { position: relative; }
-  .tooltip { position: absolute; z-index: 3; bottom: calc(100% + 8px); left: 0; width: max-content; max-width: min(260px, 70vw); padding: .55rem .7rem; border-radius: 6px; background: #153c52; color: #fff; font-size: .85rem; line-height: 1.4; font-weight: 450; visibility: hidden; pointer-events: none; }
-  .action-help:hover .tooltip, .action-help:focus-within .tooltip { visibility: visible; }
   .remote-auth { margin-top: 12px; max-width: 300px; }
   input, textarea, select { min-width: 0; padding: 8px; border: 1px solid #aab8c5; border-radius: 4px; font: inherit; min-height: 44px; }
 
   .call { background: none; color: #214e80; border: 0; padding: 4px; min-height: 34px; text-decoration: underline; box-shadow: none; }
   :is(button,input,textarea):focus-visible { outline: 2px solid #214e80; outline-offset: 2px; }
   [role=alert] { color: #9b2424; }
-  ul { padding: 0; list-style: none; }
+  ul { padding: 0; list-style: none; margin: 0; }
   li { border-top: 1px solid #d7dfe7; padding: 8px 0; }
   li p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 3px 0; }
-  .mail-opt { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .mail-opt input { min-height: auto; }
   code { overflow-wrap: anywhere; }
   time { color: #485b6d; font-size: .85rem; }
 </style>

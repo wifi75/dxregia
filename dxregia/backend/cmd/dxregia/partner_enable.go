@@ -5,7 +5,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 )
+
+var inboundPasswordPattern = regexp.MustCompile(`^[0-9a-f]{48}$`)
 
 func queuePartner(root, call string) (string, error) {
 	password, err := randomToken()
@@ -15,7 +18,23 @@ func queuePartner(root, call string) (string, error) {
 	if err := queuePartnerProvision(root, call, password); err != nil {
 		return "", err
 	}
+	// Conserva la password in ingresso in un file privato, per poterla reinviare al referente.
+	if err := os.WriteFile(inboundPath(root, call), []byte(password), 0600); err != nil {
+		log.Printf("Store inbound credential: %v", err)
+	}
 	return password, nil
+}
+
+func inboundPath(root, call string) string {
+	return filepath.Join(root, "local_data", "dxregia-partners", call+".inbound")
+}
+
+func readInboundPassword(root, call string) string {
+	data, err := os.ReadFile(inboundPath(root, call))
+	if err != nil || !inboundPasswordPattern.Match(data) {
+		return ""
+	}
+	return string(data)
 }
 
 func queueOutgoingPartner(root, call string) error {

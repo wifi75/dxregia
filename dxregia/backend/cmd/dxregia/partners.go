@@ -25,6 +25,7 @@ type partnerStatus struct {
 	partner
 	LastConnectAttempt *time.Time `json:",omitempty"`
 	RetryEligibleAt    *time.Time `json:",omitempty"`
+	CanResend          bool       `json:",omitempty"`
 }
 
 type partnerNote struct {
@@ -146,6 +147,8 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 						}
 					}
 				}
+				status.CanResend = callsign.MatchString(call) && len(call) <= 12 && entry.Provisioning == "Abilitato in Mojo" &&
+					entry.Email != "" && readInboundPassword(root, call) != ""
 				var job partnerMail
 				if data, err := os.ReadFile(filepath.Join(root, "local_data", "dxregia-partners", call+".mail.json")); err == nil && json.Unmarshal(data, &job) == nil {
 					status.MailStatus = job.Status
@@ -338,6 +341,47 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
 		json.NewEncoder(w).Encode(map[string]string{"Password": password, "MailStatus": mailStatus})
+	})
+	mux.HandleFunc("POST /api/partners/{call}/resend", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		call := r.PathValue("call")
+		lock.Lock()
+		defer lock.Unlock()
+		entry, ok := partners[call]
+		if !ok || !callsign.MatchString(call) || len(call) > 12 {
+			http.Error(w, "Nodo non trovato.", http.StatusNotFound)
+			return
+		}
+		if entry.Provisioning != "Abilitato in Mojo" {
+			http.Error(w, "L’accesso in ingresso non è abilitato per questo nodo.", http.StatusConflict)
+			return
+		}
+		password := readInboundPassword(root, call)
+		if password == "" {
+			http.Error(w, "La password di questo nodo non è stata conservata. Non posso reinviarla.", http.StatusConflict)
+			return
+		}
+		if mailer == nil {
+			http.Error(w, "Configura SMTP prima di inviare le istruzioni al partner.", http.StatusConflict)
+			return
+		}
+		job, err := preparePartnerMail(root, entry)
+		if err != nil {
+			http.Error(w, "Per l’email servono l’indirizzo del referente e l’host pubblico del nodo.", http.StatusBadRequest)
+			return
+		}
+		job.Password = password
+		if err := writePartnerMail(filepath.Join(root, "local_data", "dxregia-partners", call+".mail.json"), job); err != nil {
+			log.Printf("Queue partner instructions: %v", err)
+			http.Error(w, "Istruzioni non accodate. Riprova.", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusAccepted)
+		json.NewEncoder(w).Encode(map[string]string{"MailStatus": job.Status})
 	})
 	mux.HandleFunc("POST /api/partners/{call}/connect", func(w http.ResponseWriter, r *http.Request) {
 		if !auth.allowed(r) {
