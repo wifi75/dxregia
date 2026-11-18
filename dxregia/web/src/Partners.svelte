@@ -27,7 +27,8 @@
   let emailStatus = $state('')
   let localNode = $state('')
 
-  let checkingStatus = false
+  let checkingStatus = $state(false)
+  let manualStatusCall = $state('')
   let statusError = $state('')
 
   onMount(() => {
@@ -462,7 +463,15 @@
                 <button type="button" disabled={enabling || busy || !selected.CanResend} onclick={resend}>Reinvia le istruzioni via email</button>
                 {#if !selected.CanResend}<span class="hint">Per reinviare servono l’email del referente e una password conservata da questa versione in poi.</span>{/if}
               {/if}
-              <button class="secondary" type="button" disabled={enabling || busy} onclick={refreshProvisioning}>Aggiorna stato</button>
+              <button class="secondary" type="button" disabled={enabling || busy || checkingStatus} onclick={async () => {
+                manualStatusCall = selected?.Call ?? ''
+                await refreshProvisioning()
+              }}>Aggiorna stato</button>
+              {#if manualStatusCall === selected.Call}
+                <span class="hint" role="status">
+                  {checkingStatus ? 'Controllo dello stato in corso.' : statusError || `Ultimo stato: ${inbound.text}`}
+                </span>
+              {/if}
             </div>
           </article>
         </div>
