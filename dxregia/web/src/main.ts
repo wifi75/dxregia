@@ -20,3 +20,8 @@ window.fetch = async (...args: Parameters<typeof fetch>) => {
 import App from './App.svelte'
 
 mount(App, { target: document.getElementById('app')! })
+
+// Service worker: serve all'installazione come app e per aprire il portale anche senza rete.
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', () => { void navigator.serviceWorker.register('/sw.js').catch(() => {}) })
+}

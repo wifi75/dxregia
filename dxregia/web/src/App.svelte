@@ -4,6 +4,7 @@
   import Dashboard from './Dashboard.svelte'
   import { languages, lang, setLang, t } from './i18n.svelte'
   import { startAdminTranslation, translate } from './adminI18n'
+  import { canInstall, needsManualInstall, installApp } from './install.svelte'
   import { soundOn, toggleSound } from './sound.svelte'
   import { currentTheme, toggleTheme } from './theme.svelte'
   let langOpen = $state(false)
@@ -34,6 +35,8 @@
     }
   }
 
+  let iosHint = $state(false)
+  const onInstall = () => { if (needsManualInstall()) iosHint = !iosHint; else void installApp() }
   let adminTranslator: ReturnType<typeof startAdminTranslation> | undefined
   onMount(() => {
     if (publicPortal) return
@@ -72,6 +75,11 @@
       </svg>
     </button>
   {/if}
+  {#if publicPortal && canInstall()}
+    <button class="tool" type="button" title={t('installApp')} aria-label={t('installApp')} onclick={onInstall}>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M12 8v6m0 0l-2.5-2.5M12 14l2.5-2.5"/></svg>
+    </button>
+  {/if}
   <button class="tool" type="button" title={currentTheme() === 'dark' ? t('themeLight') : t('themeDark')} aria-label={currentTheme() === 'dark' ? t('themeLight') : t('themeDark')} onclick={toggleTheme}>
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       {#if currentTheme() === 'dark'}<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>{:else}<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>{/if}
@@ -102,6 +110,9 @@
   {/if}
   </div>
 </header>
+{#if iosHint && publicPortal}
+  <p class="install-hint" role="status">{t('installIos')}</p>
+{/if}
 
 {#if contactPage}
   <Contact />
@@ -163,4 +174,5 @@
   header a { color: #234968; font-weight: 650; padding: .55rem .8rem; border-radius: .5rem; text-decoration: none; }
   header a:hover, header a[aria-current=page] { background: #e7f0f7; color: #143a60; }
   main { width: 100%; padding: 24px clamp(14px, 2vw, 36px); }
+  .install-hint { margin: 8px auto 0; max-width: 560px; padding: 10px 14px; border: 1px solid #9db8cc; border-radius: 12px; background: #ffffffee; color: #143a60; font-size: .92rem; text-align: center; }
 </style>

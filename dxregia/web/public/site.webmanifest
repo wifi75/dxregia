@@ -1,20 +1,27 @@
 {
-  "name": "DXRegia",
+  "id": "/spots",
+  "name": "DXRegia – DX Cluster",
   "short_name": "DXRegia",
+  "description": "Live DX spots from the DXRegia cluster node.",
   "start_url": "/spots",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#143a60",
   "theme_color": "#143a60",
+  "categories": ["utilities", "social"],
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
