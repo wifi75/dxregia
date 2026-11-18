@@ -220,7 +220,11 @@ def spot_delivery(primary, remote, peer, peer_port):
                 print(f"Spot command reply: {reply!r}", flush=True)
                 for name in (CONTAINER, peer):
                     subprocess.run(["docker", "exec", name, "sh", "-c",
-                                    "find /data/mojo/local_data/debug -type f -name '*.dat' "
+                                    "stat -c 'presence modified at %y' /data/mojo/local_data/dxregia-presence.json; "
+                                "ps -o pid,stat,pcpu,comm -C perl; "
+                                "grep -aEi 'undefined|died at|redefined|failed at|recursion|DBD::|fatal' "
+                                "/data/mojo/local_data/dxregia-startup.log | tail -20; "
+                                "find /data/mojo/local_data/debug -type f -name '*.dat' "
                                     "-exec grep -aE 'DXREGIA-SMOKE|JA1ABC|PC61 .* dropped' {} +"],
                                    check=False)
                 raise
@@ -299,9 +303,14 @@ def peer_link(primary):
             wait_for("automatic peer reconnect", lambda: local_partner()["Connection"] == "Attivo", timeout=150)
         except RuntimeError:
             print(f"Primary partner state: {local_partner()!r}", flush=True)
+            print(f"Primary listener: {request(primary, '/api/listener')!r}", flush=True)
             print(f"Peer listener: {remote('/api/listener')!r}", flush=True)
             for name in (CONTAINER, peer):
                 subprocess.run(["docker", "exec", name, "sh", "-c",
+                                "stat -c 'presence modified at %y' /data/mojo/local_data/dxregia-presence.json; "
+                                "ps -o pid,stat,pcpu,comm -C perl; "
+                                "grep -aEi 'undefined|died at|redefined|failed at|recursion|DBD::|fatal' "
+                                "/data/mojo/local_data/dxregia-startup.log | tail -20; "
                                 "find /data/mojo/local_data/debug -type f -name '*.dat' "
                                 "-exec grep -aE 'Connect.*(Failed|timed out)|Connected.* to |PC92.*disconn|login failed' {} + "
                                 "| tail -40"], check=False)

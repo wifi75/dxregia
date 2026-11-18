@@ -169,3 +169,5 @@ Il run 44278251212 ha riprodotto il timeout di riconnessione anche con nomi DNS 
 Il test del rifiuto senza autenticazione invia ora un corpo minimo: il backend risponde prima di leggere il corpo, e l'invio di un archivio intero poteva chiudere la connessione prima che il client leggesse il 401. I due casi autenticati usano ancora archivi completi.
 
 La scheda del partner con riconnessione automatica mostra l'ultimo tentativo e l'orario UTC a partire dal quale e consentito riprovare, se l'endpoint e invariato e Mojo conferma uno stato gestibile. Il collaudo di riconnessione registrera gli stessi dati in caso di errore.
+
+Il run 44279134901 mostra che il TCP della riconnessione raggiunge il partner e il suo listener risponde; la fotografia Mojo del nodo primario non si aggiorna. La diagnosi ora raccoglie anche listener primario, mtime della fotografia e stato del processo. Il test di verifica ZIP corretto e passato sui due job nativi del run 44279401543.
