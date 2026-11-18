@@ -84,6 +84,16 @@ jobs:
         run: python3 dxregia/deploy/smoke_linux.py
       - name: Verify the native installer preserves existing data
         run: sh "$RUNNER_TEMP/bundle/dxregia-linux-$DXREGIA_ARCH/dxregia/deploy/install-native.sh"
+      - name: Publish the verified native test bundle
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dxregia-native-linux-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/bundle/dxregia-linux-${{ matrix.arch }}.tar.gz
+            ${{ runner.temp }}/bundle/dxregia-linux-${{ matrix.arch }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 14
       - name: Report native service logs on failure
         if: failure()
         run: |

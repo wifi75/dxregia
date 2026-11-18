@@ -135,3 +135,5 @@ Il percorso install-native.sh affianca Docker. Collaudo GitHub Actions 442721092
 L'analytics sysop mostra le visualizzazioni per pagina e una stima delle schede attive del portale. Una scheda visibile invia un segnale ogni 30 secondi e scade dopo 90 secondi dall'ultimo segnale. Gli identificativi casuali delle schede restano in memoria e il contatore pubblico mostra solo il totale delle visualizzazioni.
 
 Il test Linux controlla anche il contatore pubblico, l'accesso riservato agli analytics, il conteggio per pagina e dominio, i segnali duplicati della stessa scheda e la persistenza delle visualizzazioni dopo il riavvio.
+
+Il workflow Linux carica gli archivi nativi e i checksum come artefatti GitHub Actions al termine del collaudo dell'architettura corrispondente. Gli artefatti di prova durano 14 giorni e permettono il collaudo su server e LXC prima della release.
