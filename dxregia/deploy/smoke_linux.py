@@ -229,9 +229,12 @@ def peer_link(primary):
     peer = "dxregia-peer-smoke"
     peer_port, peer_web = 7393, 18808
     peer_base = f"http://{HOST}:{peer_web}"
-    docker("run", "-d", "--name", peer, "-e", f"DXREGIA_TELNET_PORT={peer_port}",
-           "-p", f"{HOST}:{peer_web}:8080", "dxregia:local")
+    network = "dxregia-peer-smoke"
+    docker("network", "create", network)
     try:
+        docker("network", "connect", network, CONTAINER)
+        docker("run", "-d", "--name", peer, "--network", network,
+               "-e", f"DXREGIA_TELNET_PORT={peer_port}", "-p", f"{HOST}:{peer_web}:8080", "dxregia:local")
         secondary = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
 
         def remote(path, body=None):
@@ -246,12 +249,10 @@ def peer_link(primary):
         config = {"node": "Q3QQQ-2", "sysop": "Q3QQQ", "locator": "JN55AA", "port": peer_port}
         assert remote("/api/setup", config) == (200, {"started": True, "port": peer_port})
 
-        def ip(name):
-            return docker("inspect", "--format", '{{(index .NetworkSettings.Networks "bridge").IPAddress}}', name).strip()
-
+        # DNS names stay valid even when Docker assigns a different IP on restart.
         local_call, peer_call = "Q1QQQ-2", "Q3QQQ-2"
-        assert remote("/api/partners", {"Call": local_call, "Host": ip(CONTAINER), "Port": TELNET_PORT})[0] == 200
-        assert request(primary, "/api/partners", {"Call": peer_call, "Host": ip(peer), "Port": peer_port})[0] == 200
+        assert remote("/api/partners", {"Call": local_call, "Host": CONTAINER, "Port": TELNET_PORT})[0] == 200
+        assert request(primary, "/api/partners", {"Call": peer_call, "Host": peer, "Port": peer_port})[0] == 200
         status, incoming = remote(f"/api/partners/{local_call}/enable", {})
         assert status == 202 and incoming["Password"]
         assert request(primary, f"/api/partners/{peer_call}/enable", {})[0] == 202
@@ -276,7 +277,9 @@ def peer_link(primary):
         # Automatic reconnect is throttled, so allow more than the retry interval.
         wait_for("automatic peer reconnect", lambda: local_partner()["Connection"] == "Attivo", timeout=150)
     finally:
-        docker("rm", "-fv", peer)
+        subprocess.run(["docker", "rm", "-fv", peer], check=False)
+        subprocess.run(["docker", "network", "disconnect", network, CONTAINER], check=False)
+        docker("network", "rm", network)
 
 
 def main():
