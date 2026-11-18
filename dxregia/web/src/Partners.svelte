@@ -447,14 +447,16 @@
               <div class="actions"><button class="secondary" type="button" onclick={revealPassword}>Mostra la password del partner</button></div>
             {/if}
             <div class="actions">
-              {#if canEnableInbound}
-                {#if selected.Email}
-                  <button type="button" disabled={enabling || busy} onclick={() => enable(false, true)}>Abilita e invia l’email a {selected.Email}</button>
+              {#if selected.Provisioning !== 'Abilitato in Mojo' && selected.Email}
+                <button type="button" disabled={!canEnableInbound || enabling || busy} onclick={() => enable(false, true)}>Abilita e invia l’email a {selected.Email}</button>
+                {#if canEnableInbound}
                   <button class="secondary" type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita senza email</button>
                 {:else}
-                  <button type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita l’accesso</button>
-                  <span class="hint">Aggiungi l’email del referente in «Dati del nodo» per poter inviare le istruzioni.</span>
+                  <span class="hint">{inbound.text}</span>
                 {/if}
+              {:else if canEnableInbound}
+                <button type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita l’accesso</button>
+                <span class="hint">Aggiungi l’email del referente in «Dati del nodo» per poter inviare le istruzioni.</span>
               {/if}
               {#if selected.Provisioning === 'Abilitato in Mojo'}
                 <button type="button" disabled={enabling || busy || !selected.CanResend} onclick={resend}>Reinvia le istruzioni via email</button>
