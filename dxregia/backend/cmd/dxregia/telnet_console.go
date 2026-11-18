@@ -30,8 +30,8 @@ func registerTelnetConsole(mux *http.ServeMux, auth *sysopAuth, target func() st
 			http.Error(w, "Formato non valido.", http.StatusUnsupportedMediaType)
 			return
 		}
-		var input struct{ Call, Command string }
-		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256))
+		var input struct{ Call, Command, Password string }
+		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 512))
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&input) != nil || decoder.Decode(new(any)) != io.EOF {
 			http.Error(w, "Richiesta non valida.", http.StatusBadRequest)
@@ -75,9 +75,9 @@ func registerTelnetConsole(mux *http.ServeMux, auth *sysopAuth, target func() st
 			http.Error(w, "Console non disponibile.", http.StatusServiceUnavailable)
 			return
 		}
-		output, err := queryTelnet(conn, call, line)
+		output, err := queryTelnet(conn, call, line, input.Password)
 		if err != nil {
-			http.Error(w, "DXSpider non ha restituito il prompt. Controlla il nominativo e lo stato del nodo.", http.StatusBadGateway)
+			http.Error(w, "DXSpider non ha restituito il prompt. Controlla nominativo, password Telnet e stato del nodo.", http.StatusBadGateway)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -85,7 +85,7 @@ func registerTelnetConsole(mux *http.ServeMux, auth *sysopAuth, target func() st
 	})
 }
 
-func queryTelnet(conn io.ReadWriter, call, command string) (string, error) {
+func queryTelnet(conn io.ReadWriter, call, command, password string) (string, error) {
 	reader := bufio.NewReader(conn)
 	if _, err := readConsolePrompt(reader, "login:"); err != nil {
 		return "", err
@@ -93,8 +93,20 @@ func queryTelnet(conn io.ReadWriter, call, command string) (string, error) {
 	if _, err := fmt.Fprintf(conn, "%s\r\n", call); err != nil {
 		return "", err
 	}
-	if _, err := readConsolePrompt(reader, "dxspider >"); err != nil {
+	welcome, err := readConsolePrompt(reader, "dxspider >", "password:")
+	if err != nil {
 		return "", err
+	}
+	if strings.HasSuffix(welcome, "password:") {
+		if password == "" || len(password) > 72 || strings.ContainsAny(password, "\r\n\x00") {
+			return "", errors.New("Telnet credentials required")
+		}
+		if _, err := fmt.Fprintf(conn, "%s\r\n", password); err != nil {
+			return "", err
+		}
+		if _, err := readConsolePrompt(reader, "dxspider >"); err != nil {
+			return "", err
+		}
 	}
 	if _, err := fmt.Fprintf(conn, "%s\r\n", command); err != nil {
 		return "", err
@@ -106,7 +118,7 @@ func queryTelnet(conn io.ReadWriter, call, command string) (string, error) {
 	return strings.TrimSpace(output), err
 }
 
-func readConsolePrompt(reader *bufio.Reader, marker string) (string, error) {
+func readConsolePrompt(reader *bufio.Reader, markers ...string) (string, error) {
 	var output strings.Builder
 	for output.Len() < 64<<10 {
 		ch, err := reader.ReadByte()
@@ -114,8 +126,10 @@ func readConsolePrompt(reader *bufio.Reader, marker string) (string, error) {
 			return "", err
 		}
 		output.WriteByte(ch)
-		if strings.HasSuffix(output.String(), marker) {
-			return output.String(), nil
+		for _, marker := range markers {
+			if strings.HasSuffix(output.String(), marker) {
+				return output.String(), nil
+			}
 		}
 	}
 	return "", errors.New("Telnet output exceeded its limit")

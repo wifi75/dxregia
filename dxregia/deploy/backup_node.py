@@ -34,6 +34,11 @@ def allowed(name):
         for part in path.parts
     ):
         return False
+    if len(path.parts) == 2 and path.parts[0] == "local_data" and (
+        path.name == ".dxregia-telnet-password" or path.name.startswith(".telnet-password-")
+        or path.name in {"dxregia-telnet-password.result", "dxregia-telnet-password.result.tmp"}
+    ):
+        return False
     if path.parts[-1] in VOLATILE:
         return False
     if len(path.parts) == 3 and path.parts[:2] == ("local_data", "dxregia-partners"):

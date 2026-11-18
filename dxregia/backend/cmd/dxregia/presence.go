@@ -24,6 +24,7 @@ type presenceChannel struct {
 
 type presence struct {
 	PartnerConnect bool
+	SysopPassword  bool
 	At             int64
 	Channels       []presenceChannel
 }
@@ -74,7 +75,8 @@ func installPresenceHook(local string) error {
 		if digest != "539ceccae21bcae0947532e152e99f180b0754aa34faece57c74f0b4a0439e61" &&
 			digest != "7205df58566bee8ccce1b013b4646642d268ff16927fe5b691b371e70464a239" &&
 			digest != "54df299595d1d8f7bd08a8f2daff868cdc5d1d918802079171d3dc80b2ae4e72" &&
-			digest != "6fdf28c9035182dd86ade8fd2c357d7e64fb0079fb8047786084699ef5f5f13f" {
+			digest != "6fdf28c9035182dd86ade8fd2c357d7e64fb0079fb8047786084699ef5f5f13f" &&
+			digest != "7174f31bd6f577fe03be6bc02f0067ac3887c56d293b12a6785f2d96b98d1742" {
 			return nil
 		}
 		return upgradePresenceHook(local, path)

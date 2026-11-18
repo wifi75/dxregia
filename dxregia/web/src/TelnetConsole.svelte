@@ -1,5 +1,6 @@
 <script lang="ts">
   let call = $state('')
+  let password = $state('')
   let command = $state('show/dx 10')
   let busy = $state(false)
   let entries = $state<{ command: string; text: string }[]>([])
@@ -13,7 +14,7 @@
       const response = await fetch('/api/console', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ call, command: submitted }),
+        body: JSON.stringify({ call, command: submitted, password }),
       })
       const text = response.ok ? (await response.json()).output : (await response.text()).trim()
       entries = [...entries.slice(-19), { command: submitted, text }]
@@ -29,6 +30,7 @@
   <h1 id="console-title">Console Telnet</h1>
   <form onsubmit={execute}>
     <label>Nominativo <input bind:value={call} required maxlength="12" autocomplete="off" spellcheck="false" /></label>
+    <label>Password Telnet (se richiesta) <input type="password" bind:value={password} maxlength="72" autocomplete="off" /></label>
     <label>Comando <input bind:value={command} required maxlength="64" autocomplete="off" spellcheck="false" /></label>
     <button disabled={busy}>{busy ? 'Attendo DXSpider…' : 'Invia comando'}</button>
     <button type="button" class="secondary" onclick={() => entries = []} disabled={busy || !entries.length}>Pulisci</button>

@@ -11,6 +11,7 @@ sub process {
     return if $now - $last_write < 5;
     $last_write = $now;
     apply_node_profile();
+    apply_sysop_password();
     provision_partners();
     connect_partners();
     my @channels;
@@ -33,9 +34,43 @@ sub process {
     my $target = "$main::local_data/dxregia-presence.json";
     my $tmp = "$target.tmp";
     open(my $file, '>:raw', $tmp) or die "DXRegia snapshot: $!";
-    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, Channels => \@channels }) or die "DXRegia snapshot: $!";
+    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, SysopPassword => JSON::true, Channels => \@channels }) or die "DXRegia snapshot: $!";
     close($file) or die "DXRegia snapshot: $!";
     rename($tmp, $target) or die "DXRegia snapshot: $!";
+}
+
+sub apply_sysop_password {
+    my $request = "$main::local_data/.dxregia-telnet-password";
+    return unless open(my $pending, '<:raw', $request);
+    my $password = '';
+    my $read = read($pending, $password, 73);
+    my $modified = (stat $pending)[9];
+    close($pending);
+    my $status = 'failed';
+    if (defined($modified) && time - $modified <= 60 &&
+        defined($read) && $password =~ /\A[!-~]{12,72}\z/) {
+        my $user = DXUser::get_current($main::myalias);
+        if ($user && $user->priv == 9) {
+            my $old = $user->passwd;
+            my $saved = eval {
+                $user->passwd($password);
+                $user->put;
+                1;
+            };
+            if ($saved) {
+                $status = 'applied';
+            } else {
+                $user->passwd($old);
+            }
+        }
+    }
+    my $result = "$main::local_data/dxregia-telnet-password.result";
+    if (open(my $out, '>:raw', "$result.tmp")) {
+        if (print($out $status) && close($out)) {
+            rename("$result.tmp", $result);
+        }
+    }
+    unlink $request;
 }
 
 sub apply_node_profile {

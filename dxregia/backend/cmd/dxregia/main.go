@@ -94,6 +94,7 @@ func main() {
 	}
 	registerBackupVerification(mux, auth, *backupTool)
 	registerPresence(mux, *setupRoot, auth)
+	registerTelnetPassword(mux, auth, *setupRoot)
 	registerSpots(mux, *setupRoot)
 	if err := registerContacts(service, mux, *setupRoot, auth); err != nil {
 		log.Fatal(err)

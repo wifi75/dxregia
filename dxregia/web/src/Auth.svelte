@@ -4,6 +4,7 @@
   import { toDataURL } from 'qrcode'
   import WebSettings from './WebSettings.svelte'
   import TelnetConsole from './TelnetConsole.svelte'
+  import PasswordSettings from './PasswordSettings.svelte'
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
   import Presence from './Presence.svelte'
@@ -19,7 +20,7 @@
   const groups = [
     { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet']] },
     { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['richieste', 'Richieste ricevute']] },
-    { label: 'Gestione', items: [['statistiche', 'Statistiche del portale'], ['backup', 'Backup']] },
+    { label: 'Gestione', items: [['statistiche', 'Statistiche del portale'], ['backup', 'Backup'], ['password', 'Password']] },
   ] as const
   type Page = typeof groups[number]['items'][number][0]
   let page = $state<Page>('stato')
@@ -177,6 +178,8 @@
           <Traffic />
         {:else if page === 'backup'}
           <BackupVerify />
+        {:else if page === 'password'}
+          <PasswordSettings />
         {/if}
       </div>
     </div>

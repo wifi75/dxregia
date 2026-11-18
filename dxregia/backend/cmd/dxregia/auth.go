@@ -78,6 +78,7 @@ func registerAuth(mux *http.ServeMux, root, bootstrapFile string) (*sysopAuth, e
 	} else if !os.IsNotExist(err) {
 		return nil, err
 	}
+	auth.registerWebPasswordChange(mux)
 	mux.HandleFunc("GET /api/auth", auth.route("status"))
 	mux.HandleFunc("POST /api/auth/login", auth.route("login"))
 	mux.HandleFunc("POST /api/auth/password", auth.route("password"))
