@@ -46,6 +46,16 @@ def copy_node(destination):
         docker("cp", CONTAINER + ":/data/mojo", str(destination))
 
 
+def backup_command(work, *args):
+    if NATIVE:
+        subprocess.run(["/opt/dxregia/bin/dxregia-backup", *map(str, args)], check=True)
+    else:
+        paths = ["/smoke/" + str(path.relative_to(work)) for path in args[1:]]
+        docker("run", "--rm", "--network", "none", "--user", f"{os.getuid()}:{os.getgid()}",
+               "--mount", f"type=bind,src={work},dst=/smoke", "--entrypoint", "python3",
+               "dxregia:local", "/opt/dxregia/backup_node.py", args[0], *paths)
+
+
 def request(client, path, body=None, method=None, base=BASE):
     req = urllib.request.Request(
         base + path,
@@ -275,10 +285,6 @@ def main():
         privileged("cat", "/var/lib/dxregia/sysop-initial")
         if NATIVE else docker("exec", CONTAINER, "cat", "/data/sysop-initial")
     )
-    if NATIVE:
-        assert "restore" in subprocess.check_output(["/opt/dxregia/bin/dxregia-backup", "--help"], text=True)
-    else:
-        assert "restore" in docker("exec", CONTAINER, "python3", "/opt/dxregia/backup_node.py", "--help")
     config = {"node": "Q1QQQ-2", "sysop": "Q1QQQ", "locator": "JN55AA", "port": TELNET_PORT}
     assert request(client, "/api/setup", config)[0] == 401
     status, login = request(client, "/api/auth/login", virgin)
@@ -309,16 +315,15 @@ def main():
         base = Path(folder)
         source, restored, archive = base / "mojo", base / "restored", base / "node.zip"
         copy_node(source)
-        tool = Path(__file__).with_name("backup_node.py")
         for arguments in [("backup", source, archive), ("verify", archive), ("restore", archive, restored)]:
-            subprocess.run([sys.executable, str(tool), *map(str, arguments)], check=True)
+            backup_command(base, *arguments)
         assert (restored / "local/DXVars.pm").read_bytes() == (source / "local/DXVars.pm").read_bytes()
         assert (restored / "local_data/dxusers.db").read_bytes() == (source / "local_data/dxusers.db").read_bytes()
         # Emulate an existing Mojo installation on this disposable copy.
         for marker in ("dxregia-node.json", "dxregia-initialized"):
             (restored / "local" / marker).unlink()
         adopted = base / "adopted"
-        migration = tool.with_name("migrate_mojo.py")
+        migration = Path(__file__).with_name("migrate_mojo.py")
         subprocess.run([sys.executable, "-B", str(migration), str(restored), str(adopted)], check=True)
         assert (adopted / "local/dxregia-initialized").is_file()
         assert (adopted / "local_data/dxusers.db").read_bytes() == (source / "local_data/dxusers.db").read_bytes()

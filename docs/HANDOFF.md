@@ -156,4 +156,4 @@ Il run 44276565981 ha ricevuto lo spot su Telnet in entrambe le architetture, ma
 
 L'installatore Docker accetta DXREGIA_TELNET_BIND come quello nativo. La matrice verifica l'endpoint host pubblicato, su loopback per amd64 e su tutte le interfacce IPv4 per arm64. Le riesecuzioni richiedono le impostazioni del container esistente.
 
-Gli ambienti installati su Linux includono Python e lo strumento di backup verificabile: dxregia-backup nel runtime nativo e backup_node.py nell'immagine Docker. Il collaudo verifica la presenza dello strumento, il backup offline e il ripristino su copia. Rimane aperto il coordinamento dal pannello web.
+Gli ambienti installati su Linux includono Python e lo strumento di backup verificabile: dxregia-backup nel runtime nativo e backup_node.py nell'immagine Docker. Il collaudo esegue backup, verifica e ripristino su copia usando lo strumento distribuito con ciascuna installazione. Rimane aperto il coordinamento dal pannello web.
