@@ -62,7 +62,7 @@
     <p>{kind === 'telnet' ? 'Usa questa password con il nominativo sysop su Telnet. Almeno 12 caratteri, senza spazi.' : 'Dopo il cambio dovrai accedere di nuovo con la nuova password.'}</p>
     <label>Nuova password <input type="password" bind:value={password} minlength="12" maxlength="72" autocomplete="new-password" required disabled={busy} /></label>
     <label>Conferma password <input type="password" bind:value={confirmation} autocomplete="new-password" required disabled={busy} /></label>
-    <label>Nuovo codice 2FA <input bind:value={code} inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" required disabled={busy} /></label>
+    <label>Nuovo codice 2FA <input bind:value={code} inputmode="numeric" autocomplete="one-time-code" pattern={'[0-9]{6}'} required disabled={busy} /></label>
     <button disabled={busy}>{busy ? 'Salvataggio…' : 'Cambia password'}</button>
   </form>
   {#if status}<p role="status">{status}</p>{/if}
