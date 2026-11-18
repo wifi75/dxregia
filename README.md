@@ -1,26 +1,10 @@
 # DXRegia
 
-[![Versione](https://img.shields.io/github/v/release/wifi75/dxregia?display_name=tag&color=147d72)](https://github.com/wifi75/dxregia/releases)
-[![Test Linux](https://img.shields.io/github/actions/workflow/status/wifi75/dxregia/linux-smoke.yml?branch=main&label=Test%20Linux&logo=githubactions&logoColor=white)](https://github.com/wifi75/dxregia/actions/workflows/linux-smoke.yml)
-[![Licenza: Artistic 2.0](https://img.shields.io/badge/Licenza-Artistic%202.0-0b6e99)](LICENSE)
-[![Stato: in sviluppo](https://img.shields.io/badge/Stato-in%20sviluppo-e0a23b)](TASK.md)
-[![Ultimo commit](https://img.shields.io/github/last-commit/wifi75/dxregia?color=475569)](https://github.com/wifi75/dxregia/commits/main)
-[![Manutenzione: attiva 2026](https://img.shields.io/badge/Manutenzione-attiva%202026-2ea44f)](TASK.md)
+<p><a href="https://github.com/wifi75/dxregia/releases"><img src="https://img.shields.io/github/v/release/wifi75/dxregia?display_name=tag&amp;color=147d72" alt="Versione"></a>&thinsp;<a href="https://github.com/wifi75/dxregia/actions/workflows/linux-smoke.yml"><img src="https://img.shields.io/github/actions/workflow/status/wifi75/dxregia/linux-smoke.yml?branch=main&amp;label=Test%20Linux&amp;logo=githubactions&amp;logoColor=white" alt="Test Linux"></a>&thinsp;<a href="LICENSE"><img src="https://img.shields.io/badge/Licenza-Artistic%202.0-0b6e99" alt="Licenza: Artistic 2.0"></a>&thinsp;<a href="TASK.md"><img src="https://img.shields.io/badge/Stato-in%20sviluppo-e0a23b" alt="Stato: in sviluppo"></a>&thinsp;<a href="https://github.com/wifi75/dxregia/commits/main"><img src="https://img.shields.io/github/last-commit/wifi75/dxregia?color=475569" alt="Ultimo commit"></a>&thinsp;<a href="TASK.md"><img src="https://img.shields.io/badge/Manutenzione-attiva%202026-2ea44f" alt="Manutenzione: attiva 2026"></a></p>
 
-[![Backend: Go 1.22](https://img.shields.io/badge/Backend-Go%201.22-00ADD8?logo=go&logoColor=white)](dxregia/backend/README.md)
-[![Pannello: Svelte 5](https://img.shields.io/badge/Pannello-Svelte%205-FF3E00?logo=svelte&logoColor=white)](dxregia/web/README.md)
-[![TypeScript 5.9](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite 7](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
-[![Motore: DXSpider Mojo](https://img.shields.io/badge/Motore-DXSpider%20Mojo-147d72)](https://github.com/EA3CV/dxspider/tree/mojo)
-[![Perl 5.38](https://img.shields.io/badge/Perl-5.38-39457E?logo=perl&logoColor=white)](https://www.perl.org/)
-[![Console: Telnet](https://img.shields.io/badge/Console-Telnet-334155)](docs/INTERFACES.md)
+<p><a href="dxregia/backend/README.md"><img src="https://img.shields.io/badge/Backend-Go%201.22-00ADD8?logo=go&amp;logoColor=white" alt="Backend: Go 1.22"></a>&thinsp;<a href="dxregia/web/README.md"><img src="https://img.shields.io/badge/Pannello-Svelte%205-FF3E00?logo=svelte&amp;logoColor=white" alt="Pannello: Svelte 5"></a>&thinsp;<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&amp;logoColor=white" alt="TypeScript 5.9"></a>&thinsp;<a href="https://vite.dev/"><img src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite&amp;logoColor=white" alt="Vite 7"></a>&thinsp;<a href="https://github.com/EA3CV/dxspider/tree/mojo"><img src="https://img.shields.io/badge/Motore-DXSpider%20Mojo-147d72" alt="Motore: DXSpider Mojo"></a>&thinsp;<a href="https://www.perl.org/"><img src="https://img.shields.io/badge/Perl-5.38-39457E?logo=perl&amp;logoColor=white" alt="Perl 5.38"></a>&thinsp;<a href="docs/INTERFACES.md"><img src="https://img.shields.io/badge/Console-Telnet-334155" alt="Console: Telnet"></a></p>
 
-[![Destinazione: Linux](https://img.shields.io/badge/Destinazione-Linux-334155?logo=linux&logoColor=white)](docs/INSTALLATION.md)
-[![Collaudato: Ubuntu 24.04 amd64 e arm64](https://img.shields.io/badge/Collaudato-Ubuntu%2024.04%20%C2%B7%20amd64%20%C2%B7%20arm64-E95420?logo=ubuntu&logoColor=white)](docs/INSTALLATION.md)
-[![Docker disponibile](https://img.shields.io/badge/Docker-disponibile-2496ED?logo=docker&logoColor=white)](dxregia/deploy/README.md)
-[![Lingue: IT EN ES DE FR PT](https://img.shields.io/badge/Lingue-IT%20%C2%B7%20EN%20%C2%B7%20ES%20%C2%B7%20DE%20%C2%B7%20FR%20%C2%B7%20PT-0f766e)](dxregia/web/src/translations.ts)
-[![SemVer 2.0.0](https://img.shields.io/badge/SemVer-2.0.0-3F4551?logo=semver&logoColor=white)](https://semver.org/lang/it/)
-[![Keep a Changelog](https://img.shields.io/badge/Changelog-Keep%20a%20Changelog-E05735?logo=keepachangelog&logoColor=white)](CHANGELOG.md)
+<p><a href="docs/INSTALLATION.md"><img src="https://img.shields.io/badge/Destinazione-Linux-334155?logo=linux&amp;logoColor=white" alt="Destinazione: Linux"></a>&thinsp;<a href="docs/INSTALLATION.md"><img src="https://img.shields.io/badge/Collaudato-Ubuntu%2024.04%20%C2%B7%20amd64%20%C2%B7%20arm64-E95420?logo=ubuntu&amp;logoColor=white" alt="Collaudato: Ubuntu 24.04 amd64 e arm64"></a>&thinsp;<a href="dxregia/deploy/README.md"><img src="https://img.shields.io/badge/Docker-disponibile-2496ED?logo=docker&amp;logoColor=white" alt="Docker disponibile"></a>&thinsp;<a href="dxregia/web/src/translations.ts"><img src="https://img.shields.io/badge/Lingue-IT%20%C2%B7%20EN%20%C2%B7%20ES%20%C2%B7%20DE%20%C2%B7%20FR%20%C2%B7%20PT-0f766e" alt="Lingue: IT EN ES DE FR PT"></a>&thinsp;<a href="https://semver.org/lang/it/"><img src="https://img.shields.io/badge/SemVer-2.0.0-3F4551?logo=semver&amp;logoColor=white" alt="SemVer 2.0.0"></a>&thinsp;<a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Changelog-Keep%20a%20Changelog-E05735?logo=keepachangelog&amp;logoColor=white" alt="Keep a Changelog"></a></p>
 
 **Un nodo DX Cluster per Linux con pannello web, basato su DXSpider Mojo.**
 
