@@ -129,6 +129,31 @@
     }
   }
 
+  async function revealPassword() {
+    const call = selected?.Call
+    if (!call || enabling) return
+    error = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/inbound-password', { cache: 'no-store' })
+      if (!response.ok) {
+        error = (await response.text()).trim()
+        return
+      }
+      peerPassword = (await response.json()).password
+    } catch {
+      error = 'Impossibile leggere la password.'
+    }
+  }
+
+  async function copyPassword() {
+    try {
+      await navigator.clipboard.writeText(peerPassword)
+      message = 'Password copiata.'
+    } catch {
+      message = 'Copia non riuscita: selezionala a mano.'
+    }
+  }
+
   async function resend() {
     const call = selected?.Call
     if (!call || enabling) return
@@ -370,8 +395,14 @@
             </p>
             {#if selected.MailStatus || emailStatus}<p class="muted">Email: {selected.MailStatus || emailStatus}</p>{/if}
             {#if peerPassword && selected.Provisioning === 'Abilitato in Mojo'}
-              <p>Password del partner (mostrata ora, annotala):</p>
+              <p>Password del partner:</p>
               <code>{peerPassword}</code>
+              <div class="actions">
+                <button class="secondary" type="button" onclick={copyPassword}>Copia</button>
+                <button class="secondary" type="button" onclick={() => { peerPassword = '' }}>Nascondi</button>
+              </div>
+            {:else if selected.Provisioning === 'Abilitato in Mojo' && selected.CanResend}
+              <div class="actions"><button class="secondary" type="button" onclick={revealPassword}>Mostra la password del partner</button></div>
             {/if}
             <div class="actions">
               {#if canEnableInbound}

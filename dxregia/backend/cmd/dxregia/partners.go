@@ -356,6 +356,28 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		w.WriteHeader(http.StatusAccepted)
 		json.NewEncoder(w).Encode(map[string]string{"Password": password, "MailStatus": mailStatus})
 	})
+	mux.HandleFunc("GET /api/partners/{call}/inbound-password", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		call := r.PathValue("call")
+		lock.Lock()
+		defer lock.Unlock()
+		entry, ok := partners[call]
+		if !ok || !callsign.MatchString(call) || len(call) > 12 || entry.Provisioning != "Abilitato in Mojo" {
+			http.NotFound(w, r)
+			return
+		}
+		password := readInboundPassword(root, call)
+		if password == "" {
+			http.Error(w, "Questa password non è stata conservata: è stata generata prima di questa versione.", http.StatusConflict)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"password": password})
+	})
 	mux.HandleFunc("POST /api/partners/{call}/resend", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		if !auth.allowed(r) {
