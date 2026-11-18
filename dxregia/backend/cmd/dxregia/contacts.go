@@ -32,10 +32,7 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 	}
 	path := filepath.Join(root, ".dxregia-contacts.json")
 	config := filepath.Join(root, "local", "dxregia-node.json")
-	mailer, err := loadContactMailer()
-	if err != nil {
-		return err
-	}
+	mailer := func() *contactMailer { return currentMailer(root) }
 	var requests []contactRequest
 	if data, err := os.ReadFile(path); err == nil {
 		if err := json.Unmarshal(data, &requests); err != nil {
@@ -45,7 +42,7 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 		return err
 	}
 	var lock sync.Mutex
-	if mailer != nil {
+	{
 		go func() {
 			timer := time.NewTicker(30 * time.Second)
 			defer timer.Stop()
@@ -54,6 +51,10 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 				case <-ctx.Done():
 					return
 				case <-timer.C:
+					m := mailer()
+					if m == nil {
+						continue
+					}
 					lock.Lock()
 					index := slices.IndexFunc(requests, func(item contactRequest) bool { return item.MailStatus == "In coda" })
 					var item contactRequest
@@ -64,7 +65,7 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 					if index < 0 {
 						continue
 					}
-					status := mailer.notify(config, item)
+					status := m.notify(config, item)
 					lock.Lock()
 					requests[index].MailStatus = status
 					if err := saveContacts(path, requests); err != nil {
@@ -106,7 +107,7 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 			return
 		}
 		item := contactRequest{contactInput: input, ID: id, ReceivedAt: now, MailStatus: "SMTP non configurato"}
-		if mailer != nil {
+		if mailer() != nil {
 			item.MailStatus = "In coda"
 		}
 		if err := saveContacts(path, append(requests, item)); err != nil {

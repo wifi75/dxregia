@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { dxccFlags } from './dxccFlags'
   import { onMount } from 'svelte'
 
   type Spot = { Frequency: number; Call: string; At: number; Comment: string; Spotter: string; DXCC: number; Entity?: string }
@@ -26,9 +27,9 @@
     '30 m': '#cbe19c', '20 m': '#ffd48a', '17 m': '#dfcbf7', '15 m': '#aee1ed',
     '12 m': '#c6dafa', '10 m': '#c2e7a7', '6 m': '#facdd4', 'VHF+': '#d8e5ef',
   }
-  const entities: Record<number, [string, string]> = {
-    23: ['Portogallo', 'pt'], 25: ['Madeira', 'pt'], 36: ['Canarie', 'es'], 95: ['Giappone', 'jp'],
-    124: ['Argentina', 'ar'], 129: ['Austria', 'at'], 142: ['Brasile', 'br'], 226: ['Stati Uniti', 'us'], 277: ['Figi', 'fj'],
+  const entities: Record<number, [string]> = {
+    23: ['Portogallo'], 25: ['Madeira'], 36: ['Canarie'], 95: ['Giappone'],
+    124: ['Argentina'], 129: ['Austria'], 142: ['Brasile'], 226: ['Stati Uniti'], 277: ['Figi'],
   }
   let filtered = $derived(spots.filter(spot =>
     (!selectedBand || bandFor(spot.Frequency) === selectedBand) &&
@@ -123,12 +124,10 @@
               <td><span class="mode" data-mode={modeFor(spot.Comment)}>{modeFor(spot.Comment) || '—'}</span></td>
               <td><strong>{spot.Call}</strong></td>
               <td>
-                {#if entities[spot.DXCC]}
-                  <img src={'/flags/' + entities[spot.DXCC][1] + '.png'} alt="" width="26" height="17" />
-                  {entities[spot.DXCC][0]}
-                {:else}
-                  {spot.Entity || (spot.DXCC > 0 && spot.DXCC !== 666 ? 'DXCC ' + spot.DXCC : '—')}
+                {#if dxccFlags[spot.DXCC]}
+                  <img src={'/flags/' + dxccFlags[spot.DXCC] + '.svg'} alt="" width="26" height="19" loading="lazy" />
                 {/if}
+                {entities[spot.DXCC]?.[0] ?? (spot.Entity || (spot.DXCC > 0 && spot.DXCC !== 666 ? 'DXCC ' + spot.DXCC : '—'))}
               </td>
               <td class="comment">{spot.Comment}</td>
               <td>{utc.format(new Date(spot.At * 1000))}</td>

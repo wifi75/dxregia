@@ -94,6 +94,7 @@ func main() {
 	}
 	registerBackupVerification(mux, auth, *backupTool)
 	registerPresence(mux, *setupRoot, auth)
+	registerSMTP(mux, *setupRoot, auth)
 	registerMojoLog(mux, auth, *setupRoot)
 	registerTelnetPassword(mux, auth, *setupRoot)
 	registerTelnetOptions(mux, auth, *setupRoot)

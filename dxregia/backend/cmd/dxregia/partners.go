@@ -80,11 +80,8 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	mailer, err := loadContactMailer()
-	if err != nil {
-		return err
-	}
-	if mailer != nil {
+	mailer := func() *contactMailer { return currentMailer(root) }
+	{
 		go func() {
 			ticker := time.NewTicker(30 * time.Second)
 			defer ticker.Stop()
@@ -93,7 +90,11 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				case <-ctx.Done():
 					return
 				case <-ticker.C:
-					processPartnerMail(root, mailer, readPresence(filepath.Join(root, "local_data", "dxregia-presence.json")))
+					m := mailer()
+					if m == nil {
+						continue
+					}
+					processPartnerMail(root, m, readPresence(filepath.Join(root, "local_data", "dxregia-presence.json")))
 				}
 			}
 		}()
@@ -308,7 +309,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		var job partnerMail
 		if options.SendMail {
-			if mailer == nil {
+			if mailer() == nil {
 				http.Error(w, "Configura SMTP prima di inviare le istruzioni al partner.", http.StatusConflict)
 				return
 			}
@@ -365,7 +366,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "La password di questo nodo non è stata conservata. Non posso reinviarla.", http.StatusConflict)
 			return
 		}
-		if mailer == nil {
+		if mailer() == nil {
 			http.Error(w, "Configura SMTP prima di inviare le istruzioni al partner.", http.StatusConflict)
 			return
 		}

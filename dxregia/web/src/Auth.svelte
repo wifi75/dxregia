@@ -10,6 +10,7 @@
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
   import BackupVerify from './BackupVerify.svelte'
+  import MailSettings from './MailSettings.svelte'
   import Traffic from './Traffic.svelte'
   import ContactRequests from './ContactRequests.svelte'
   import type { ContactRequest } from './ContactRequests.svelte'
@@ -21,7 +22,7 @@
   const groups = [
     { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet'], ['opzioni-telnet', 'Opzioni Telnet'], ['log-dxspider', 'Log DXSpider']] },
     { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['richieste', 'Richieste ricevute']] },
-    { label: 'Gestione', items: [['statistiche', 'Statistiche del portale'], ['backup', 'Backup'], ['password', 'Password']] },
+    { label: 'Gestione', items: [['statistiche', 'Statistiche del portale'], ['posta', 'Server di posta'], ['backup', 'Backup'], ['password', 'Password']] },
   ] as const
   type Page = typeof groups[number]['items'][number][0]
   let page = $state<Page>('stato')
@@ -181,6 +182,8 @@
           }} />
         {:else if page === 'statistiche'}
           <Traffic />
+        {:else if page === 'posta'}
+          <MailSettings />
         {:else if page === 'backup'}
           <BackupVerify />
         {:else if page === 'password'}
