@@ -1,6 +1,7 @@
 <script lang="ts">
   import { dxccFlags } from './dxccFlags'
   import { onMount } from 'svelte'
+  import Sponsor from './Sponsor.svelte'
   import { t, locale, lang } from './i18n.svelte'
   import { soundOn, chirp, unlockAudio } from './sound.svelte'
 
@@ -165,6 +166,7 @@
 </script>
 
 <main aria-labelledby="spots-title">
+  <Sponsor />
   <section class="filters glass-panel glass-enter" aria-label={t('filters')}>
     <div class="chip-row">
       <div class="chips" role="group" aria-label={t('bands')}>
@@ -246,10 +248,6 @@
     <span class="dot" aria-hidden="true"></span>
     <span class="author">By IU3WJQ - Tiziano Cassone</span>
   </footer>
-  <p class="sponsor">
-    <span>{t('sponsorLabel')}</span>
-    <a href={'https://aurora.iu3wjq.com/' + (['it', 'es', 'de', 'fr'].includes(lang()) ? lang() : 'en') + '/'} target="_blank" rel="noopener noreferrer"><strong>Aurora</strong> · {t('sponsorText')}</a>
-  </p>
   {#if popup}
     <div class="popup" role="dialog" aria-label={t('adxoTitle')} style:left={popup.x + 'px'} style:top={popup.y + 'px'} onclick={event => event.stopPropagation()} onmouseenter={keepInfo} onmouseleave={hideInfoSoon}>
       <h4>{t('adxoTitle')}: {popup.entry.Entity}</h4>
@@ -350,8 +348,4 @@
   .project:hover { text-decoration: underline; }
   .dot { width: 4px; height: 4px; border-radius: 50%; background: #8aa3b5; }
   .author { color: inherit; opacity: .85; white-space: nowrap; }
-  .sponsor { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; margin: 10px auto 0; max-width: 100%; font-size: .85rem; color: #274760; text-align: center; }
-  .sponsor span { text-transform: uppercase; letter-spacing: .06em; font-size: .72rem; opacity: .75; align-self: center; }
-  .sponsor a { color: #175c82; text-decoration: none; }
-  .sponsor a:hover { text-decoration: underline; }
 </style>

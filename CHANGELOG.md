@@ -5,6 +5,7 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 ## [Unreleased]
 
 ### Added
+- Portal: dismissible Aurora sponsor banner on the spots page (six languages; closing it hides it for 7 days) and the author credit in the footer.
 - Admin panel translated into the six portal languages (the language button is now in the admin header too). Texts live in `dxregia/web/src/adminTranslations.ts`; `scripts/missing_admin_strings.py` lists texts without a translation.
 - Partner card: shows whether the partner is connected to this node (incoming) and when it first did.
 - Portal footer: DXSpider version in use.
