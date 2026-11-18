@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <title>DXRegia</title>
+  <rect width="120" height="120" rx="26" fill="#143a60"/>
+  <path d="M24 34h20a26 26 0 0 1 0 52H24z M36 45v30h8a15 15 0 0 0 0-30z" fill="#ffffff" fill-rule="evenodd"/>
+  <path d="M72 34l24 52M96 34L72 86" stroke="#f0a23a" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <rect x="24" y="96" width="72" height="5" rx="2.5" fill="#3a82c0"/>
+</svg>

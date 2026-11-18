@@ -85,6 +85,48 @@ func analyticsBand(khz float64) string {
 	return "Altre"
 }
 
+// Se il commento non indica il modo, lo si deduce dalla frequenza (piano di banda IARU regione 1),
+// come fa la pagina pubblica degli spot.
+var (
+	inferFT8 = []float64{1840, 3573, 5357, 7074, 10136, 14074, 18100, 21074, 24915, 28074, 50313}
+	inferFT4 = []float64{3575.5, 7047.5, 10140, 14080, 18104, 21140, 24919, 28180, 50318}
+	inferSeg = []struct {
+		Low, High float64
+		Mode      string
+	}{
+		{1800, 1838, "CW"}, {1838, 1843, "DIGI"}, {1843, 2000, "SSB"},
+		{3500, 3570, "CW"}, {3570, 3600, "DIGI"}, {3600, 3800, "SSB"},
+		{5351, 5367, "DIGI"},
+		{7000, 7040, "CW"}, {7040, 7060, "DIGI"}, {7060, 7200, "SSB"},
+		{10100, 10130, "CW"}, {10130, 10150, "DIGI"},
+		{14000, 14070, "CW"}, {14070, 14099, "DIGI"}, {14112, 14350, "SSB"},
+		{18068, 18095, "CW"}, {18095, 18109, "DIGI"}, {18111, 18168, "SSB"},
+		{21000, 21070, "CW"}, {21070, 21150, "DIGI"}, {21151, 21450, "SSB"},
+		{24890, 24915, "CW"}, {24915, 24931, "DIGI"}, {24931, 24990, "SSB"},
+		{28000, 28070, "CW"}, {28070, 28190, "DIGI"}, {28225, 29700, "SSB"},
+		{50000, 50100, "CW"}, {50100, 50300, "SSB"}, {50300, 50500, "DIGI"},
+	}
+)
+
+func inferMode(khz float64) string {
+	for _, value := range inferFT8 {
+		if khz >= value-1.2 && khz <= value+1.2 {
+			return "FT8"
+		}
+	}
+	for _, value := range inferFT4 {
+		if khz >= value-1.2 && khz <= value+1.2 {
+			return "FT4"
+		}
+	}
+	for _, segment := range inferSeg {
+		if khz >= segment.Low && khz < segment.High {
+			return segment.Mode
+		}
+	}
+	return ""
+}
+
 func topItems(counts map[string]uint64, limit int) []countItem {
 	items := make([]countItem, 0, len(counts))
 	for name, count := range counts {
@@ -136,11 +178,14 @@ func analyzeSpots(root string, days int, now time.Time, names map[int]string) sp
 			perDay[when.Format(time.DateOnly)]++
 			report.Hours[when.Hour()]++
 			bands[analyticsBand(khz)]++
-			if match := analyticsMode.FindString(columns[3]); match != "" {
-				mode := strings.ToUpper(match)
-				if mode == "USB" || mode == "LSB" {
-					mode = "SSB"
-				}
+			mode := strings.ToUpper(analyticsMode.FindString(columns[3]))
+			if mode == "" {
+				mode = inferMode(khz)
+			}
+			if mode == "USB" || mode == "LSB" {
+				mode = "SSB"
+			}
+			if mode != "" {
 				modes[mode]++
 			}
 			dx[columns[1]]++

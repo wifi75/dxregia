@@ -44,7 +44,7 @@
 
 <header>
   <div class="brandline">
-    <a class="brand" href="/spots"><span class="signal-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DXRegia</a>
+    <a class="brand" href="/spots"><img class="brand-icon" src="/brand/dxregia-icon.svg" alt="" width="32" height="32">DXRegia</a>
     {#if publicPortal && !contactPage}
       <span class="sep" aria-hidden="true">–</span>
       <h1 id="spots-title" class="page">{t('spotsTitle')}</h1>
@@ -134,14 +134,8 @@
   .lang-menu button:hover:not(:disabled) { background: #e7f0f7; transform: none; filter: none; }
   .lang-menu button[aria-checked=true] { background: #dcebf6; color: #143a60; }
   .lang-menu img { border: 1px solid #15263826; border-radius: 2px; object-fit: cover; }
-  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   header .brand { display: inline-flex; gap: 9px; align-items: center; padding-inline: 0; font-size: 1.25rem; font-weight: 800; color: #143a60; }
-  .signal-mark { display: inline-flex; align-items: end; gap: 2px; height: 18px; }
-  .signal-mark i { display: block; width: 3px; height: 5px; background: #146690; border-radius: 1px; }
-  .signal-mark i:nth-child(2) { height: 9px; }
-  .signal-mark i:nth-child(3) { height: 13px; }
-  .signal-mark i:nth-child(4) { height: 18px; background: #e39221; }
-  p, dt { color: #485b6d; }
+  .brand-icon { display: block; width: 32px; height: 32px; border-radius: 8px; }
   header { justify-content: space-between; align-items: center; flex-wrap: wrap; }
   header nav { display: flex; flex-wrap: wrap; gap: .35rem; }
   .brandline { display: flex; align-items: baseline; gap: 10px; min-width: 0; }

@@ -35,8 +35,12 @@
     const base = full.replace(/\/(P|QRP|M|MM|AM)$/, '')
     return adxoMap.get(full) ?? adxoMap.get(base) ?? adxoPrefixes.find(entry => base.startsWith(entry.Call))
   }
-  function openInfo(event: MouseEvent, entry: Adxo) {
+  let closeTimer: ReturnType<typeof setTimeout> | undefined
+  const keepInfo = () => { clearTimeout(closeTimer) }
+  const hideInfoSoon = () => { clearTimeout(closeTimer); closeTimer = setTimeout(() => { popup = undefined }, 180) }
+  function openInfo(event: Event, entry: Adxo) {
     event.stopPropagation()
+    clearTimeout(closeTimer)
     const button = event.currentTarget as HTMLElement
     const host = button.closest('main')!.getBoundingClientRect()
     const rect = button.getBoundingClientRect()
@@ -54,6 +58,31 @@
   let views = $state<number>()
   const bandFor = (frequency: number) => bands.find(([, low, high]) => frequency >= low && frequency <= high)?.[0] ?? ''
   const modeFor = (comment: string) => comment.match(/\b(FT8|FT4|SSB|CW|RTTY|PSK31|USB|LSB)\b/i)?.[1].toUpperCase() ?? ''
+  // Se il commento non indica il modo, lo si deduce dalla frequenza (piano di banda IARU regione 1).
+  const ft8 = [1840, 3573, 5357, 7074, 10136, 14074, 18100, 21074, 24915, 28074, 50313]
+  const ft4 = [3575.5, 7047.5, 10140, 14080, 18104, 21140, 24919, 28180, 50318]
+  const segments: [number, number, string][] = [
+    [1800, 1838, 'CW'], [1838, 1843, 'DIGI'], [1843, 2000, 'SSB'],
+    [3500, 3570, 'CW'], [3570, 3600, 'DIGI'], [3600, 3800, 'SSB'],
+    [5351, 5367, 'DIGI'],
+    [7000, 7040, 'CW'], [7040, 7060, 'DIGI'], [7060, 7200, 'SSB'],
+    [10100, 10130, 'CW'], [10130, 10150, 'DIGI'],
+    [14000, 14070, 'CW'], [14070, 14099, 'DIGI'], [14112, 14350, 'SSB'],
+    [18068, 18095, 'CW'], [18095, 18109, 'DIGI'], [18111, 18168, 'SSB'],
+    [21000, 21070, 'CW'], [21070, 21150, 'DIGI'], [21151, 21450, 'SSB'],
+    [24890, 24915, 'CW'], [24915, 24931, 'DIGI'], [24931, 24990, 'SSB'],
+    [28000, 28070, 'CW'], [28070, 28190, 'DIGI'], [28225, 29700, 'SSB'],
+    [50000, 50100, 'CW'], [50100, 50300, 'SSB'], [50300, 50500, 'DIGI'],
+  ]
+  function inferMode(khz: number) {
+    if (ft8.some(value => Math.abs(khz - value) <= 1.2)) return 'FT8'
+    if (ft4.some(value => Math.abs(khz - value) <= 1.2)) return 'FT4'
+    return segments.find(([low, high]) => khz >= low && khz < high)?.[2] ?? ''
+  }
+  const modeInfo = (spot: Spot) => {
+    const declared = modeFor(spot.Comment)
+    return declared ? { mode: declared, inferred: false } : { mode: inferMode(spot.Frequency), inferred: true }
+  }
   const colors: Record<string, string> = {
     '160 m': '#f1bfae', '80 m': '#f6cf9b', '60 m': '#f2dbaf', '40 m': '#f2e39a',
     '30 m': '#cbe19c', '20 m': '#ffd48a', '17 m': '#dfcbf7', '15 m': '#aee1ed',
@@ -75,8 +104,8 @@
   const groupOf = (value: string) => ['FT8', 'FT4', 'RTTY', 'PSK31'].includes(value) ? 'DIGI' : ['SSB', 'USB', 'LSB'].includes(value) ? 'SSB' : value
   let filtered = $derived(spots.filter(spot =>
     (!bandSel.length || bandSel.includes(bandFor(spot.Frequency))) &&
-    (!modeSel.length || modeSel.includes(groupOf(modeFor(spot.Comment)))) &&
-    (!noFt8 || modeFor(spot.Comment) !== 'FT8') &&
+    (!modeSel.length || modeSel.includes(groupOf(modeInfo(spot).mode))) &&
+    (!noFt8 || modeInfo(spot).mode !== 'FT8') &&
     (!query.trim() || [spot.Call, spot.Spotter, spot.Comment].some(value => value.toLowerCase().includes(query.trim().toLowerCase())))
   ))
 
@@ -164,11 +193,12 @@
         <thead><tr><th scope="col">{t('thDe')}</th><th scope="col">{t('thFreq')} <small>kHz</small></th><th>{t('thMode')}</th><th>{t('thDx')}</th><th>{t('thEntity')}</th><th>{t('thComment')}</th><th>{t('thUtc')}</th></tr></thead>
         <tbody>
           {#each rowsKeyed(filtered) as { spot, key, id } (key)}
+            {@const m = modeInfo(spot)}
             <tr class:fresh={freshKeys.has(id)}>
               <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Spotter} onclick={() => query = spot.Spotter}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>{spot.Spotter}</span></td>
               <td><strong class="frequency" style:--c={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
-              <td data-empty={!modeFor(spot.Comment) || undefined}><span class="mode" data-mode={modeFor(spot.Comment)}>{modeFor(spot.Comment) || '—'}</span></td>
-              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><strong>{spot.Call}</strong>{#if adxoFor(spot.Call)}{@const entry = adxoFor(spot.Call)!}<button class="info" type="button" title={t('adxoTitle') + ': ' + entry.Entity} aria-label={t('adxoTitle') + ': ' + entry.Entity} onclick={event => openInfo(event, entry)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg></button>{/if}</span></td>
+              <td data-empty={!m.mode || undefined}><span class="mode" data-mode={m.mode} data-inferred={m.inferred && m.mode ? '' : undefined} title={m.inferred && m.mode ? t('modeInferred') : undefined}>{m.mode || '—'}</span></td>
+              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><strong>{spot.Call}</strong>{#if adxoFor(spot.Call)}{@const entry = adxoFor(spot.Call)!}<button class="info" type="button" title={t('adxoTitle') + ': ' + entry.Entity} aria-label={t('adxoTitle') + ': ' + entry.Entity} onmouseenter={event => openInfo(event, entry)} onfocus={event => openInfo(event, entry)} onmouseleave={hideInfoSoon} onblur={hideInfoSoon} onclick={event => openInfo(event, entry)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg></button>{/if}</span></td>
               <td>
                 {#if dxccFlags[spot.DXCC]}
                   <img src={'/flags/' + dxccFlags[spot.DXCC] + '.svg'} alt="" width="26" height="19" loading="lazy" />
@@ -196,7 +226,7 @@
     </div>
   {/if}
   {#if popup}
-    <div class="popup" role="dialog" aria-label={t('adxoTitle')} style:left={popup.x + 'px'} style:top={popup.y + 'px'} onclick={event => event.stopPropagation()}>
+    <div class="popup" role="dialog" aria-label={t('adxoTitle')} style:left={popup.x + 'px'} style:top={popup.y + 'px'} onclick={event => event.stopPropagation()} onmouseenter={keepInfo} onmouseleave={hideInfoSoon}>
       <h4>{t('adxoTitle')}: {popup.entry.Entity}</h4>
       <p class="dates"><strong>{popup.entry.Call}</strong> · {popup.entry.Dates}{#if popup.entry.QSL} · QSL: {popup.entry.QSL}{/if}</p>
       <p>{popup.entry.Info}</p>
@@ -207,7 +237,6 @@
 
 <style>
   main { position: relative; width: 100%; max-width: 1240px; margin: 0 auto; padding: 14px clamp(12px, 2vw, 32px) 24px; }
-  h1 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.25rem); color: #102e42; letter-spacing: -.04em; }
   @media (prefers-reduced-motion: reduce) { tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: none; background: #fff1a0; } }
   .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 7px 10px; margin-bottom: 12px; min-width: 0; }
   .chip-row, .search-row { display: contents; }
@@ -222,13 +251,13 @@
   .desk { min-width: 0; }
   .log { min-width: 0; padding: 0; overflow: hidden; }
   .log > p { margin: 14px 16px; }
-  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; padding: 12px 16px; border-bottom: 1px solid #ccdbe7; background: #ffffff80; color: #496174; }
   input { width: min(100%, 350px); min-height: 40px; border: 1px solid #acbfce; border-radius: 6px; background: #fff; color: #173653; padding: 6px 10px; font: inherit; }
   .table-wrap { overflow: auto; }
   table { width: 100%; table-layout: fixed; border-collapse: collapse; text-align: left; white-space: nowrap; }
   td { overflow: hidden; text-overflow: ellipsis; }
-  th:nth-child(1) { width: 128px; } th:nth-child(2) { width: 118px; } th:nth-child(3) { width: 88px; }
-  th:nth-child(4) { width: 190px; } th:nth-child(5) { width: 210px; } th:nth-child(7) { width: 76px; }
+  th:nth-child(1) { width: 150px; } th:nth-child(2) { width: 150px; } th:nth-child(3) { width: 100px; }
+  th:nth-child(4) { width: 200px; } th:nth-child(5) { width: 210px; } th:nth-child(7) { width: 80px; }
+  td:nth-child(2), td:nth-child(3) { overflow: visible; text-overflow: clip; }
   th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #c4d6e3; }
   th { background: #ffffffa3; color: #1d5d8c; border-bottom: 2px solid #2972a0; font-size: .86rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
   th small { color: #536b7d; text-transform: none; }
@@ -241,15 +270,16 @@
   .lens:hover:not(:disabled) { --button-ink: #175c82; --button-face: #e3eef6; transform: none; filter: none; }
   tbody tr:hover, tbody tr:nth-child(even):hover { background: #c3dbec; }
   .frequency, .mode { display: inline-block; padding: 2px 7px; border: 1.5px solid transparent; border-radius: 5px; text-align: center; }
-  .frequency { width: 10.5ch; color: #142b39; font-weight: 700; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 30%); }
+  .frequency { width: 10ch; color: #142b39; font-weight: 700; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 30%); }
   .frequency, td:last-child { font-variant-numeric: tabular-nums; }
   td { color: #14293a; font-weight: 500; }
   td:first-child, td:last-child, .comment { color: #1f3a4e; }
   img { object-fit: cover; vertical-align: middle; margin-right: 7px; border: 1px solid #15263826; border-radius: 2px; }
+  .mode[data-inferred] { border-style: dashed; }
   .mode { min-width: 4.6em; color: #4c6374; font-size: .92rem; font-weight: 700; }
   .mode[data-mode=CW] { --c: #fff0d7; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #7d430e; }
   .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { --c: #d7f0e3; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #1a6046; }
-  .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31] { --c: #eee4ff; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #573894; }
+  .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31], .mode[data-mode=DIGI] { --c: #eee4ff; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #573894; }
   @media (max-width: 700px) {
     main { padding: 0 10px 20px; }
     .filters { display: grid; grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 8px; margin-bottom: 10px; }

@@ -44,6 +44,11 @@ func TestAnalyzeSpotsCountsBandsModesAndEntities(t *testing.T) {
 	if report.TopDX[0].Name != "K1ABC" || report.TopSpotters[0].Name != "IU3WJQ" || report.Hours[11] != 1 {
 		t.Fatalf("top lists or hours: %+v %+v %v", report.TopDX, report.TopSpotters, report.Hours)
 	}
+	for khz, want := range map[float64]string{7074: "FT8", 14080: "FT4", 7129: "SSB", 14027: "CW", 3573: "FT8", 14100: "", 28100: "DIGI"} {
+		if got := inferMode(khz); got != want {
+			t.Errorf("inferMode(%v) = %q, want %q", khz, got, want)
+		}
+	}
 	week := analyzeSpots(root, 7, now, nil)
 	if week.Total != 4 || len(week.Days) != 7 {
 		t.Fatalf("week: total %d, days %d", week.Total, len(week.Days))
