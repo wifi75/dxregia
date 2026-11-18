@@ -211,6 +211,13 @@ sub provision_partners {
     }
 }
 
+sub partner_connect_script {
+    my ($host, $port, $local_call, $remote_call, $password) = @_;
+    my $script = "timeout 15\nconnect telnet $host $port\n'login' '$local_call'\n";
+    $script .= "'password:' '$password'\n" if length($password);
+    return $script . "client $remote_call telnet\n";
+}
+
 sub connect_partners {
     my $dir = "$main::local_data/dxregia-partners";
     opendir(my $dh, $dir) or return;
@@ -237,9 +244,8 @@ sub connect_partners {
                 my $script = "$dir/$call.script";
                 if (open(my $chat, '>:raw', $script)) {
                     chmod 0600, $script;
-                    print $chat "timeout 15\nconnect telnet $host $port\n'ogin:' '$main::mycall'\n";
-                    print $chat "'assword:' '$password'\n" if length($password);
-                    if (close($chat)) {
+                    my $written = print $chat partner_connect_script($host, $port, $main::mycall, $call, $password);
+                    if (close($chat) && $written) {
                         eval { ExtMsg::start_connect($call, $script); };
                         $result = $@ ? 'Avvio non riuscito' : 'Tentativo avviato';
                     }

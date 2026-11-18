@@ -280,13 +280,13 @@ def peer_link(primary):
         assert request(primary, "/api/partners", {"Call": peer_call, "Host": peer, "Port": peer_port})[0] == 200
         status, incoming = remote(f"/api/partners/{local_call}/enable", {})
         assert status == 202 and incoming["Password"]
-        assert request(primary, f"/api/partners/{peer_call}/enable", {})[0] == 202
+        assert request(primary, f"/api/partners/{peer_call}/enable", {"OutgoingOnly": True})[0] == 202
 
         def local_partner():
             return request(primary, "/api/partners")[1][peer_call]
 
         wait_for("partner account provisioning", lambda: (
-            local_partner()["Provisioning"] == "Abilitato in Mojo"
+            local_partner()["Provisioning"] == "Pronto in uscita"
             and remote("/api/partners")[1][local_call]["Provisioning"] == "Abilitato in Mojo"
         ))
         assert request(primary, f"/api/partners/{peer_call}/connect?retry=true", incoming["Password"])[0] == 202
