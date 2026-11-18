@@ -202,15 +202,16 @@
   main { width: 100%; padding: 14px clamp(12px, 2vw, 32px) 24px; }
   h1 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.25rem); color: #102e42; letter-spacing: -.04em; }
   @media (prefers-reduced-motion: reduce) { tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: none; background: #fff1a0; } }
-  .filters { display: grid; gap: 10px; padding: 12px 14px; margin-bottom: 14px; }
+  .filters { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px 14px; margin-bottom: 14px; min-width: 0; }
+  .filters > * { min-width: 0; }
   .chip-row { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
   .chips { display: flex; flex-wrap: wrap; gap: 7px; }
   .chip { display: inline-flex; align-items: center; gap: .4rem; min-height: 34px; padding: .25rem .8rem; border-radius: 999px; font-size: .88rem; --button-face: #fff; --button-edge: #a4bccb; --button-ink: #274760; box-shadow: none; }
   .chip[aria-pressed=true] { --button-face: #175c82; --button-edge: #0c3a56; --button-ink: #fff; }
   .band-color { width: 9px; height: 9px; border-radius: 3px; box-shadow: inset 0 0 0 1px #223c4c30; }
-  .search-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .search-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; }
   .count { margin-left: auto; }
-  .search { position: relative; flex: 1 1 280px; max-width: 460px; }
+  .search { position: relative; flex: 1 1 280px; max-width: 460px; min-width: 0; }
   .search input { width: 100%; padding-right: 36px; }
   .clear { position: absolute; right: 4px; top: 4px; width: 32px; min-height: 32px; padding: 0; border-radius: 6px; font-size: 1.2rem; line-height: 1; --button-face: transparent; --button-edge: transparent; --button-ink: #4c6374; box-shadow: none; }
   .count { color: #496174; font-size: .9rem; }
@@ -251,7 +252,9 @@
     .chip-row { flex-direction: column; align-items: stretch; gap: 8px; }
     .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
     .chip { flex: 0 0 auto; min-height: 40px; }
-    .search { max-width: none; flex-basis: 100%; }
+    .search { max-width: none; flex: 1 1 100%; }
+    .count { margin-left: 0; }
+    .sound { margin-left: auto; }
     .table-wrap { overflow: visible; }
     table, tbody { display: block; white-space: normal; }
     thead { display: none; }
