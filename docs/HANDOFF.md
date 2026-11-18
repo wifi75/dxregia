@@ -153,3 +153,5 @@ Le notifiche SMTP supportano TLS implicito e STARTTLS obbligatorio tramite DXREG
 L'ascolto Telnet nativo su tutte le interfacce ha superato il controllo del listener su Ubuntu amd64 e arm64 nel run 44275996268. I job Docker di quel run si sono fermati al timeout del test spot. Il test successivo attende la finestra PC92 di Mojo per i nuovi utenti.
 
 Il run 44276565981 ha ricevuto lo spot su Telnet in entrambe le architetture, ma il feed del nodo mittente non lo mostrava. DXCommandmode inoltrava gli spot ritardati senza salvarli sul nodo di origine. Ora usa Spot::add_local prima dell'inoltro, come il percorso immediato. Il test continua a richiedere la presenza in entrambi i feed.
+
+L'installatore Docker accetta DXREGIA_TELNET_BIND come quello nativo. La matrice verifica l'endpoint host pubblicato, su loopback per amd64 e su tutte le interfacce IPv4 per arm64. Le riesecuzioni richiedono le impostazioni del container esistente.
