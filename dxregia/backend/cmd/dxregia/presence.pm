@@ -186,7 +186,7 @@ sub provision_partners {
             $result = 'Indicativo riservato';
         } else {
             my $user = DXUser::get($call);
-            if ($user && ($user->lockout || $user->sort ne 'S' || !$user->passwd)) {
+            if ($user && ($user->lockout || $user->sort ne 'S' || (!$user->passwd && !$outgoing))) {
                 $result = 'Account Mojo esistente da verificare';
             } else {
                 if (!$user) {
@@ -200,7 +200,11 @@ sub provision_partners {
                     $result = $outgoing ? 'Pronto in uscita' : 'Abilitato in Mojo';
                 } else {
                     if ($outgoing) {
+                        # Account senza password (es. creato con set/register): resta valido
+                        # per il solo collegamento in uscita, senza abilitare l'accesso in ingresso.
+                        $user->passwd('{DXREGIA-BCRYPT}' . $password) unless $user->passwd;
                         register_partner_account($user, $call) unless $user->registered;
+                        $user->put if $user->passwd eq ('{DXREGIA-BCRYPT}' . $password);
                         $result = $user->passwd =~ /\A\{DXREGIA-BCRYPT\}outgoing-only:/ ? 'Pronto in uscita' : 'Abilitato in Mojo';
                     } elsif ($user->passwd =~ /\A\{DXREGIA-BCRYPT\}outgoing-only:/) {
                         $user->passwd($password);
