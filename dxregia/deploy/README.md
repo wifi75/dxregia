@@ -1,5 +1,24 @@
 # Installazione Linux
 
+## Pacchetto nativo precompilato
+
+Il pacchetto tar.gz contiene il backend, il frontend, Mojo e gli strumenti di installazione e backup. Per produrlo da un host Linux con Go e Node.js:
+
+~~~sh
+mkdir -p pacchetti
+sh dxregia/deploy/build-native-bundle.sh pacchetti
+~~~
+
+Sul server di destinazione, verifica il checksum e installa il pacchetto della sua architettura. Per esempio, su amd64:
+
+~~~sh
+sha256sum -c dxregia-linux-amd64.tar.gz.sha256
+tar -xzf dxregia-linux-amd64.tar.gz
+sh dxregia-linux-amd64/dxregia/deploy/install-native.sh
+~~~
+
+L'installatore usa direttamente il binario incluso e installa le dipendenze Perl. Il server non richiede Go, Node.js o Docker. Gli archivi della release saranno pubblicati dopo il collaudo.
+
 ## Installazione nativa da sorgente
 
 Per Debian o Ubuntu con systemd, usa il checkout DXRegia e Go 1.22+, Node.js 22.12+ con npm, curl e sudo (o root).

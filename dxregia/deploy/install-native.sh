@@ -30,19 +30,30 @@ fi
 
 if [ ! -f "$unit" ]; then
     [ ! -e "$runtime" ] || fail "La destinazione $runtime esiste già."
-    command -v go >/dev/null 2>&1 || fail 'Per compilare da sorgente serve Go 1.22 o successivo.'
-    command -v npm >/dev/null 2>&1 || fail 'Per compilare da sorgente serve Node.js con npm.'
     stage=$(mktemp -d)
     trap 'rm -rf -- "$stage"' EXIT
-    (
-        cd "$root/dxregia/web"
-        npm ci
-        npm run build
-    )
-    (
-        cd "$root/dxregia/backend"
-        CGO_ENABLED=0 go build -trimpath -o "$stage/dxregia" ./cmd/dxregia
-    )
+    binary="$root/dxregia/prebuilt/dxregia"
+    if [ -d "$root/dxregia/prebuilt" ]; then
+        [ -f "$binary" ] && [ -f "$root/dxregia/prebuilt/architecture" ] ||
+            fail 'Il pacchetto precompilato è incompleto.'
+        arch=$(cat "$root/dxregia/prebuilt/architecture")
+        [ "$arch" = "$(dpkg --print-architecture)" ] ||
+            fail 'Il pacchetto non corrisponde all’architettura del server.'
+    else
+        command -v go >/dev/null 2>&1 || fail 'Per compilare da sorgente serve Go 1.22 o successivo.'
+        command -v npm >/dev/null 2>&1 || fail 'Per compilare da sorgente serve Node.js con npm.'
+        binary="$stage/dxregia"
+        (
+            cd "$root/dxregia/web"
+            npm ci
+            npm run build
+        )
+        (
+            cd "$root/dxregia/backend"
+            CGO_ENABLED=0 go build -trimpath -o "$binary" ./cmd/dxregia
+        )
+    fi
+    [ -f "$root/dxregia/web/dist/index.html" ] || fail 'Interfaccia web mancante dal pacchetto.'
     as_root apt-get update
     as_root apt-get install -y --no-install-recommends \
         ca-certificates perl git procps libev-perl libmojolicious-perl libjson-perl \
@@ -61,7 +72,7 @@ if [ ! -f "$unit" ]; then
         as_root mv -T "$engine_stage" "$state/mojo"
     fi
     as_root install -d -m 0755 "$runtime/bin" "$runtime/web"
-    as_root install -m 0755 "$stage/dxregia" "$runtime/bin/dxregia"
+    as_root install -m 0755 "$binary" "$runtime/bin/dxregia"
     as_root cp -R "$root/dxregia/web/dist/." "$runtime/web/"
     if [ ! -f /etc/dxregia.env ]; then
         printf 'DXREGIA_WEB_PORT=%s\nDXREGIA_TELNET_PORT=%s\n' "$web_port" "$telnet_port" > "$stage/environment"

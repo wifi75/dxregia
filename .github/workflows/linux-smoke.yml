@@ -45,10 +45,19 @@ jobs:
           grep -E "Can't locate|Compilation failed|BEGIN failed|Permission denied|[Ee]rror|Address already in use" "$RUNNER_TEMP/mojo-startup.log" || true
 
   native:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     env:
       DXREGIA_SMOKE_NATIVE: '1'
+      DXREGIA_ARCH: ${{ matrix.arch }}
       DXREGIA_WEB_PORT: '8788'
       DXREGIA_TELNET_PORT: '7374'
     steps:
@@ -62,12 +71,19 @@ jobs:
         with:
           go-version: '1.24'
           cache-dependency-path: dxregia/backend/go.sum
-      - name: Install a native systemd service
-        run: sh dxregia/deploy/install-native.sh > "$RUNNER_TEMP/dxregia-native-install.txt"
+      - name: Build and verify the native bundle
+        run: |
+          mkdir "$RUNNER_TEMP/bundle"
+          sh dxregia/deploy/build-native-bundle.sh "$RUNNER_TEMP/bundle"
+          cd "$RUNNER_TEMP/bundle"
+          sha256sum -c "dxregia-linux-$DXREGIA_ARCH.tar.gz.sha256"
+          tar -xzf "dxregia-linux-$DXREGIA_ARCH.tar.gz"
+      - name: Install the prebuilt native systemd service
+        run: sh "$RUNNER_TEMP/bundle/dxregia-linux-$DXREGIA_ARCH/dxregia/deploy/install-native.sh" > "$RUNNER_TEMP/dxregia-native-install.txt"
       - name: Verify native setup, Telnet, restart and backup
         run: python3 dxregia/deploy/smoke_linux.py
       - name: Verify the native installer preserves existing data
-        run: sh dxregia/deploy/install-native.sh
+        run: sh "$RUNNER_TEMP/bundle/dxregia-linux-$DXREGIA_ARCH/dxregia/deploy/install-native.sh"
       - name: Report native service logs on failure
         if: failure()
         run: |
