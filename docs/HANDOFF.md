@@ -203,3 +203,5 @@ Gestione → Password aggiunge il cambio separato di password web e sysop Telnet
 Nodo → Opzioni Telnet legge da Mojo password richiesta, nominativi con barra, registrazione e limiti di sessione. Le modifiche sono persistenti e il pannello attende riscontro dalla fotografia del motore. Le personalizzazioni senza hook gestito non sono editabili da questo menu. Le altre famiglie di opzioni Mojo rimangono da censire e integrare.
 
 Scelta grafica sysop: Vetro chiaro. Portale e amministrazione condividono sfondo azzurro e menta, pannelli traslucidi, ombre e movimento riducibile. Menu sysop a sinistra e pagina selezionata a destra. Build Svelte e anteprime Edge desktop del feed e dello stato sysop con dati di esempio.
+
+Il cambio della password sysop Telnet genera bcrypt prima di scrivere la richiesta al motore. Mojo conserva il valore bcrypt e verifica il login Telnet senza salvare il testo originale. Il collaudo nativo richiede un nuovo TOTP, attende la conferma e accede con il nominativo sysop. Credenziali peer legacy, chiavi TOTP recuperabili e backup storici richiedono una gestione separata. Corretto anche il pattern browser del codice 2FA nella pagina Password.

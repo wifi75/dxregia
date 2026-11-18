@@ -384,7 +384,8 @@ def main():
             code = totp(enroll["enrollmentKey"])
             return code if code != first_code else None
 
-        assert request(client, "/api/auth/totp", wait_for("next TOTP window", next_code))[0] == 200
+        second_code = wait_for("next TOTP window", next_code)
+        assert request(client, "/api/auth/totp", second_code)[0] == 200
 
         def verify_upload(opener, content):
             upload = urllib.request.Request(
@@ -401,6 +402,25 @@ def main():
         assert verify_upload(urllib.request.build_opener(), b"zip") == 401
         assert verify_upload(client, archive.read_bytes()) == 200
         assert verify_upload(client, (base / "damaged.zip").read_bytes()) == 422
+        if NATIVE:
+            def fresh_code():
+                code = totp(enroll["enrollmentKey"])
+                return code if code != second_code else None
+
+            telnet_password = secrets.token_hex(18)
+            code = wait_for("fresh TOTP for Telnet password change", fresh_code)
+            status, result = request(client, "/api/telnet-password",
+                                     {"password": telnet_password, "code": code}, method="PUT")
+            assert status == 200 and result["status"] == "pending"
+            wait_for("Mojo to save the Telnet bcrypt hash",
+                     lambda: request(client, "/api/telnet-password")[1]["status"] == "applied")
+            with socket.create_connection((HOST, TELNET_PORT), timeout=5) as conn:
+                read_until(conn, b"login:")
+                conn.sendall(b"Q1QQQ\r\n")
+                read_until(conn, b"password:")
+                conn.sendall(telnet_password.encode() + b"\r\n")
+                assert b"Q1QQQ" in read_until(conn, b"dxspider >")
+                conn.sendall(b"bye\r\n")
     print("Linux installer, setup with TOTP, Telnet, backup upload and persistent restart passed")
     if not NATIVE:
         peer_link(client)

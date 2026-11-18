@@ -30,6 +30,30 @@ use vars qw(@ISA $deftimeout);
 @ISA = qw(Msg);
 $deftimeout = 60;
 
+# DXRegia 2026-11-18: verify managed sysop hashes while accepting legacy peer credentials.
+sub supports_dxregia_bcrypt
+{
+	my ($hash) = @_;
+	my $probe = eval { crypt('DXRegia-bcrypt-probe', $hash) };
+	return defined($probe) && $probe =~ /\A\$2a\$10\$[.\/A-Za-z0-9]{53}\z/;
+}
+
+sub dxregia_password_matches
+{
+	my ($password, $stored) = @_;
+	return 0 unless defined($stored);
+	return $password eq $stored unless $stored =~ s/\A\{DXREGIA-BCRYPT\}//;
+	return 0 unless $stored =~ /\A\$2a\$10\$[.\/A-Za-z0-9]{53}\z/ &&
+		length($password) <= 72 && $password !~ /[^!-~]/;
+	my $actual = eval { crypt($password, $stored) };
+	return 0 unless defined($actual) && length($actual) == length($stored);
+	my $different = 0;
+	for my $i (0 .. length($stored) - 1) {
+		$different |= ord(substr($actual, $i, 1)) ^ ord(substr($stored, $i, 1));
+	}
+	return $different == 0;
+}
+
 sub login
 {
 	goto &main::login;        # save some writing, this was the default
@@ -160,7 +184,7 @@ sub dequeue
 			} elsif ($conn->{state} eq 'WP' ) {
 				my $uref = DXUser::get_current($conn->{call});
 				$msg =~ s/[\r\n]+$//;
-				if ($uref && $msg eq $uref->passwd) {
+				if ($uref && dxregia_password_matches($msg, $uref->passwd)) {
 					my $sort = $conn->{csort};
 					$conn->{echo} = $conn->{decho};
 					delete $conn->{decho};

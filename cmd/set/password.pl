@@ -27,6 +27,8 @@ if ($call) {
 	}
 	return (1, $self->msg('e29')) unless @args;
 	if ($ref = DXUser::get_current($call)) {
+		# DXRegia 2026-11-18: managed sysop credentials are changed via web and 2FA.
+		return (1, 'Use the DXRegia sysop panel to change this password.') if ($ref->passwd // '') =~ /\A\{DXREGIA-BCRYPT\}/;
 		$ref->passwd($args[0]);
 		$ref->put();
 		push @out, $self->msg("password", $call);

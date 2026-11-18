@@ -88,18 +88,19 @@ sub apply_telnet_options {
 sub apply_sysop_password {
     my $request = "$main::local_data/.dxregia-telnet-password";
     return unless open(my $pending, '<:raw', $request);
-    my $password = '';
-    my $read = read($pending, $password, 73);
+    my $hash = '';
+    my $read = read($pending, $hash, 61);
     my $modified = (stat $pending)[9];
     close($pending);
     my $status = 'failed';
     if (defined($modified) && time - $modified <= 60 &&
-        defined($read) && $password =~ /\A[!-~]{12,72}\z/) {
+        defined($read) && $hash =~ /\A\$2a\$10\$[.\/A-Za-z0-9]{53}\z/) {
         my $user = DXUser::get_current($main::myalias);
         if ($user && $user->priv == 9) {
             my $old = $user->passwd;
             my $saved = eval {
-                $user->passwd($password);
+                die 'bcrypt unavailable' unless ExtMsg::supports_dxregia_bcrypt($hash);
+                $user->passwd('{DXREGIA-BCRYPT}' . $hash);
                 $user->put;
                 1;
             };

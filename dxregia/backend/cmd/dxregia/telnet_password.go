@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func registerTelnetPassword(mux *http.ServeMux, auth *sysopAuth, root string) {
@@ -64,13 +66,18 @@ func registerTelnetPassword(mux *http.ServeMux, auth *sysopAuth, root string) {
 				http.Error(w, "Impossibile preparare il cambio password.", http.StatusInternalServerError)
 				return
 			}
+			hash, err := bcrypt.GenerateFromPassword([]byte(change.Password), bcrypt.DefaultCost)
+			if err != nil {
+				http.Error(w, "Impossibile proteggere la password.", http.StatusInternalServerError)
+				return
+			}
 			file, err := os.CreateTemp(dir, ".telnet-password-")
 			if err != nil {
 				http.Error(w, "Impossibile preparare il cambio password.", http.StatusInternalServerError)
 				return
 			}
 			defer os.Remove(file.Name())
-			_, err = file.WriteString(change.Password)
+			_, err = file.Write(hash)
 			if closeErr := file.Close(); err == nil {
 				err = closeErr
 			}
