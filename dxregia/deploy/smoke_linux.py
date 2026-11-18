@@ -101,6 +101,14 @@ def main():
             subprocess.run([sys.executable, str(tool), *map(str, arguments)], check=True)
         assert (restored / "local/DXVars.pm").read_bytes() == (source / "local/DXVars.pm").read_bytes()
         assert (restored / "local_data/dxusers.db").read_bytes() == (source / "local_data/dxusers.db").read_bytes()
+        # Emulate an existing Mojo installation on this disposable copy.
+        for marker in ("dxregia-node.json", "dxregia-initialized"):
+            (restored / "local" / marker).unlink()
+        adopted = base / "adopted"
+        migration = tool.with_name("migrate_mojo.py")
+        subprocess.run([sys.executable, "-B", str(migration), str(restored), str(adopted)], check=True)
+        assert (adopted / "local/dxregia-initialized").is_file()
+        assert (adopted / "local_data/dxusers.db").read_bytes() == (source / "local_data/dxusers.db").read_bytes()
     docker("start", CONTAINER)
     ready(client)
     telnet_login(b"Q7QQQ")

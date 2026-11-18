@@ -115,3 +115,7 @@ Tool Python backup_node.py con backup, verifica integrità e ripristino in una d
 ## Collaudo Linux e recupero sysop
 
 Il [runner Linux](https://github.com/wifi75/dxregia/actions/runs/44267305597) ha passato build immagine, installazione da sorgente, password temporanea, TOTP, wizard, login Telnet, backup con verifica e ripristino in directory nuova, e avvio sulla stessa porta dopo riavvio. Sono state aggiunte le dipendenze Perl mancanti e la gestione degli alias Mojo nel backup. Il ramo remoto di prova è dxregia-linux-validation. QR locale e recupero tramite codici monouso: verificati via API il reset, l'invalidazione dei vecchi codici e il blocco del pannello fino a conferma del nuovo TOTP.
+
+## Migrazione offline di un nodo Mojo
+
+Il comando migrate_mojo.py prepara una copia gestita da un nodo Mojo SQLite esistente, con un singolo listener. Verificati su Windows utenti e impostazioni conservati, database invariato, avvio della copia sotto il backend DXRegia e login del sysop via Telnet. Aggiunta la prova di migrazione allo smoke test Linux con matrice amd64 e arm64. Importazione completa da browser e migrazioni di formati più vecchi di SQLite restano aperte.
