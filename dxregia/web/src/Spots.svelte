@@ -372,16 +372,22 @@
     .search input { width: 100%; min-height: 44px; border-radius: 999px; padding: 6px 16px; font-size: 1rem; }
     .funnel { display: grid; flex: none; place-items: center; width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 50%; background: #1f86ff; color: #fff; box-shadow: none; }
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    table { table-layout: auto; width: max-content; min-width: 100%; }
-    th { width: auto !important; position: sticky; top: 0; padding: 8px 6px; font-size: .74rem; letter-spacing: .03em; }
-    td { padding: 3px 6px; font-size: .95rem; }
+    table { table-layout: auto; width: 100%; min-width: 0; }
+    th { width: auto !important; position: sticky; top: 0; padding: 7px 3px; font-size: .6rem; letter-spacing: 0; }
+    td { padding: 3px 3px; font-size: .8rem; }
+    th:first-child, td:first-child { padding-left: 8px; }
+    td:nth-child(1) .lens { display: none; }
     td:nth-child(2), td:nth-child(3) { overflow: visible; text-overflow: clip; }
     th:nth-child(6), td:nth-child(6) { display: none; }
-    td:nth-child(5) { font-size: 0; }
-    td:nth-child(5) img { width: 36px; height: 25px; margin: 0; }
-    .frequency { width: auto; min-width: 7ch; padding: 1px 7px; font-size: .95rem; }
-    .mode { min-width: 3.6em; padding: 1px 6px; font-size: .88rem; }
-    .lens { width: 24px; min-height: 24px; }
+    td:nth-child(5) { font-size: 0; padding-left: 2px; padding-right: 2px; }
+    td:nth-child(5) img { width: 28px; height: 20px; margin: 0; }
+    td:nth-child(7) { font-size: .74rem; padding-right: 8px; }
+    .callcell { gap: 2px; }
+    .frequency { width: auto; min-width: 0; padding: 0 4px; font-size: .78rem; }
+    .mode { min-width: 0; padding: 0 4px; font-size: .72rem; }
+    .lens { width: 18px; min-height: 18px; }
+    .lens svg { width: 14px; height: 14px; }
+    .info { width: 18px; min-height: 18px; }
   }
   .info { display: inline-grid; place-items: center; width: 24px; min-height: 24px; padding: 0; border-radius: 50%; --button-face: #e3f0fa; --button-edge: #7fb1d9; --button-ink: #175c82; box-shadow: none; flex: 0 0 auto; }
   .popup { position: absolute; z-index: 30; width: min(380px, calc(100% - 16px)); padding: 12px 14px; border: 1px solid #9db8cc; border-radius: 12px; background: #ffffffee; backdrop-filter: blur(10px); box-shadow: 0 14px 34px #143a5940; color: #14293a; font-size: .88rem; line-height: 1.45; white-space: normal; }

@@ -171,6 +171,12 @@
     header a { padding: .4rem .6rem; font-size: .92rem; }
     .lang-btn, .tool { width: 36px; min-height: 36px; }
   }
+  @media (max-width: 420px) {
+    header nav { flex-wrap: nowrap; gap: .1rem; }
+    header a { padding: .35rem .45rem; font-size: .85rem; white-space: nowrap; }
+    .tools { gap: .3rem; }
+    .lang-btn, .tool { width: 32px; min-height: 32px; }
+  }
   header a { color: #234968; font-weight: 650; padding: .55rem .8rem; border-radius: .5rem; text-decoration: none; }
   header a:hover, header a[aria-current=page] { background: #e7f0f7; color: #143a60; }
   main { width: 100%; padding: 24px clamp(14px, 2vw, 36px); }
