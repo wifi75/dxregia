@@ -167,3 +167,5 @@ Il pannello sysop ora verifica un archivio ZIP caricato fino a 512 MiB con lo st
 Il run 44278251212 ha riprodotto il timeout di riconnessione anche con nomi DNS stabili. Il prossimo collaudo raccoglie stato del partner, salute del listener e messaggi di connessione filtrati, senza stampare lo script di login o la password.
 
 Il test del rifiuto senza autenticazione invia ora un corpo minimo: il backend risponde prima di leggere il corpo, e l'invio di un archivio intero poteva chiudere la connessione prima che il client leggesse il 401. I due casi autenticati usano ancora archivi completi.
+
+La scheda del partner con riconnessione automatica mostra l'ultimo tentativo e l'orario UTC a partire dal quale e consentito riprovare, se l'endpoint e invariato e Mojo conferma uno stato gestibile. Il collaudo di riconnessione registrera gli stessi dati in caso di errore.

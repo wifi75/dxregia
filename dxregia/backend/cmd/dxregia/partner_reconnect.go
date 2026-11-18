@@ -51,12 +51,16 @@ func saveReconnect(root, call string, plan reconnectPlan) error {
 	return os.Rename(tmp.Name(), path)
 }
 
-func (p reconnectPlan) due(entry partner, state string, now time.Time) bool {
+func (p reconnectPlan) eligible(entry partner, state string) bool {
 	if entry.Provisioning != "Abilitato in Mojo" || p.Host != entry.Host || p.Port != entry.Port ||
-		!peerPasswordPattern.MatchString(p.Password) || now.Before(p.LastAttempt.Add(reconnectDelay)) {
+		!peerPasswordPattern.MatchString(p.Password) {
 		return false
 	}
 	return state == "Disconnesso" || state == "Collegamento non confermato" || state == "Avvio non riuscito"
+}
+
+func (p reconnectPlan) due(entry partner, state string, now time.Time) bool {
+	return p.eligible(entry, state) && !now.Before(p.LastAttempt.Add(reconnectDelay))
 }
 
 func reconnectPartners(root string, partners map[string]partner, snapshot presence, now time.Time) {

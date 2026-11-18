@@ -21,6 +21,12 @@ type partnerDetails struct {
 	Port                             int
 }
 
+type partnerStatus struct {
+	partner
+	LastConnectAttempt *time.Time `json:",omitempty"`
+	RetryEligibleAt    *time.Time `json:",omitempty"`
+}
+
 type partnerNote struct {
 	Text string
 	At   time.Time
@@ -122,22 +128,27 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		if r.Method == http.MethodGet {
 			w.Header().Set("Content-Type", "application/json")
 			snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
-			view := make(map[string]partner, len(partners))
+			view := make(map[string]partnerStatus, len(partners))
 			for call, entry := range partners {
 				entry.Connection = currentConnection(root, call, snapshot)
+				status := partnerStatus{partner: entry}
 				if callsign.MatchString(call) && len(call) <= 12 {
 					if plan, err := readReconnect(root, call); err == nil {
-						entry.Reconnect = "Abilitata"
+						status.LastConnectAttempt = &plan.LastAttempt
+						status.Reconnect = "Abilitata"
 						if plan.Host != entry.Host || plan.Port != entry.Port {
-							entry.Reconnect = "Sospesa: indirizzo modificato"
+							status.Reconnect = "Sospesa: indirizzo modificato"
+						} else if plan.eligible(entry, entry.Connection) {
+							earliest := plan.LastAttempt.Add(reconnectDelay)
+							status.RetryEligibleAt = &earliest
 						}
 					}
 				}
 				var job partnerMail
 				if data, err := os.ReadFile(filepath.Join(root, "local_data", "dxregia-partners", call+".mail.json")); err == nil && json.Unmarshal(data, &job) == nil {
-					entry.MailStatus = job.Status
+					status.MailStatus = job.Status
 				}
-				view[call] = entry
+				view[call] = status
 			}
 			json.NewEncoder(w).Encode(view)
 			return

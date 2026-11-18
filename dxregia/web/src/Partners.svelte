@@ -5,7 +5,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -227,6 +227,12 @@
       <p>Collegamento: {selected.Connection || 'Aggiorna lo stato per verificare'}</p>
       {#if selected.Reconnect}
         <p>Riconnessione automatica: {selected.Reconnect}</p>
+        {#if selected.LastConnectAttempt}
+          <p>Ultimo tentativo {new Date(selected.LastConnectAttempt).toLocaleString('it-IT', { timeZone: 'UTC' })} UTC</p>
+        {/if}
+        {#if selected.RetryEligibleAt}
+          <p>Nuovo tentativo consentito dal {new Date(selected.RetryEligibleAt).toLocaleString('it-IT', { timeZone: 'UTC' })} UTC</p>
+        {/if}
         <button type="button" disabled={enabling} onclick={disableReconnect}>Disattiva riconnessione</button>
       {/if}
       <form onsubmit={connect}>
