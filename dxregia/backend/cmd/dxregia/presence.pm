@@ -30,6 +30,7 @@ sub process {
             Kind => $kind,
             State => "" . ($channel->state // ""),
             Since => int($channel->startt || 0),
+            Outbound => ($kind eq 'node' && $channel->{outbound}) ? JSON::true : JSON::false,
         };
     }
     my $target = "$main::local_data/dxregia-presence.json";

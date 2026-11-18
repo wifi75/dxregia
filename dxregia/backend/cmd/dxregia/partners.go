@@ -19,6 +19,7 @@ import (
 type partnerDetails struct {
 	Call, Name, Contact, Email, Host string
 	Port                             int
+	Lang                             string `json:",omitempty"`
 }
 
 type partnerStatus struct {
@@ -26,6 +27,7 @@ type partnerStatus struct {
 	LastConnectAttempt *time.Time `json:",omitempty"`
 	RetryEligibleAt    *time.Time `json:",omitempty"`
 	CanResend          bool       `json:",omitempty"`
+	Direction          string     `json:",omitempty"`
 }
 
 type partnerNote struct {
@@ -52,6 +54,7 @@ func (d *partnerDetails) validate() bool {
 	d.Contact = strings.TrimSpace(d.Contact)
 	d.Email = strings.TrimSpace(d.Email)
 	d.Host = strings.TrimSpace(d.Host)
+	d.Lang = normalizeLang(d.Lang)
 	if d.Email != "" {
 		address, err := mail.ParseAddress(d.Email)
 		if err != nil || address.Address != d.Email || len(d.Email) > 254 {
@@ -134,6 +137,14 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			for call, entry := range partners {
 				entry.Connection = currentConnection(root, call, snapshot)
 				status := partnerStatus{partner: entry}
+				for _, channel := range snapshot.Channels {
+					if channel.Call == call && channel.Kind == "node" {
+						status.Direction = "Ingresso"
+						if channel.Outbound {
+							status.Direction = "Uscita"
+						}
+					}
+				}
 				if callsign.MatchString(call) && len(call) <= 12 {
 					if plan, err := readReconnect(root, call); err == nil && !plan.Disabled {
 						if !plan.LastAttempt.IsZero() {

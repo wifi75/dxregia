@@ -1,6 +1,7 @@
 <script lang="ts">
   import { dxccFlags } from './dxccFlags'
   import { onMount } from 'svelte'
+  import { t, locale } from './i18n.svelte'
 
   type Spot = { Frequency: number; Call: string; At: number; Comment: string; Spotter: string; DXCC: number; Entity?: string }
   const bands = [
@@ -9,8 +10,8 @@
     ['17 m', 18068, 18168], ['15 m', 21000, 21450], ['12 m', 24890, 24990],
     ['10 m', 28000, 29700], ['6 m', 50000, 54000], ['VHF+', 70000, Infinity],
   ] as const
-  const utc = new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
-  const khz = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 3 })
+  let utc = $derived(new Intl.DateTimeFormat(locale(), { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }))
+  let khz = $derived(new Intl.NumberFormat(locale(), { maximumFractionDigits: 3 }))
   let spots = $state<Spot[]>([])
   let available = $state<boolean>()
   let selectedBand = $state('')
@@ -67,23 +68,23 @@
 
 <main aria-labelledby="spots-title">
   <div class="heading">
-    <h1 id="spots-title">Cluster DX</h1>
+    <h1 id="spots-title">{t('spotsTitle')}</h1>
     <div class="feed-controls">
       <span class="feed-state" class:live={available && !paused}>
-        {paused ? 'In pausa' : available === false ? 'Feed non disponibile' : available ? 'In diretta' : 'Connessione…'}
+        {paused ? t('paused') : available === false ? t('feedDown') : available ? t('live') : t('connecting')}
       </span>
-      {#if lastUpdate}<time title="Ultimo aggiornamento del feed" datetime={lastUpdate.toISOString()}>{utc.format(lastUpdate)} UTC</time>{/if}
+      {#if lastUpdate}<time title={t('lastUpdate')} datetime={lastUpdate.toISOString()}>{utc.format(lastUpdate)} UTC</time>{/if}
       <button class="secondary" type="button" onclick={() => { paused = !paused; if (!paused) void refresh() }}>
-        {paused ? 'Riprendi' : 'Pausa'}
+        {paused ? t('resume') : t('pause')}
       </button>
     </div>
   </div>
   <div class="desk glass-enter">
-    <aside class="receiver glass-panel" aria-label="Filtri degli spot">
+    <aside class="receiver glass-panel" aria-label={t('filters')}>
       <section>
-        <h2>Bande</h2>
+        <h2>{t('bands')}</h2>
         <div class="band-grid">
-          <button class="all-bands" type="button" aria-pressed={selectedBand === ''} onclick={() => selectedBand = ''}>Tutte le bande</button>
+          <button class="all-bands" type="button" aria-pressed={selectedBand === ''} onclick={() => selectedBand = ''}>{t('allBands')}</button>
           {#each bands as [band]}
             <button type="button" aria-pressed={selectedBand === band} onclick={() => selectedBand = band}>
               <span class="band-color" style:background={colors[band]}></span>{band}
@@ -92,9 +93,9 @@
         </div>
       </section>
       <section class="mode-filter">
-        <h2>Modo</h2>
+        <h2>{t('modes')}</h2>
         <div class="band-grid">
-          <button class="all-bands" type="button" aria-pressed={mode === ''} onclick={() => mode = ''}>Tutti i modi</button>
+          <button class="all-bands" type="button" aria-pressed={mode === ''} onclick={() => mode = ''}>{t('allModes')}</button>
           {#each ['CW', 'SSB', 'FT8', 'FT4', 'RTTY', 'PSK31', 'USB', 'LSB'] as value}
             <button type="button" aria-pressed={mode === value} onclick={() => mode = value}>{value}</button>
           {/each}
@@ -103,19 +104,19 @@
     </aside>
     <section class="log glass-panel" aria-label="Registro degli spot">
       <div class="toolbar">
-        <input type="search" bind:value={query} aria-label="Cerca negli spot" placeholder="Cerca nominativo o commento" />
-        <span>{filtered.length} {filtered.length === 1 ? 'spot mostrato' : 'spot mostrati'}</span>
+        <input type="search" bind:value={query} aria-label={t('searchLabel')} placeholder={t('searchPlaceholder')} />
+        <span>{t(filtered.length === 1 ? 'shownOne' : 'shownMany', { n: filtered.length })}</span>
       </div>
   {#if available === false}
-    <p role="status">Archivio spot non disponibile.</p>
+    <p role="status">{t('archiveDown')}</p>
   {:else if available === undefined}
-    <p role="status">Caricamento degli spot…</p>
+    <p role="status">{t('loading')}</p>
   {/if}
   {#if filtered.length}
     <!-- svelte-ignore a11y_no_noninteractive_tabindex (scrollable table needs keyboard focus) -->
-    <div class="table-wrap" tabindex="0" role="region" aria-label="Elenco degli spot">
+    <div class="table-wrap" tabindex="0" role="region" aria-label={t('tableLabel')}>
       <table>
-        <thead><tr><th scope="col">DE</th><th scope="col">Frequenza <small>kHz</small></th><th>Modo</th><th>DX</th><th>Entità DXCC</th><th>Commento</th><th>UTC</th></tr></thead>
+        <thead><tr><th scope="col">{t('thDe')}</th><th scope="col">{t('thFreq')} <small>kHz</small></th><th>{t('thMode')}</th><th>{t('thDx')}</th><th>{t('thEntity')}</th><th>{t('thComment')}</th><th>{t('thUtc')}</th></tr></thead>
         <tbody>
           {#each filtered as spot}
             <tr>
@@ -137,9 +138,9 @@
       </table>
     </div>
   {:else if available}
-    <p>{spots.length ? 'Nessuno spot corrisponde ai filtri.' : 'Nessuno spot recente.'}</p>
+    <p>{spots.length ? t('noMatch') : t('noRecent')}</p>
   {/if}
-  {#if views !== undefined}<p class="visits">Visite al portale {khz.format(views)}</p>{/if}
+  {#if views !== undefined}<p class="visits">{t('visits', { n: khz.format(views) })}</p>{/if}
     </section>
   </div>
 </main>

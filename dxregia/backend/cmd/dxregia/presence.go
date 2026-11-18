@@ -16,10 +16,11 @@ import (
 var presenceHook []byte
 
 type presenceChannel struct {
-	Call  string
-	Kind  string
-	State string
-	Since int64
+	Call     string
+	Kind     string
+	State    string
+	Since    int64
+	Outbound bool
 }
 
 type presence struct {
@@ -83,7 +84,8 @@ func installPresenceHook(local string) error {
 			digest != "ac480a075906701840e342e0e712aa6c0f064d5b65f202b48d6a09a25f2cccd4" &&
 			digest != "f655c5fd185d97f83a9d72cc08b62983427b5df718e3352416bc5ca7eb6e603f" &&
 			digest != "8b09a687d3058eaeb2292096bf3afbbd024991e7afda5d6b98ad9f9a0286b79c" &&
-			digest != "b86cfd5dbaab32dc023192d342c2babf4e3389fbbea4bd0dbddcf5bfccb31327" {
+			digest != "b86cfd5dbaab32dc023192d342c2babf4e3389fbbea4bd0dbddcf5bfccb31327" &&
+			digest != "a234b8ce766c47ee29ee6cb9fa1a41f3acae025bcb520fe783f5f43bc613a376" {
 			return nil
 		}
 		return upgradePresenceHook(local, path)

@@ -4,9 +4,9 @@
   import type { ContactRequest } from './ContactRequests.svelte'
   let { draft }: { draft?: ContactRequest } = $props()
 
-  type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Notes: { Text: string; At: string }[] | null }
-  const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined })
+  type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
   let selected = $state<Partner>()
@@ -49,7 +49,7 @@
     emailStatus = ''
     selected = partner
     form = partner
-      ? { Call: partner.Call, Name: partner.Name, Contact: partner.Contact, Email: partner.Email, Host: partner.Host, Port: partner.Port }
+      ? { Call: partner.Call, Name: partner.Name, Contact: partner.Contact, Email: partner.Email, Host: partner.Host, Port: partner.Port, Lang: partner.Lang ?? '' }
       : empty()
     note = ''
     error = ''
@@ -74,7 +74,7 @@
     if (!draft) return
     const request = draft
     open()
-    form = { Call: request.Call, Name: request.Name, Contact: request.Contact, Email: request.Email, Host: request.Host, Port: request.Port }
+    form = { Call: request.Call, Name: request.Name, Contact: request.Contact, Email: request.Email, Host: request.Host, Port: request.Port, Lang: request.Lang ?? '' }
     note = ['Richiesta ricevuta dal portale il ' + date.format(new Date(request.ReceivedAt)), request.Message].filter(Boolean).join('\n\n')
     message = 'Scheda precompilata. Controlla i dati prima di salvare.'
     requestAnimationFrame(() => document.getElementById('partner-draft')?.focus())
@@ -155,6 +155,12 @@
     if (provisioning === 'In attesa di Mojo') return { tone: 'amber', text: 'Operazione in corso: attendi qualche secondo.' }
     if (provisioning?.includes('verificare')) return { tone: 'red', text: 'Esiste già un account con questo indicativo: va verificato prima di abilitare.' }
     return { tone: 'neutral', text: 'Non abilitato: il partner non può collegarsi al tuo nodo.' }
+  }
+
+  function directionLabel(direction?: string) {
+    if (direction === 'Uscita') return 'In uscita ↗ (avviato da te)'
+    if (direction === 'Ingresso') return 'In ingresso ↙ (avviato dal partner)'
+    return '—'
   }
 
   function connectionTone(state?: string) {
@@ -258,7 +264,7 @@
   {#if partners.length}
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th>Registrato il</th></tr></thead>
+        <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
         <tbody>
           {#each partners.toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
             {@const state = statusError ? 'Stato non aggiornato' : partner.Connection || 'Stato in attesa'}
@@ -273,6 +279,7 @@
                   {state}
                 </span>
               </td>
+              <td>{directionLabel(partner.Direction)}</td>
               <td>{date.format(new Date(partner.RegisteredAt))}</td>
             </tr>
           {/each}
@@ -294,6 +301,7 @@
           <p class="observed-state">
             <span class="led" data-tone={connectionTone(selected.Connection)} aria-hidden="true"></span>
             {selected.Connection || 'Stato in attesa'}
+            {#if selected.Direction}<span class="muted">· {directionLabel(selected.Direction)}</span>{/if}
             <span class="muted">· Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'non ancora rilevata'}</span>
           </p>
         {/if}
@@ -393,6 +401,13 @@
             <label>Nome del nodo <input bind:value={form.Name} maxlength="120" /></label>
             <label>Nome del referente <input bind:value={form.Contact} maxlength="120" /></label>
             <label>Email del referente <input type="email" bind:value={form.Email} maxlength="254" /></label>
+            <label>Lingua delle email
+              <select bind:value={form.Lang}>
+                <option value="">Inglese (predefinita)</option>
+                <option value="it">Italiano</option><option value="en">English</option><option value="es">Español</option>
+                <option value="de">Deutsch</option><option value="fr">Français</option><option value="pt">Português</option>
+              </select>
+            </label>
             <label>Host del nodo <input bind:value={form.Host} maxlength="253" required /></label>
             <label>Porta <input type="number" bind:value={form.Port} min="1" max="65535" required /></label>
           </div>

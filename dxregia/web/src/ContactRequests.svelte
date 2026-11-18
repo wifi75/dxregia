@@ -2,13 +2,18 @@
   import { onMount } from 'svelte'
   export type ContactRequest = {
     ID: string; Kind: string; Call: string; Name: string; Contact: string; Email: string;
-    Host: string; Port: number; Message: string; MailStatus: string; ReceivedAt: string
+    Host: string; Port: number; Message: string; MailStatus: string; ReceivedAt: string; Country?: string; Lang?: string
   }
 
   let { onDraft }: { onDraft: (request: ContactRequest) => void } = $props()
   let requests = $state<ContactRequest[]>()
   let failed = $state(false)
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
+  const languageNames: Record<string, string> = { it: 'Italiano', en: 'English', es: 'Español', de: 'Deutsch', fr: 'Français', pt: 'Português' }
+  function country(code?: string) {
+    if (!code) return 'non indicato'
+    try { return new Intl.DisplayNames(['it'], { type: 'region' }).of(code) ?? code } catch { return code }
+  }
 
   async function refresh() {
     try {
@@ -32,6 +37,7 @@
       <details>
         <summary>{request.Call} · {request.Kind === 'partner' ? 'Peering' : 'Messaggio'} · {date.format(new Date(request.ReceivedAt))}</summary>
         <p>{request.Contact || 'Referente non indicato'} · <a href={'mailto:' + request.Email}>{request.Email}</a></p>
+        <p>Paese: {country(request.Country)} · Rispondi in: <strong>{languageNames[request.Lang ?? ''] ?? 'English'}</strong></p>
         {#if request.Kind === 'partner'}<p>{request.Name} · host {request.Host} · porta {request.Port}</p>{/if}
         {#if request.Message}<p class="message">{request.Message}</p>{/if}
         <p>Notifica email: {request.MailStatus}</p>

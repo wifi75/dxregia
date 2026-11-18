@@ -3,9 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
-	"mime"
 	"net"
 	"net/http"
 	"net/mail"
@@ -219,9 +217,10 @@ func registerSMTP(mux *http.ServeMux, root string, auth *sysopAuth) {
 			http.Error(w, "Salva prima le impostazioni del server di posta.", http.StatusConflict)
 			return
 		}
-		message := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n%s",
-			mailer.from, to.Address, mime.QEncoding.Encode("utf-8", "DXRegia · prova del server di posta"),
-			"Questo è un messaggio di prova. Se lo leggi, il server di posta di DXRegia funziona.\r\n")
+		content := mailForSysop("DXRegia · prova del server di posta", "Il server di posta funziona",
+			"Questo è un messaggio di prova inviato dal pannello di DXRegia. Se lo stai leggendo, le email ai partner e le notifiche del portale arriveranno correttamente.",
+			[]mailRow{{"Server", mailer.address, false}, {"Mittente", mailer.from, false}}, "")
+		message := buildMessage(mailer.from, to.Address, "", content)
 		if err := mailer.send(to.Address, message); err != nil {
 			http.Error(w, "Invio non riuscito: "+smtpErrorText(err), http.StatusBadGateway)
 			return

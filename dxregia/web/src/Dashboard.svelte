@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
-  type Channel = { Call: string; Kind: string; State: string; Since: number }
+  type Channel = { Call: string; Kind: string; State: string; Since: number; Outbound?: boolean }
   type Snapshot = { At: number; Channels: Channel[] | null }
   type Spot = { Frequency: number; Call: string; At: number; Spotter: string; Entity?: string }
   type Tone = 'green' | 'amber' | 'red' | 'neutral'
@@ -141,6 +141,7 @@
             <span class="led" data-tone={tone} aria-hidden="true"></span>
             <strong>{call}</strong>
             <span class="muted">{directory[call]?.Name || ''}</span>
+            {#if node}<span class="tag" title="Chi ha avviato il collegamento">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{/if}
             <span class="state">{!node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo dalle ' + time.format(new Date(node.Since * 1000)) : 'Sessione aperta'}</span>
           </li>
         {/each}
@@ -227,6 +228,7 @@
   .muted { color: #485b6d; margin: 6px 0; }
   .rows, .bars { margin: 0; padding: 0; list-style: none; }
   .rows li { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; padding: 8px 2px; border-top: 1px solid #d7dfe7; }
+  .tag { padding: 1px 8px; border-radius: 10px; background: #e7f1fa; color: #214e80; font-size: .82rem; font-weight: 650; }
   .rows .state { margin-left: auto; color: #485b6d; font-size: .9rem; }
   .bars li { display: grid; grid-template-columns: 52px 1fr 34px; align-items: center; gap: 10px; padding: 4px 0; }
   .band { font-weight: 650; }

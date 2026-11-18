@@ -7,16 +7,20 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"sync"
 	"time"
 )
 
+var countryCode = regexp.MustCompile(`^[A-Z]{2}$`)
+
 type contactInput struct {
 	partnerDetails
 	Kind    string
 	Message string
+	Country string `json:",omitempty"`
 }
 
 type contactRequest struct {
@@ -132,6 +136,11 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 }
 
 func (c *contactInput) valid() bool {
+	c.Lang = normalizeLang(c.Lang)
+	c.Country = strings.ToUpper(strings.TrimSpace(c.Country))
+	if c.Country != "" && !countryCode.MatchString(c.Country) {
+		return false
+	}
 	c.Message = strings.TrimSpace(c.Message)
 	if len(c.Message) > 3000 || c.Kind != "message" && c.Kind != "partner" {
 		return false

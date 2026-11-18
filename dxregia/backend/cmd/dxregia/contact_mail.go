@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"mime"
 	"net"
 	"net/mail"
 	"net/smtp"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -45,13 +45,23 @@ func (m *contactMailer) notify(config string, request contactRequest) string {
 	if err != nil || json.Unmarshal(data, &node) != nil || node.Email == "" {
 		return "Manca l’email del sysop"
 	}
-	subject := mime.QEncoding.Encode("utf-8", "DXRegia · nuova richiesta da "+request.Call)
-	message := fmt.Sprintf("From: %s\r\nTo: %s\r\nReply-To: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nTipo: %s\r\nIndicativo: %s\r\nNome: %s\r\nEmail: %s\r\nNodo: %s\r\nHost: %s\r\nPorta: %d\r\n\r\n%s\r\n",
-		m.from, node.Email, request.Email, subject,
-		request.Kind, request.Call, request.Contact, request.Email, request.Name, request.Host, request.Port, request.Message)
-	if err := m.send(node.Email, message); err != nil {
+	kind := "Messaggio al sysop"
+	if request.Kind == "partner" {
+		kind = "Richiesta di collegamento tra nodi"
+	}
+	rows := []mailRow{{"Tipo", kind, false}, {"Indicativo", request.Call, false}, {"Referente", request.Contact, false},
+		{"Email", request.Email, false}, {"Paese", request.Country, false}, {"Lingua del portale", strings.ToUpper(normalizeLang(request.Lang)), false}}
+	if request.Kind == "partner" {
+		rows = append(rows, mailRow{"Nodo", request.Name, false}, mailRow{"Host e porta", fmt.Sprintf("%s:%d", request.Host, request.Port), false})
+	}
+	content := mailForSysop("DXRegia · nuova richiesta da "+request.Call, "Nuova richiesta da "+request.Call,
+		"Hai ricevuto una richiesta dal portale. Puoi rispondere direttamente a questa email.", rows, request.Message)
+	if err := m.send(node.Email, buildMessage(m.from, node.Email, request.Email, content)); err != nil {
 		return "Invio non riuscito"
 	}
+	// Ricevuta per chi ha scritto, nella sua lingua. Un errore qui non invalida la notifica al sysop.
+	ack := mailRequestReceived(request.Lang, node.Node, request)
+	_ = m.send(request.Email, buildMessage(m.from, request.Email, node.Email, ack))
 	return "Notifica inviata al sysop"
 }
 
