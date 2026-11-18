@@ -548,6 +548,9 @@ export const adminRows: string[][] = [
   ['Indirizzo del sito non valido: usa https://esempio.it senza percorso.', 'Invalid site address: use https://example.org with no path.', 'Dirección del sitio no válida: usa https://ejemplo.es sin ruta.', 'Ungültige Website-Adresse: Verwende https://beispiel.de ohne Pfad.', 'Adresse du site non valide : utilisez https://exemple.fr sans chemin.', 'Endereço do site inválido: use https://exemplo.pt sem caminho.'],
   ['Registrazione non trovata.', 'Registration not found.', 'Registro no encontrado.', 'Registrierung nicht gefunden.', 'Inscription introuvable.', 'Registo não encontrado.'],
   ['Revoca non riuscita.', 'Revocation failed.', 'No se pudo revocar.', 'Widerruf fehlgeschlagen.', 'Révocation impossible.', 'Falha ao revogar.'],
+  ['Altri cluster collegati al tuo come partner.', 'Other clusters linked to yours as partners.', 'Otros clústeres enlazados al tuyo como socios.', 'Andere Cluster, die als Partner mit deinem verbunden sind.', 'Autres clusters liés au vôtre comme partenaires.', 'Outros clusters ligados ao seu como parceiros.'],
+  ['Radioamatori collegati al tuo nodo', 'Radio amateurs connected to your node', 'Radioaficionados conectados a tu nodo', 'Mit deinem Knoten verbundene Funkamateure', 'Radioamateurs connectés à votre nœud', 'Radioamadores ligados ao seu nó'],
+  ['Utenti connessi in questo momento via Telnet o dal web.', 'Users connected right now by Telnet or from the web.', 'Usuarios conectados ahora por Telnet o desde la web.', 'Derzeit per Telnet oder über das Web verbundene Benutzer.', 'Utilisateurs connectés en ce moment en Telnet ou depuis le web.', 'Utilizadores ligados neste momento por Telnet ou pela web.'],
   // Parole singole
   ['Accedi', 'Sign in', 'Acceder', 'Anmelden', 'Se connecter', 'Iniciar sessão'],
   ['Aggiornamento…', 'Updating…', 'Actualizando…', 'Aktualisierung…', 'Mise à jour…', 'A atualizar…'],

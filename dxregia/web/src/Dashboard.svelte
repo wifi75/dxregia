@@ -162,8 +162,10 @@
 </section>
 
 <div class="columns">
-  <article class="glass-panel box">
-    <h2>Nodi partner</h2>
+  <div class="stack">
+  <article class="glass-panel box partners">
+    <header class="box-head"><h2>Nodi partner</h2><span class="count">{[...new Set([...partnerCalls, ...nodes.map(node => node.Call)])].length}</span></header>
+    <p class="sub">Altri cluster collegati al tuo come partner.</p>
     {#if partnerCalls.length || nodes.length}
       <ul class="rows">
         {#each [...new Set([...partnerCalls, ...nodes.map(node => node.Call)])] as call (call)}
@@ -181,8 +183,11 @@
     {:else}
       <p class="muted">Nessun nodo partner registrato.</p>
     {/if}
+  </article>
 
-    <h2>Radioamatori collegati</h2>
+  <article class="glass-panel box users">
+    <header class="box-head"><h2>Radioamatori collegati al tuo nodo</h2><span class="count">{sessions.length}</span></header>
+    <p class="sub">Utenti connessi in questo momento via Telnet o dal web.</p>
     {#if sessions.length}
       <ul class="rows">
         {#each sessions as session (session.Call + session.Kind)}
@@ -198,6 +203,7 @@
       <p class="muted">Nessuna sessione Telnet o Web Mojo attiva.</p>
     {/if}
   </article>
+  </div>
 
   <article class="glass-panel box">
     <h2>Spot per banda · ultima ora</h2>
@@ -253,6 +259,13 @@
   .counter { display: grid; padding: 12px 16px; }
   .counter strong { font-size: 1.9rem; line-height: 1.1; color: #143a60; font-variant-numeric: tabular-nums; }
   .counter span { color: #485b6d; font-size: .9rem; }
+  .stack { display: grid; gap: 14px; align-content: start; min-width: 0; }
+  .box-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .box-head h2 { margin: 0; }
+  .count { min-width: 1.8em; padding: 2px 10px; border-radius: 999px; background: #e3eef6; color: #143a60; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+  .partners { border-top: 4px solid #3a82c0; }
+  .users { border-top: 4px solid #2fa36b; }
+  .sub { margin: 4px 0 10px; color: #5b6e80; font-size: .88rem; }
   .columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; margin-top: 14px; align-items: start; }
   .box { padding: 16px; }
   h2 { margin: 0 0 8px; font-size: 1.05rem; }

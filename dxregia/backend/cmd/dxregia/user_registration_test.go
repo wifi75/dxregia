@@ -32,7 +32,7 @@ func TestRegistrationInputRules(t *testing.T) {
 			t.Errorf("rejected call %s", call)
 		}
 	}
-	for _, call := range []string{"IU3WJQ-7", "IU3/P", "ABC", "iu3wjq", "A B1C"} {
+	for _, call := range []string{"IU3WJQ-7", "IU3/P", "ABC", "TE5T9", "12345", "iu3wjq", "A B1C"} {
 		if userCall.MatchString(call) {
 			t.Errorf("accepted call %s", call)
 		}

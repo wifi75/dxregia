@@ -33,7 +33,7 @@ const (
 )
 
 var (
-	userCall     = regexp.MustCompile(`^[A-Z0-9]+[0-9][A-Z0-9]+$`)
+	userCall     = regexp.MustCompile(`^[0-9]?[A-Z]{1,2}[0-9]{1,5}[A-Z]{1,8}$`)
 	userPassword = regexp.MustCompile(`^[\x21-\x7e]{8,72}$`)
 )
 
