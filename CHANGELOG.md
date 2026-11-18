@@ -5,6 +5,8 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 ## [Unreleased]
 
 ### Added
+- User registration from the portal: a web form (callsign, email, password) with an email confirmation link; confirmed users are created in DXSpider with a bcrypt password and can send spots, and Telnet then asks for that password. Sysop page "Registered users" to enable it, set the public site address and revoke users.
+- Access history page and a dashboard that separates partner nodes from the users connected to the node.
 - Portal: dismissible Aurora sponsor banner on the spots page (six languages; closing it hides it for 7 days) and the author credit in the footer.
 - Admin panel translated into the six portal languages (the language button is now in the admin header too). Texts live in `dxregia/web/src/adminTranslations.ts`; `scripts/missing_admin_strings.py` lists texts without a translation.
 - Partner card: shows whether the partner is connected to this node (incoming) and when it first did.
