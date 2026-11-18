@@ -13,7 +13,7 @@ Prima di estendere il pannello, verificare due schermate con dati rappresentativ
 
 ## Marchio e icone
 
-Il logo è la scritta **DXREGIA** disegnata a mano, lettera per lettera, in stile «Blocchi pesanti»: linee spesse a punte piatte e spigoli vivi, della stessa altezza per tutte le lettere, con la **X in ambra**. Non usa nessun carattere tipografico, quindi gli SVG non dipendono da font installati. I file sono in `dxregia/web/public/brand/` e sono serviti dal sito.
+Il logo è la scritta **DXREGIA** disegnata a mano, lettera per lettera, in stile «Blocchi pesanti»: linee molto spesse a punte piatte e spigoli vivi, compatte e geometriche, con la **X in ambra** e la A dal vertice appuntito. Non usa nessun carattere tipografico, quindi gli SVG non dipendono da font installati. I file sono in `dxregia/web/public/brand/` e sono serviti dal sito.
 
 | File | Uso |
 | --- | --- |

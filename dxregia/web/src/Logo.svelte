@@ -1,23 +1,22 @@
 <div class="logo" role="img" aria-label="DXRegia">
-  <svg viewBox="0 22 394 76" aria-hidden="true" focusable="false">
-    <defs><clipPath id="logo-cap"><rect x="0" y="34" width="394" height="52"/></clipPath></defs>
-    <circle class="ring" cx="92" cy="60" r="30" fill="none" stroke="#f0a23a" stroke-width="2"/>
-    <circle class="ring late" cx="92" cy="60" r="30" fill="none" stroke="#f0a23a" stroke-width="2"/>
-    <g clip-path="url(#logo-cap)" fill="none" stroke-width="12" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="2.5">
-    <path transform="translate(14.0 0)" d="M0 34V86M0 40H14A20 20 0 0 1 14 80H0" stroke="#143a60"/>
-    <path transform="translate(74.0 0)" d="M-1.7 28L37.7 92M37.7 28L-1.7 92" class="x" stroke="#f0a23a"/>
-    <path transform="translate(134.0 0)" d="M0 86V34M0 40H13A12 12 0 0 1 13 64H0M15 64L31.8 92" stroke="#143a60"/>
-    <path transform="translate(188.0 0)" d="M26 40H0V80H26M0 60H20" stroke="#143a60"/>
-    <path transform="translate(233.0 0)" d="M36.4 48.5A20 20 0 1 0 40 60H25" stroke="#143a60"/>
-    <path transform="translate(298.0 0)" d="M0 34V86" stroke="#143a60"/>
-    <path transform="translate(323.5 0)" d="M-2.7 92L21 40H35L58.7 92M7.3 70H48.7" stroke="#143a60"/>
+  <svg viewBox="0 0 316 96" aria-hidden="true" focusable="false">
+    <circle class="ring" cx="83" cy="48" r="26" fill="none" stroke="#f0a23a" stroke-width="2"/>
+    <circle class="ring late" cx="83" cy="48" r="26" fill="none" stroke="#f0a23a" stroke-width="2"/>
+    <g fill="none" stroke-width="13" stroke-linecap="butt" stroke-linejoin="miter">
+  <path transform="translate(22 26)" d="M4 4V40H14A18 18 0 0 0 14 4Z" stroke="#143a60"/>
+  <path transform="translate(66 26)" d="M4 4L30 40M30 4L4 40" class="x" stroke="#f0a23a"/>
+  <path transform="translate(112 26)" d="M4 40V4H15A10 10 0 0 1 15 24H4M16 24L28 40" stroke="#143a60"/>
+  <path transform="translate(154 26)" d="M24 4H4V40H24M4 22H20" stroke="#143a60"/>
+  <path transform="translate(192 26)" d="M30 12A18 18 0 1 0 30 32V22H17" stroke="#143a60"/>
+  <path transform="translate(238 26)" d="M4 4V40" stroke="#143a60"/>
+  <path transform="translate(258 26)" d="M4 40L18 4L32 40M9 28H27" stroke="#143a60"/>
   </g>
   </svg>
 </div>
 
 <style>
   .logo { display: grid; justify-items: center; margin: 4px 0 24px; }
-  svg { width: min(300px, 80%); height: auto; overflow: visible; color: #143a60; }
+  svg { width: min(280px, 80%); height: auto; overflow: visible; color: #143a60; }
   svg g { stroke: currentColor; }
   svg g .x { stroke: #f0a23a; }
   .ring { transform-box: fill-box; transform-origin: center; opacity: 0; animation: ring 3.4s ease-out infinite; }

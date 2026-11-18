@@ -44,7 +44,7 @@
 
 <header>
   <div class="brandline">
-    <a class="brand" href="/spots"><img class="brand-logo" src={currentTheme() === 'dark' ? '/brand/dxregia-logo-dark.svg' : '/brand/dxregia-logo.svg'} alt="DXRegia" width="155" height="30"></a>
+    <a class="brand" href="/spots"><img class="brand-logo" src={currentTheme() === 'dark' ? '/brand/dxregia-logo-dark.svg' : '/brand/dxregia-logo.svg'} alt="DXRegia" width="112" height="34"></a>
     {#if publicPortal && !contactPage}
       <span class="sep" aria-hidden="true">–</span>
       <h1 id="spots-title" class="page">{t('spotsTitle')}</h1>
@@ -135,7 +135,7 @@
   .lang-menu button[aria-checked=true] { background: #dcebf6; color: #143a60; }
   .lang-menu img { border: 1px solid #15263826; border-radius: 2px; object-fit: cover; }
   header .brand { display: inline-flex; gap: 9px; align-items: center; padding: 0; font-size: 1.25rem; font-weight: 800; line-height: 1; color: #143a60; }
-  .brand-logo { display: block; height: 30px; width: auto; }
+  .brand-logo { display: block; height: 34px; width: auto; }
   header { justify-content: space-between; align-items: center; flex-wrap: wrap; }
   header nav { display: flex; flex-wrap: wrap; gap: .35rem; }
   :global(html.auth-card-view) .brandline { visibility: hidden; }
