@@ -1,10 +1,13 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,8 +19,12 @@ import (
 
 type trafficDay struct {
 	Views     uint64
+	Visitors  uint64 `json:",omitempty"`
 	Referrers map[string]uint64
 	Pages     map[string]uint64
+	Languages map[string]uint64 `json:",omitempty"`
+	Devices   map[string]uint64 `json:",omitempty"`
+	Hours     []uint64          `json:",omitempty"` // 24 fasce orarie UTC
 }
 
 type trafficData struct {
@@ -31,10 +38,16 @@ type traffic struct {
 	data      trafficData
 	active    map[[16]byte]time.Time
 	nextSweep time.Time
+	salt      [16]byte
+	seen      map[string]map[[16]byte]struct{} // visitatori già contati oggi, solo in memoria
 }
 
 func registerTraffic(mux *http.ServeMux, root string, auth *sysopAuth) (*traffic, error) {
-	t := &traffic{data: trafficData{Days: make(map[string]trafficDay)}, active: make(map[[16]byte]time.Time)}
+	t := &traffic{data: trafficData{Days: make(map[string]trafficDay)}, active: make(map[[16]byte]time.Time),
+		seen: make(map[string]map[[16]byte]struct{})}
+	if _, err := rand.Read(t.salt[:]); err != nil {
+		return nil, err
+	}
 	if root != "" {
 		t.path = filepath.Join(root, ".dxregia-traffic.json")
 		data, err := os.ReadFile(t.path)
@@ -153,6 +166,7 @@ func (t *traffic) view(r *http.Request) {
 	}
 	day.Pages[r.URL.Path]++
 	day.Views++
+	t.countAudience(&day, r, now, date)
 	t.data.Days[date] = day
 	cutoff := now.AddDate(0, 0, -89).Format(time.DateOnly)
 	for date := range t.data.Days {
@@ -179,4 +193,67 @@ func saveTraffic(path string, data trafficData) error {
 		return err
 	}
 	return os.Rename(tmp.Name(), path)
+}
+
+// countAudience aggiorna visitatori unici, lingua, dispositivo e orario di una visita. I visitatori unici si
+// riconoscono con un'impronta (indirizzo, browser, giorno, sale casuale) tenuta solo in memoria: niente cookie,
+// niente indirizzi salvati, e il sale cambia a ogni riavvio.
+func (t *traffic) countAudience(day *trafficDay, r *http.Request, now time.Time, date string) {
+	if day.Languages == nil {
+		day.Languages = make(map[string]uint64)
+	}
+	if day.Devices == nil {
+		day.Devices = make(map[string]uint64)
+	}
+	if len(day.Hours) != 24 {
+		day.Hours = make([]uint64, 24)
+	}
+	day.Languages[browserLanguage(r.Header.Get("Accept-Language"))]++
+	device := deviceKind(r.UserAgent())
+	day.Devices[device]++
+	day.Hours[now.Hour()]++
+	if device == "Bot" {
+		return
+	}
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		host = r.RemoteAddr
+	}
+	sum := sha256.Sum256([]byte(string(t.salt[:]) + "|" + host + "|" + r.UserAgent() + "|" + date))
+	var id [16]byte
+	copy(id[:], sum[:16])
+	for other := range t.seen {
+		if other != date {
+			delete(t.seen, other)
+		}
+	}
+	if t.seen[date] == nil {
+		t.seen[date] = make(map[[16]byte]struct{})
+	}
+	if _, known := t.seen[date][id]; !known && len(t.seen[date]) < 100000 {
+		t.seen[date][id] = struct{}{}
+		day.Visitors++
+	}
+}
+
+// browserLanguage riduce l'intestazione Accept-Language alla prima lingua, se è tra quelle del portale.
+func browserLanguage(header string) string {
+	first := strings.TrimSpace(strings.Split(header, ",")[0])
+	if code := normalizeLang(first); code != "" {
+		return code
+	}
+	return "altre"
+}
+
+func deviceKind(agent string) string {
+	lower := strings.ToLower(agent)
+	switch {
+	case lower == "" || strings.Contains(lower, "bot") || strings.Contains(lower, "spider") || strings.Contains(lower, "crawl") || strings.Contains(lower, "curl/"):
+		return "Bot"
+	case strings.Contains(lower, "ipad") || strings.Contains(lower, "tablet") || (strings.Contains(lower, "android") && !strings.Contains(lower, "mobi")):
+		return "Tablet"
+	case strings.Contains(lower, "mobi") || strings.Contains(lower, "android") || strings.Contains(lower, "iphone"):
+		return "Telefono"
+	}
+	return "Computer"
 }

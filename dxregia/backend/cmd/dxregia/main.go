@@ -108,6 +108,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	registerAnalytics(mux, *setupRoot, auth, traffic)
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
 	if err := registerSetup(service, &children, mux, *setupRoot, *setupPerl, *setupInternal, number, *setupFixedPort, auth, func(port int) {
