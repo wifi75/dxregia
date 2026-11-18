@@ -22,3 +22,16 @@ func TestMojoLogAllowsDiagnosticFactsOnly(t *testing.T) {
 		}
 	}
 }
+
+func TestMojoTimeoutDirection(t *testing.T) {
+	for suffix, want := range map[string]string{
+		" incoming":         "Accesso Telnet in ingresso non completato dopo 60 secondi",
+		" outgoing EA1AA-6": "Collegamento in uscita non completato verso EA1AA-6 dopo 60 secondi",
+		"":                  "Timeout del collegamento dopo 60 secondi",
+	} {
+		event, ok := parseMojoConnection("1794995295^(connect) connect 7: timed out after 60 seconds" + suffix)
+		if !ok || event.Message != want {
+			t.Errorf("timeout %q: got %q, want %q", suffix, event.Message, want)
+		}
+	}
+}

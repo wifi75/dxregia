@@ -19,7 +19,7 @@ type mojoLogEvent struct {
 	Message string
 }
 
-var mojoConnectionLine = regexp.MustCompile(`^([0-9]{9,12})\^\(connect\) (?:Connected [0-9]+ to ([A-Za-z0-9.:-]+) ([0-9]{1,5})|\*\*\*Connect [0-9]+ Failed to ([A-Za-z0-9.:-]+) ([0-9]{1,5})(?: .*?)?|connect [0-9]+: timed out after ([0-9]+) seconds)\s*$`)
+var mojoConnectionLine = regexp.MustCompile(`^([0-9]{9,12})\^\(connect\) (?:Connected [0-9]+ to ([A-Za-z0-9.:-]+) ([0-9]{1,5})|\*\*\*Connect [0-9]+ Failed to ([A-Za-z0-9.:-]+) ([0-9]{1,5})(?: .*?)?|connect [0-9]+: timed out after ([0-9]+) seconds(?: (incoming|outgoing)(?: ([A-Z0-9-]{1,12}))?)?)\s*$`)
 
 func registerMojoLog(mux *http.ServeMux, auth *sysopAuth, root string) {
 	if root == "" || auth == nil {
@@ -93,7 +93,17 @@ func parseMojoConnection(line string) (mojoLogEvent, bool) {
 	case fields[4] != "":
 		return mojoLogEvent{at, "Collegamenti", "Connessione TCP non riuscita verso " + fields[4] + ":" + fields[5]}, true
 	default:
-		return mojoLogEvent{at, "Collegamenti", "Timeout del collegamento dopo " + fields[6] + " secondi"}, true
+		message := "Timeout del collegamento"
+		switch fields[7] {
+		case "incoming":
+			message = "Accesso Telnet in ingresso non completato"
+		case "outgoing":
+			message = "Collegamento in uscita non completato"
+			if fields[8] != "" {
+				message += " verso " + fields[8]
+			}
+		}
+		return mojoLogEvent{at, "Collegamenti", message + " dopo " + fields[6] + " secondi"}, true
 	}
 }
 

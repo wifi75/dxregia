@@ -282,3 +282,4 @@ Versione 0.4.0 (tag v0.4.0, 2026-11-18): impostazioni di DXSpider nel pannello (
 - Nodi partner: il pulsante di invio rimane visibile con email presente anche se Mojo richiede una verifica, con il motivo accanto. Build Vite riuscita.
 - Nodi partner: Aggiorna stato mostra il controllo in corso e il risultato accanto al pulsante. Build Vite riuscita.
 - Updater nativo: log completo della build web in caso di errore o con DXREGIA_VERBOSE=1.
+- Log DXSpider: i nuovi timeout mostrano la direzione e il nominativo del partner in uscita. Verificati il parser Go e la routine Perl isolata. La prova su un nodo Linux resta da fare.

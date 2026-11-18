@@ -93,3 +93,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Mostrare il pulsante di invio delle istruzioni ai partner anche quando lo stato Mojo lo disabilita.
 - [x] Dare riscontro visibile al controllo manuale dello stato del nodo partner.
 - [x] Mostrare il log della build web su errore o in modalita dettagliata.
+- [x] Distinguere nel log DXSpider i timeout Telnet in ingresso dai timeout dei partner in uscita.

@@ -381,7 +381,13 @@ sub _dochat
 sub _timedout
 {
 	my $conn = shift;
-	dbg("connect $conn->{cnum}: timed out after $conn->{timeval} seconds") if isdbg('connect');
+	# DXRegia, 2026-11-18: distinguish incomplete incoming logins from outgoing partner handshakes.
+	if (isdbg('connect')) {
+		my $call = $conn->{call} // '';
+		my $context = $conn->{outgoing} ? 'outgoing' : 'incoming';
+		$context .= " $call" if $conn->{outgoing} && $call =~ /\A[A-Z0-9-]{1,12}\z/;
+		dbg("connect $conn->{cnum}: timed out after $conn->{timeval} seconds $context");
+	}
 	$conn->disconnect;
 }
 
