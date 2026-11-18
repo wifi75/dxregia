@@ -2,7 +2,7 @@
 
 ## Ripresa del lavoro
 
-- Repository condiviso: https://github.com/wifi75/dxregia, ramo main. Su un altro computer partire dal ramo main del repository e leggere TASK.md, questo file e AGENTS.md. Claude Code importa AGENTS.md tramite CLAUDE.md.
+- Repository condiviso: https://github.com/wifi75/dxregia, ramo main. Su un altro computer partire dal ramo main del repository e leggere TASK.md, questo file e AGENTS.md.
 - Punto raggiunto: il wizard locale salva, inizializza e avvia Mojo. Diagnostica e riavvio con porta e utenti persistenti sono stati collaudati con Mojo reale su Windows. Una porta occupata viene rifiutata prima di scrivere.
 - Per riprodurre, compilare il pannello e avviare il backend con una copia Mojo separata e Perl con le dipendenze richieste. I comandi e la baseline sono in dxregia/backend/README.md. Le istanze locali, i dati di prova e i codici temporanei non fanno parte del repository.
 - Prossimo intervento: build del container e collaudo su Linux pulito. Il cambio obbligatorio della password sysop è implementato e verificato via API su Windows. Istruzioni della build locale in dxregia/deploy/README.md.
