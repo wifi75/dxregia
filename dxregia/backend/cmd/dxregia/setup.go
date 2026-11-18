@@ -7,19 +7,28 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
+	"net/mail"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"sync"
 )
 
 type nodeConfig struct {
-	Node    string `json:"node"`
-	Sysop   string `json:"sysop"`
-	Locator string `json:"locator"`
-	Port    int    `json:"port"`
+	Node           string   `json:"node"`
+	Sysop          string   `json:"sysop"`
+	Locator        string   `json:"locator"`
+	Port           int      `json:"port"`
+	Longitude      *float64 `json:"longitude,omitempty"`
+	Latitude       *float64 `json:"latitude,omitempty"`
+	AdvertisedHost string   `json:"advertisedHost,omitempty"`
+	Email          string   `json:"email,omitempty"`
+	QTH            string   `json:"qth,omitempty"`
+	Name           string   `json:"name,omitempty"`
 }
 
 var callsign = regexp.MustCompile(`^[A-Z0-9]+[0-9][A-Z0-9]+(-([1-9]|1[0-5]))?$`)
@@ -38,6 +47,26 @@ func (c *nodeConfig) validate() error {
 	if c.Port < 1 || c.Port > 65535 {
 		return errors.New("La porta Telnet deve essere compresa tra 1 e 65535.")
 	}
+	c.Name = strings.TrimSpace(c.Name)
+	c.QTH = strings.TrimSpace(c.QTH)
+	c.Email = strings.TrimSpace(c.Email)
+	c.AdvertisedHost = strings.TrimSpace(c.AdvertisedHost)
+	if len(c.Name) > 120 || len(c.QTH) > 120 || strings.ContainsAny(c.Name+c.QTH, "\r\n\x00") {
+		return errors.New("Controlla nome e località del sysop.")
+	}
+	if c.Email != "" {
+		address, err := mail.ParseAddress(c.Email)
+		if err != nil || address.Address != c.Email || len(c.Email) > 254 {
+			return errors.New("Inserisci un indirizzo email valido.")
+		}
+	}
+	if c.AdvertisedHost != "" && (len(c.AdvertisedHost) > 253 || (net.ParseIP(c.AdvertisedHost) == nil && !partnerHost.MatchString(c.AdvertisedHost))) {
+		return errors.New("Inserisci un nome host o un indirizzo IP valido, senza protocollo o porta.")
+	}
+	if (c.Latitude == nil) != (c.Longitude == nil) ||
+		(c.Latitude != nil && (*c.Latitude < -90 || *c.Latitude > 90 || *c.Longitude < -180 || *c.Longitude > 180)) {
+		return errors.New("Inserisci entrambe le coordinate: latitudine da -90 a 90 e longitudine da -180 a 180.")
+	}
 	return nil
 }
 
@@ -53,6 +82,25 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 		return err
 	}
 	local := filepath.Join(root, "local")
+	mux.HandleFunc("GET /api/node-settings", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		data, err := os.ReadFile(filepath.Join(local, "dxregia-node.json"))
+		if os.IsNotExist(err) {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		var config nodeConfig
+		if err != nil || json.Unmarshal(data, &config) != nil || config.validate() != nil {
+			http.Error(w, "Impostazioni del nodo non disponibili.", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(config)
+	})
 	var template []byte
 	var saved *nodeConfig
 	if _, err := os.Lstat(local); err == nil {
@@ -137,7 +185,7 @@ func registerSetup(service context.Context, mux *http.ServeMux, root, perl strin
 			http.Error(w, "Scegli una porta Telnet diversa dalla porta interna di Mojo.", http.StatusBadRequest)
 			return
 		}
-		if saved != nil && *saved != config {
+		if saved != nil && !reflect.DeepEqual(*saved, config) {
 			http.Error(w, "Per riprovare usa i dati già salvati.", http.StatusConflict)
 			return
 		}
@@ -182,7 +230,17 @@ func writeMojoConfig(root, local, template string, config nodeConfig, internalPo
 		return err
 	}
 	defer os.RemoveAll(stage)
-	values := fmt.Sprintf("\n$mycall = '%s';\n$myalias = '%s';\n$mylocator = '%s';\n$myname = '%s';\n$myqth = '%s';\n$myemail = '';\n$clusterport = %d;\n", config.Node, config.Sysop, config.Locator, config.Sysop, config.Locator, internalPort)
+	lat, lon := config.coordinates()
+	name, qth := config.Name, config.QTH
+	if name == "" {
+		name = config.Sysop
+	}
+	if qth == "" {
+		qth = config.Locator
+	}
+	values := fmt.Sprintf("\n$mycall = %s;\n$myalias = %s;\n$mylocator = %s;\n$myname = %s;\n$myqth = %s;\n$myemail = %s;\n$mylatitude = %.8f;\n$mylongitude = %.8f;\n$clusterport = %d;\n",
+		perlLiteral(config.Node), perlLiteral(config.Sysop), perlLiteral(config.Locator), perlLiteral(name),
+		perlLiteral(qth), perlLiteral(config.Email), lat, lon, internalPort)
 	if err := os.WriteFile(filepath.Join(stage, "DXVars.pm"), []byte(template[:end]+values+template[end:]), 0600); err != nil {
 		return err
 	}
@@ -204,4 +262,22 @@ func writeMojoConfig(root, local, template string, config nodeConfig, internalPo
 		return errors.New("Mojo local directory already exists")
 	}
 	return os.Rename(stage, local)
+}
+
+func perlLiteral(value string) string {
+	escape := strings.NewReplacer("\\", "\\\\", "'", "\\'")
+	return "'" + escape.Replace(value) + "'"
+}
+
+func (c nodeConfig) coordinates() (lat, lon float64) {
+	if c.Latitude != nil && c.Longitude != nil {
+		return *c.Latitude, *c.Longitude
+	}
+	grid := c.Locator
+	lon = float64(grid[0]-'A')*20 + float64(grid[2]-'0')*2 - 180
+	lat = float64(grid[1]-'A')*10 + float64(grid[3]-'0') - 90
+	if len(grid) == 6 {
+		return lat + (float64(grid[5]-'A')+.5)/24, lon + (float64(grid[4]-'A')+.5)/12
+	}
+	return lat + .5, lon + 1
 }

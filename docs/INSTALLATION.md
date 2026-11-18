@@ -33,3 +33,9 @@ L'installatore avvia il pannello anche prima che DXSpider sia configurato. Dopo 
 5. **Verifica e backup.** Controlla che il logger riceva gli spot via Telnet e crea un backup dalla sezione di gestione. Dopo un riavvio verifica che configurazione e collegamenti siano recuperati.
 
 [Specifiche dell'installatore](../dxregia/deploy/README.md) · [Gestione dei nodi partner e backup](OPERATIONS.md) · [Stato di implementazione](../TASK.md)
+
+## Importazione della configurazione iniziale
+
+Da Prima configurazione, apri Importa configurazione DXSpider e scegli DXVars.pm. Puoi poi scegliere Listeners.pm per importare la porta di un unico listener. Il modulo riconosce anche oggetti JSON di impostazioni con campi supportati. I file Perl vengono letti come testo e le assegnazioni letterali riconosciute compilano i campi. Controlla i dati e applica dal wizard. Gli export di utenti, le regole Perl personalizzate, i partner e i filtri richiedono procedure di migrazione dedicate.
+
+Il wizard consente di configurare nome, indicativo, email, località, locator e coordinate del sysop, indicativo del nodo, porta Telnet e host pubblico. L'host pubblico serve come riferimento di configurazione. Non modifica DNS, firewall o inoltro porte. La porta web si imposta ancora all'avvio del backend e, in Docker, la porta pubblicata deve corrispondere alla configurazione del container.

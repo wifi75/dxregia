@@ -77,3 +77,7 @@ Anagrafica aggiungibile e modificabile nella sezione Nodi partner. Il backend co
 TOTP richiesto dopo la password per proteggere configurazione, anagrafica e presenza. Verificati via API iscrizione, persistenza, codice valido e rifiuto del riutilizzo. La chiave rimane sul server in .dxregia-totp. L'iscrizione è manuale nell'app autenticatore. Recupero con codici di emergenza e QR restano da integrare.
 
 Per le installazioni gestite, il backend installa un hook Local.pm solo se assente. La dashboard mostra dati recenti sulle sessioni Mojo ogni cinque secondi. Verificato con Mojo reale Windows che Q7QQQ compare dopo login Telnet e scompare dopo disconnessione. Web Mojo e stato di partner non ancora collaudati in questa dashboard. Anagrafica e dashboard non modificano i collegamenti. Restano prima connessione persistente, visitatori del portale, contatore pubblico e analytics privato.
+
+## 2026-11-18 — Wizard sysop e import iniziale
+
+Wizard in due passaggi con rinvio e ripresa, dati sysop estesi e riepilogo privato. Anteprima da DXVars.pm, Listeners.pm con un listener e JSON a campi riconosciuti. Verificata l'importazione con il modello Mojo originale e con campioni JSON e Listeners.pm. Build Go e web riuscite. Modifica dei dati dopo l'avvio, cambio porta HTTP dal pannello e migrazione completa di utenti, filtri e partner restano aperti.

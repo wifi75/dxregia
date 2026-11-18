@@ -45,3 +45,6 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 ## Prima release
 
 - [ ] Dopo il completamento e il collaudo del pacchetto, aggiornare il changelog e pubblicare la release 1.0.0 con tag v1.0.0. Gli aggiornamenti ordinari proseguono con 1.0.1, 1.0.2 e così via.
+
+- [x] Ampliare il wizard con dati sysop, rinvio e importazione iniziale dei campi supportati Mojo.
+- [ ] Consentire modifica dei dati sysop dopo l'avvio, cambio porta HTTP dal pannello e migrazione completa dei dati Mojo.
