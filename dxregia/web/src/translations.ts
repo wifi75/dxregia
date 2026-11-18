@@ -1,6 +1,8 @@
 // Testi del portale pubblico in sei lingue. L'italiano è la lingua di riferimento: le altre devono avere le stesse chiavi.
 const it = {
   navSpots: 'Spot in diretta', navContact: 'Contatti', langLabel: 'Lingua',
+  searchShort: 'Cerca…',
+  themeDark: 'Passa al tema scuro', themeLight: 'Passa al tema chiaro',
   allShort: 'Tutti', digi: 'Digi', noFt8: 'Senza FT8', lens: 'Mostra solo questo nominativo', clear: 'Cancella la ricerca',
   soundOn: 'Suono attivo: tocca per disattivarlo', soundOff: 'Suono disattivato: tocca per attivarlo',
   spotsTitle: 'Cluster DX', live: 'In diretta', paused: 'In pausa', feedDown: 'Feed non disponibile', connecting: 'Connessione…',
@@ -27,6 +29,8 @@ type Catalog = Record<Key, string>
 
 const en: Catalog = {
   navSpots: 'Live spots', navContact: 'Contact', langLabel: 'Language',
+  searchShort: 'Search…',
+  themeDark: 'Switch to dark theme', themeLight: 'Switch to light theme',
   allShort: 'All', digi: 'Digi', noFt8: 'No FT8', lens: 'Show only this callsign', clear: 'Clear search',
   soundOn: 'Sound on: tap to turn it off', soundOff: 'Sound off: tap to turn it on',
   spotsTitle: 'DX Cluster', live: 'Live', paused: 'Paused', feedDown: 'Feed unavailable', connecting: 'Connecting…',
@@ -51,6 +55,8 @@ const en: Catalog = {
 
 const es: Catalog = {
   navSpots: 'Spots en directo', navContact: 'Contacto', langLabel: 'Idioma',
+  searchShort: 'Buscar…',
+  themeDark: 'Cambiar al tema oscuro', themeLight: 'Cambiar al tema claro',
   allShort: 'Todas', digi: 'Digi', noFt8: 'Sem FT8', lens: 'Mostrar só este indicativo', clear: 'Limpar a pesquisa',
   soundOn: 'Som ativo: toca para desativar', soundOff: 'Som desativado: toca para ativar',
   allShort: 'Todas', digi: 'Digi', noFt8: 'Sin FT8', lens: 'Mostrar solo este indicativo', clear: 'Borrar la búsqueda',
@@ -77,6 +83,8 @@ const es: Catalog = {
 
 const de: Catalog = {
   navSpots: 'Live-Spots', navContact: 'Kontakt', langLabel: 'Sprache',
+  searchShort: 'Suchen…',
+  themeDark: 'Zum dunklen Design wechseln', themeLight: 'Zum hellen Design wechseln',
   allShort: 'Alle', digi: 'Digi', noFt8: 'Ohne FT8', lens: 'Nur dieses Rufzeichen zeigen', clear: 'Suche löschen',
   soundOn: 'Ton an: zum Ausschalten tippen', soundOff: 'Ton aus: zum Einschalten tippen',
   spotsTitle: 'DX-Cluster', live: 'Live', paused: 'Pausiert', feedDown: 'Feed nicht verfügbar', connecting: 'Verbinde…',
@@ -101,6 +109,8 @@ const de: Catalog = {
 
 const fr: Catalog = {
   navSpots: 'Spots en direct', navContact: 'Contact', langLabel: 'Langue',
+  searchShort: 'Chercher…',
+  themeDark: 'Passer au thème sombre', themeLight: 'Passer au thème clair',
   allShort: 'Toutes', digi: 'Digi', noFt8: 'Sans FT8', lens: 'Afficher uniquement cet indicatif', clear: 'Effacer la recherche',
   soundOn: 'Son activé : touche pour le couper', soundOff: 'Son coupé : touche pour l’activer',
   spotsTitle: 'Cluster DX', live: 'En direct', paused: 'En pause', feedDown: 'Flux indisponible', connecting: 'Connexion…',
@@ -125,6 +135,8 @@ const fr: Catalog = {
 
 const pt: Catalog = {
   navSpots: 'Spots em direto', navContact: 'Contacto', langLabel: 'Idioma',
+  searchShort: 'Pesquisar…',
+  themeDark: 'Mudar para o tema escuro', themeLight: 'Mudar para o tema claro',
   spotsTitle: 'Cluster DX', live: 'Em direto', paused: 'Em pausa', feedDown: 'Feed indisponível', connecting: 'A ligar…',
   lastUpdate: 'Última atualização do feed', pause: 'Pausa', resume: 'Retomar',
   filters: 'Filtros de spots', bands: 'Bandas', allBands: 'Todas as bandas', modes: 'Modo', allModes: 'Todos os modos',

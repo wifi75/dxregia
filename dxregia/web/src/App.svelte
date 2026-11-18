@@ -3,6 +3,8 @@
   import Auth from './Auth.svelte'
   import Dashboard from './Dashboard.svelte'
   import { languages, lang, setLang, t } from './i18n.svelte'
+  import { soundOn, toggleSound } from './sound.svelte'
+  import { currentTheme, toggleTheme } from './theme.svelte'
   let langOpen = $state(false)
   import Spots from './Spots.svelte'
   import Contact from './Contact.svelte'
@@ -53,6 +55,19 @@
     <a href="/spots" aria-current={publicPortal && !contactPage ? 'page' : undefined}>{publicPortal ? t('navSpots') : 'Spot in diretta'}</a>
     <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>{publicPortal ? t('navContact') : 'Contatti'}</a>
   </nav>
+  {#if publicPortal && !contactPage}
+    <button class="tool" type="button" aria-pressed={soundOn()} title={soundOn() ? t('soundOn') : t('soundOff')} aria-label={soundOn() ? t('soundOn') : t('soundOff')} onclick={toggleSound}>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor" stroke="none"/>
+        {#if soundOn()}<path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18 6.5a8 8 0 0 1 0 11"/>{:else}<path d="M16 9.5l5 5M21 9.5l-5 5"/>{/if}
+      </svg>
+    </button>
+  {/if}
+  <button class="tool" type="button" title={currentTheme() === 'dark' ? t('themeLight') : t('themeDark')} aria-label={currentTheme() === 'dark' ? t('themeLight') : t('themeDark')} onclick={toggleTheme}>
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      {#if currentTheme() === 'dark'}<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>{:else}<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>{/if}
+    </svg>
+  </button>
   {#if publicPortal}
     <div class="lang">
       <button class="lang-btn" type="button" aria-haspopup="menu" aria-expanded={langOpen} title={t('langLabel')} aria-label={t('langLabel')}
@@ -110,6 +125,8 @@
     border-bottom: 1px solid #a9c3d088;
     padding: 8px clamp(12px, 2vw, 32px);
   }
+  .tool { display: inline-grid; place-items: center; width: 40px; min-height: 40px; padding: 0; border-radius: 50%; --button-face: #ffffffd9; --button-edge: #a4bccb; --button-ink: #214e80; box-shadow: none; }
+  .tool[aria-pressed=false] { --button-ink: #7d8fa0; }
   .lang { position: relative; align-self: center; }
   .lang-btn { display: inline-grid; place-items: center; width: 40px; min-height: 40px; padding: 0; border-radius: 50%; --button-face: #ffffffd9; --button-edge: #a4bccb; --button-ink: #214e80; box-shadow: none; }
   .lang-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; min-width: 170px; margin: 0; padding: 6px; list-style: none; border: 1px solid #b9c9d7; border-radius: 12px; background: #fffffff2; backdrop-filter: blur(10px); box-shadow: 0 12px 28px #143a5933; }
@@ -137,7 +154,7 @@
     .sep, .page { font-size: 1.05rem; }
     .tools { width: 100%; justify-content: space-between; margin-left: 0; }
     header a { padding: .4rem .6rem; font-size: .92rem; }
-    .lang-btn { width: 36px; min-height: 36px; }
+    .lang-btn, .tool { width: 36px; min-height: 36px; }
   }
   header a { color: #234968; font-weight: 650; padding: .55rem .8rem; border-radius: .5rem; text-decoration: none; }
   header a:hover, header a[aria-current=page] { background: #e7f0f7; color: #143a60; }

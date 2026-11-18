@@ -2,6 +2,7 @@
   import { dxccFlags } from './dxccFlags'
   import { onMount } from 'svelte'
   import { t, locale } from './i18n.svelte'
+  import { soundOn, chirp, unlockAudio } from './sound.svelte'
 
   type Spot = { Frequency: number; Call: string; At: number; Comment: string; Spotter: string; DXCC: number; Entity?: string }
   const bands = [
@@ -14,48 +15,14 @@
   let khz = $derived(new Intl.NumberFormat(locale(), { maximumFractionDigits: 3 }))
   let spots = $state<Spot[]>([])
   let available = $state<boolean>()
-  let selectedBand = $state('')
-  let mode = $state('')
+  let bandSel = $state<string[]>([])
+  let modeSel = $state<string[]>([])
   let noFt8 = $state(false)
+  const toggle = (list: string[], value: string) => list.includes(value) ? list.filter(item => item !== value) : [...list, value]
   let query = $state('')
   const spotKey = (spot: Spot) => spot.At + '|' + spot.Call + '|' + spot.Frequency
-  const soundPref = () => { try { return localStorage.getItem('dxregia-sound') !== 'off' } catch { return true } }
-  let soundOn = $state(soundPref())
   let freshKeys = $state<Set<string>>(new Set())
   let knownKeys: Set<string> | undefined
-  let audio: AudioContext | undefined
-
-  // I browser permettono l'audio solo dopo un gesto dell'utente: il primo tocco o tasto lo sblocca.
-  function unlockAudio() {
-    try {
-      audio ??= new AudioContext()
-      if (audio.state === 'suspended') void audio.resume()
-    } catch { /* senza audio il resto funziona uguale */ }
-  }
-
-  // Un breve «bip» morbido: due note ravvicinate, volume basso.
-  function chirp(at = 0) {
-    if (!audio || audio.state !== 'running') return
-    const start = audio.currentTime + at
-    const gain = audio.createGain()
-    gain.connect(audio.destination)
-    gain.gain.setValueAtTime(0.0001, start)
-    gain.gain.exponentialRampToValueAtTime(0.09, start + 0.015)
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.2)
-    const tone = audio.createOscillator()
-    tone.type = 'sine'
-    tone.frequency.setValueAtTime(880, start)
-    tone.frequency.exponentialRampToValueAtTime(1320, start + 0.09)
-    tone.connect(gain)
-    tone.start(start)
-    tone.stop(start + 0.22)
-  }
-
-  function toggleSound() {
-    soundOn = !soundOn
-    try { localStorage.setItem('dxregia-sound', soundOn ? 'on' : 'off') } catch { /* solo una comodità */ }
-    if (soundOn) { unlockAudio(); chirp() }
-  }
   let reading = false
   let views = $state<number>()
   const bandFor = (frequency: number) => bands.find(([, low, high]) => frequency >= low && frequency <= high)?.[0] ?? ''
@@ -80,8 +47,8 @@
   }
   const groupOf = (value: string) => ['FT8', 'FT4', 'RTTY', 'PSK31'].includes(value) ? 'DIGI' : ['SSB', 'USB', 'LSB'].includes(value) ? 'SSB' : value
   let filtered = $derived(spots.filter(spot =>
-    (!selectedBand || bandFor(spot.Frequency) === selectedBand) &&
-    (!mode || groupOf(modeFor(spot.Comment)) === mode) &&
+    (!bandSel.length || bandSel.includes(bandFor(spot.Frequency))) &&
+    (!modeSel.length || modeSel.includes(groupOf(modeFor(spot.Comment)))) &&
     (!noFt8 || modeFor(spot.Comment) !== 'FT8') &&
     (!query.trim() || [spot.Call, spot.Spotter, spot.Comment].some(value => value.toLowerCase().includes(query.trim().toLowerCase())))
   ))
@@ -101,7 +68,7 @@
           freshKeys = new Set([...freshKeys, ...added])
           // Giallo pieno per 10 secondi, poi sfuma: la scheda resta evidenziata ancora 4 secondi durante la dissolvenza.
           setTimeout(() => { freshKeys = new Set([...freshKeys].filter(key => !added.includes(key))) }, 14500)
-          if (soundOn) for (let i = 0; i < Math.min(added.length, 4); i++) chirp(i * 0.16)
+          if (soundOn()) for (let i = 0; i < Math.min(added.length, 4); i++) chirp(i * 0.16)
         }
       }
       knownKeys = keys
@@ -130,32 +97,26 @@
   <section class="filters glass-panel glass-enter" aria-label={t('filters')}>
     <div class="chip-row">
       <div class="chips" role="group" aria-label={t('bands')}>
-        <button class="chip" type="button" aria-pressed={selectedBand === ''} onclick={() => selectedBand = ''}>{t('allShort')}</button>
+        <button class="chip" type="button" aria-pressed={bandSel.length === 0} onclick={() => bandSel = []}>{t('allShort')}</button>
         {#each bands as [band]}
-          <button class="chip" type="button" aria-pressed={selectedBand === band} onclick={() => selectedBand = selectedBand === band ? '' : band}>
+          <button class="chip" type="button" aria-pressed={bandSel.includes(band)} onclick={() => bandSel = toggle(bandSel, band)}>
             <span class="band-color" style:background={colors[band]}></span>{band.replace(' ', '')}
           </button>
         {/each}
       </div>
       <div class="chips" role="group" aria-label={t('modes')}>
         {#each [['CW', 'CW'], ['SSB', 'SSB'], ['DIGI', t('digi')]] as [value, label]}
-          <button class="chip" type="button" aria-pressed={mode === value} onclick={() => mode = mode === value ? '' : value}>{label}</button>
+          <button class="chip" type="button" aria-pressed={modeSel.includes(value)} onclick={() => modeSel = toggle(modeSel, value)}>{label}</button>
         {/each}
         <button class="chip" type="button" aria-pressed={noFt8} onclick={() => noFt8 = !noFt8}>{t('noFt8')}</button>
       </div>
     </div>
     <div class="search-row">
       <span class="search">
-        <input type="search" bind:value={query} aria-label={t('searchLabel')} placeholder={t('searchPlaceholder')} />
+        <input type="search" bind:value={query} aria-label={t('searchLabel')} placeholder={t('searchShort')} title={t('searchPlaceholder')} />
         {#if query}<button class="clear" type="button" aria-label={t('clear')} title={t('clear')} onclick={() => query = ''}>×</button>{/if}
       </span>
       <span class="count">{t(filtered.length === 1 ? 'shownOne' : 'shownMany', { n: filtered.length })}</span>
-      <button class="sound" type="button" aria-pressed={soundOn} title={soundOn ? t('soundOn') : t('soundOff')} aria-label={soundOn ? t('soundOn') : t('soundOff')} onclick={toggleSound}>
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor" stroke="none"/>
-          {#if soundOn}<path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18 6.5a8 8 0 0 1 0 11"/>{:else}<path d="M16 9.5l5 5M21 9.5l-5 5"/>{/if}
-        </svg>
-      </button>
     </div>
   </section>
   <div class="desk glass-enter">
@@ -202,19 +163,17 @@
   main { width: 100%; max-width: 1240px; margin: 0 auto; padding: 14px clamp(12px, 2vw, 32px) 24px; }
   h1 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.25rem); color: #102e42; letter-spacing: -.04em; }
   @media (prefers-reduced-motion: reduce) { tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: none; background: #fff1a0; } }
-  .filters { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px 14px; margin-bottom: 14px; min-width: 0; }
-  .filters > * { min-width: 0; }
-  .chip-row { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
-  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
-  .chip { display: inline-flex; align-items: center; gap: .4rem; min-height: 34px; padding: .25rem .8rem; border-radius: 999px; font-size: .88rem; --button-face: #fff; --button-edge: #a4bccb; --button-ink: #274760; box-shadow: none; }
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 7px 10px; margin-bottom: 12px; min-width: 0; }
+  .chip-row, .search-row { display: contents; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chips + .chips { padding-left: 10px; border-left: 1px solid #b6c9d7; }
+  .chip { display: inline-flex; align-items: center; gap: .3rem; min-height: 26px; padding: 0 .5rem; border-radius: 999px; font-size: .78rem; --button-face: #fff; --button-edge: #a4bccb; --button-ink: #274760; box-shadow: none; }
   .chip[aria-pressed=true] { --button-face: #175c82; --button-edge: #0c3a56; --button-ink: #fff; }
-  .band-color { width: 9px; height: 9px; border-radius: 3px; box-shadow: inset 0 0 0 1px #223c4c30; }
-  .search-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; }
-  .count { margin-left: auto; }
-  .search { position: relative; flex: 1 1 280px; max-width: 460px; min-width: 0; }
-  .search input { width: 100%; padding-right: 36px; }
-  .clear { position: absolute; right: 4px; top: 4px; width: 32px; min-height: 32px; padding: 0; border-radius: 6px; font-size: 1.2rem; line-height: 1; --button-face: transparent; --button-edge: transparent; --button-ink: #4c6374; box-shadow: none; }
-  .count { color: #496174; font-size: .9rem; }
+  .band-color { width: 7px; height: 7px; border-radius: 2px; box-shadow: inset 0 0 0 1px #223c4c30; }
+  .search { position: relative; flex: 0 0 15ch; min-width: 0; }
+  .search input { width: 100%; min-height: 28px; padding: 3px 26px 3px 9px; font-size: .85rem; }
+  .clear { position: absolute; right: 2px; top: 2px; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; font-size: 1.1rem; line-height: 1; --button-face: transparent; --button-edge: transparent; --button-ink: #4c6374; box-shadow: none; }
+  .count { margin-left: auto; color: #2a4558; font-size: .85rem; font-weight: 600; white-space: nowrap; }
   .desk { min-width: 0; }
   .log { min-width: 0; padding: 0; overflow: hidden; }
   .log > p { margin: 14px 16px; }
@@ -229,33 +188,33 @@
   tbody tr:nth-child(even) { background: #d6e8f3; }
   tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: fresh 14s ease-out both; }
   @keyframes fresh { 0%, 71% { background: #fff1a0; box-shadow: inset 4px 0 #e0a020; } 100% { background: transparent; box-shadow: inset 4px 0 transparent; } }
-  .sound { display: inline-grid; place-items: center; width: 40px; min-height: 40px; padding: 0; border-radius: 50%; --button-face: #fff; --button-edge: #a4bccb; --button-ink: #214e80; box-shadow: none; }
-  .sound[aria-pressed=false] { --button-ink: #7d8fa0; }
   .callcell { display: inline-flex; align-items: center; gap: 6px; }
-  .lens { display: inline-grid; place-items: center; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; --button-face: transparent; --button-edge: transparent; --button-ink: #6d8798; box-shadow: none; }
+  .lens { display: inline-grid; place-items: center; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; --button-face: transparent; --button-edge: transparent; --button-ink: #3d5a70; box-shadow: none; }
   .lens:hover:not(:disabled) { --button-ink: #175c82; --button-face: #e3eef6; transform: none; filter: none; }
   tbody tr:hover, tbody tr:nth-child(even):hover { background: #c3dbec; }
   .frequency, .mode { display: inline-block; padding: 3px 8px; border-radius: 5px; text-align: center; }
   .frequency { width: 10.5ch; color: #142b39; font-weight: 700; }
   .frequency, td:last-child { font-variant-numeric: tabular-nums; }
-  td:first-child, td:last-child, .comment { color: #465f72; }
+  td { color: #14293a; font-weight: 500; }
+  td:first-child, td:last-child, .comment { color: #1f3a4e; }
   .comment { width: 100%; }
   img { object-fit: cover; vertical-align: middle; margin-right: 7px; border: 1px solid #15263826; border-radius: 2px; }
   .mode { min-width: 4.6em; color: #4c6374; font-size: .92rem; font-weight: 700; }
   .mode[data-mode=CW] { background: #fff0d7; color: #7d430e; }
   .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { background: #d7f0e3; color: #1a6046; }
   .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31] { background: #eee4ff; color: #573894; }
-  .visits { margin-block: 14px 0; color: #526c7f; font-size: .85rem; }
+  .visits { margin-block: 14px 0; color: #34505f; font-size: .85rem; }
   @media (max-width: 700px) {
     main { padding: 0 10px 20px; }
-    .filters { padding: 10px; gap: 8px; margin-bottom: 10px; }
-    .chip-row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .filters { display: grid; grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 8px; margin-bottom: 10px; }
+    .chip-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .search-row { display: flex; align-items: center; gap: 8px; }
     .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
-    .chip { flex: 0 0 auto; min-height: 40px; }
-    .search { max-width: none; flex: 1 1 100%; }
+    .chip { flex: 0 0 auto; min-height: 38px; font-size: .88rem; }
+    .search { flex: 1 1 auto; }
+    .search input { min-height: 38px; }
     .count { margin-left: 0; }
-    .sound { margin-left: auto; }
-    .table-wrap { overflow: visible; }
+      .table-wrap { overflow: visible; }
     table, tbody { display: block; white-space: normal; }
     thead { display: none; }
     tbody tr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "freq dx utc" "mode entity entity" "de comment comment"; align-items: center; gap: 3px 10px; padding: 10px 12px; border-bottom: 1px solid #dce5ed; }
