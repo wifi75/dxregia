@@ -95,3 +95,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Mostrare il log della build web su errore o in modalita dettagliata.
 - [x] Distinguere nel log DXSpider i timeout Telnet in ingresso dai timeout dei partner in uscita.
 - [x] Indicare nel modulo partner che il nominativo remoto include il suffisso SSID se presente.
+- [x] Salvare la riconnessione dei partner al cambio della spunta, anche con il collegamento gia attivo.

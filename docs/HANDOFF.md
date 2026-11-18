@@ -284,3 +284,4 @@ Versione 0.4.0 (tag v0.4.0, 2026-11-18): impostazioni di DXSpider nel pannello (
 - Updater nativo: log completo della build web in caso di errore o con DXREGIA_VERBOSE=1.
 - Log DXSpider: i nuovi timeout mostrano la direzione e il nominativo del partner in uscita. Verificati il parser Go e la routine Perl isolata. La prova su un nodo Linux resta da fare.
 - Il modulo partner distingue il nominativo remoto completo (SSID incluso se presente) dal nome descrittivo. Build Vite riuscita.
+- Nodi partner: la spunta salva subito la riconnessione tramite PUT o DELETE. La disattivazione ferma i nuovi tentativi automatici; una richiesta gia accodata puo concludersi. Test Go e build Vite riusciti.

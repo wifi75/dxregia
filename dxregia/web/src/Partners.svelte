@@ -21,6 +21,7 @@
   let enabling = $state(false)
   let outgoingPassword = $state('')
   let credentialRequest = 0
+  let loadingCredential = $state(false)
   let remoteAuth = $state<'none' | 'password'>('none')
   let storedPassword = false
   let autoReconnect = $state(false)
@@ -58,6 +59,7 @@
     message = ''
     editing = true
     const request = ++credentialRequest
+    loadingCredential = Boolean(partner)
     if (partner) {
       void fetch('/api/partners/' + encodeURIComponent(partner.Call) + '/credential', { cache: 'no-store' })
         .then(async response => {
@@ -68,7 +70,9 @@
             remoteAuth = 'password'
             outgoingPassword = password
           }
-        }).catch(() => {})
+        }).catch(() => {}).finally(() => {
+          if (request === credentialRequest) loadingCredential = false
+        })
     }
   }
 
@@ -93,6 +97,7 @@
       statusError = ''
       if (selected && rows[selected.Call]) {
         selected = rows[selected.Call]
+        autoReconnect = selected.Reconnect === 'Abilitata'
         if (selected.Provisioning !== 'In attesa di Mojo' && selected.Provisioning !== 'Abilitato in Mojo') peerPassword = ''
       }
     } catch {
@@ -252,19 +257,26 @@
     }
   }
 
-  async function disableReconnect() {
+  async function updateReconnect(enabled: boolean) {
     const call = selected?.Call
     if (!call || enabling) return
     enabling = true
     error = ''
     try {
+      if (enabled && remoteAuth === 'password' && !/^[A-Za-z0-9]{1,72}$/.test(outgoingPassword)) {
+        throw new Error('Inserisci la password fornita dal nodo remoto.')
+      }
       const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/reconnect', {
-        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        method: enabled ? 'PUT' : 'DELETE', headers: { 'Content-Type': 'application/json' },
+        ...(enabled ? { body: JSON.stringify(remoteAuth === 'password' ? outgoingPassword : '') } : {}),
       })
-      if (!response.ok) throw new Error()
+      if (!response.ok) throw new Error((await response.text()).trim())
       await refreshProvisioning()
-    } catch {
-      error = 'Impossibile disattivare la riconnessione automatica.'
+    } catch (cause) {
+      if (selected?.Call === call) {
+        autoReconnect = selected.Reconnect === 'Abilitata'
+        error = cause instanceof Error && cause.message ? cause.message : 'Impossibile salvare la riconnessione automatica.'
+      }
     } finally {
       enabling = false
     }
@@ -398,7 +410,10 @@
                   <input type="text" bind:value={outgoingPassword} pattern={'[A-Za-z0-9]{1,72}'} maxlength="72" autocomplete="off" spellcheck="false" required />
                 </label>
               {/if}
-              <label class="check"><input type="checkbox" bind:checked={autoReconnect} /> Riprova da solo se il collegamento cade</label>
+              <label class="check"><input type="checkbox" checked={autoReconnect} onchange={event => {
+                const input = event.currentTarget
+                void updateReconnect(input.checked).finally(() => { input.checked = autoReconnect })
+              }} disabled={enabling || busy || checkingStatus || loadingCredential} /> Riprova da solo se il collegamento cade</label>
               <div class="actions">
                 {#if outgoingReady}
                   <button disabled={enabling || busy}>Connetti ora</button>
@@ -406,9 +421,6 @@
                   <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
                     onclick={() => enable(true)}>Prepara il collegamento</button>
                   <span class="hint">Prima va preparato l’account sul tuo nodo; poi compare «Connetti ora».</span>
-                {/if}
-                {#if selected.Reconnect}
-                  <button class="secondary" type="button" disabled={enabling} onclick={disableReconnect}>Disattiva riconnessione</button>
                 {/if}
               </div>
             </form>

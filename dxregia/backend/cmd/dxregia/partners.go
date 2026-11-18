@@ -497,7 +497,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		w.WriteHeader(http.StatusAccepted)
 	})
-	mux.HandleFunc("DELETE /api/partners/{call}/reconnect", func(w http.ResponseWriter, r *http.Request) {
+	setReconnect := func(w http.ResponseWriter, r *http.Request) {
 		if !auth.allowed(r) {
 			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
 			return
@@ -513,19 +513,37 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		lock.Lock()
 		defer lock.Unlock()
+		entry, ok := partners[call]
+		if !ok || !entry.partnerDetails.validate() || entry.Call != call {
+			http.Error(w, "Nodo non trovato o configurazione non valida.", http.StatusNotFound)
+			return
+		}
 		plan, err := readReconnect(root, call)
-		if err == nil {
+		if r.Method == http.MethodPut {
+			var password string
+			decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256))
+			if decoder.Decode(&password) != nil || decoder.Decode(new(any)) != io.EOF || !peerPasswordPattern.MatchString(password) {
+				http.Error(w, "Per il collegamento usa una password alfanumerica di massimo 72 caratteri.", http.StatusBadRequest)
+				return
+			}
+			if err == nil || os.IsNotExist(err) {
+				plan = reconnectPlan{Host: entry.Host, Port: entry.Port, Password: password, LastAttempt: plan.LastAttempt, AutoProvision: plan.AutoProvision}
+				err = saveReconnect(root, call, plan)
+			}
+		} else if err == nil {
 			plan.Disabled = true
 			err = saveReconnect(root, call, plan)
 		} else if os.IsNotExist(err) {
 			err = nil
 		}
 		if err != nil {
-			http.Error(w, "Impossibile disattivare la riconnessione.", http.StatusInternalServerError)
+			http.Error(w, "Impossibile salvare la riconnessione automatica.", http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
-	})
+	}
+	mux.HandleFunc("PUT /api/partners/{call}/reconnect", setReconnect)
+	mux.HandleFunc("DELETE /api/partners/{call}/reconnect", setReconnect)
 	return nil
 }
 
