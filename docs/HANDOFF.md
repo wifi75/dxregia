@@ -141,3 +141,5 @@ Il workflow Linux carica gli archivi nativi e i checksum come artefatti GitHub A
 La matrice Docker ora prova due nodi Mojo isolati, ciascuno configurato tramite le API sysop con TOTP. Il test verifica abilitazione, collegamento, prima connessione e riconnessione. La propagazione di uno spot a un logger resta da verificare: la validazione upstream esclude gli spot PC61 con sorgente privata o loopback.
 
 Lo script install-release.sh seleziona amd64/arm64, scarica i due asset nativi da GitHub Releases, verifica SHA-256 e delega l'installazione a install-native.sh. Il download reale resta da collaudare con una release che esponga gli asset.
+
+Il collaudo dell'installer da release usa asset locali su ciascuna architettura: l'archivio valido deve avviare l'installer, un checksum errato deve fermarlo prima dell'estrazione. La prova contro gli URL reali resta aperta.

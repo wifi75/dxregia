@@ -71,6 +71,8 @@ jobs:
         with:
           go-version: '1.24'
           cache-dependency-path: dxregia/backend/go.sum
+      - name: Verify release download and reject a corrupt checksum
+        run: python3 dxregia/deploy/smoke_release.py
       - name: Build and verify the native bundle
         run: |
           mkdir "$RUNNER_TEMP/bundle"
