@@ -346,6 +346,8 @@ export const adminRows: string[][] = [
   ['Dati del nuovo nodo', 'New node details', 'Datos del nuevo nodo', 'Daten des neuen Knotens', 'Données du nouveau nœud', 'Dados do novo nó'],
   ['Dati del nodo', 'Node details', 'Datos del nodo', 'Knotendaten', 'Données du nœud', 'Dados do nó'],
   ['Indicativo', 'Callsign', 'Indicativo', 'Rufzeichen', 'Indicatif', 'Indicativo'],
+  ['Indicativo del nodo (SSID incluso)', 'Node callsign (including SSID)', 'Indicativo del nodo (con SSID)', 'Knotenrufzeichen (mit SSID)', 'Indicatif du nœud (SSID inclus)', 'Indicativo do nó (com SSID)'],
+  ['Per il collegamento usa l’indicativo completo del nodo remoto, con il suffisso se presente. Il nome del nodo è un’etichetta facoltativa.', 'For the link, use the full remote node callsign, including the suffix if it has one. The node name is an optional label.', 'Para el enlace, usa el indicativo completo del nodo remoto, con el sufijo si lo tiene. El nombre del nodo es una etiqueta opcional.', 'Für die Verbindung das vollständige Rufzeichen des entfernten Knotens einschließlich eines vorhandenen Suffixes verwenden. Der Knotenname ist eine optionale Bezeichnung.', 'Pour la liaison, utilisez l’indicatif complet du nœud distant, avec son suffixe éventuel. Le nom du nœud est une étiquette facultative.', 'Para a ligação, use o indicativo completo do nó remoto, com o sufixo se existir. O nome do nó é uma etiqueta opcional.'],
   ['Nome del nodo', 'Node name', 'Nombre del nodo', 'Knotenname', 'Nom du nœud', 'Nome do nó'],
   ['Nome nodo', 'Node name', 'Nombre del nodo', 'Knotenname', 'Nom du nœud', 'Nome do nó'],
   ['Host del nodo', 'Node host', 'Host del nodo', 'Knoten-Host', 'Hôte du nœud', 'Host do nó'],

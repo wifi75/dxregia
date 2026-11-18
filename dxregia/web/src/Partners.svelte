@@ -481,7 +481,9 @@
         <h4>{selected ? 'Dati del nodo' : 'Dati del nuovo nodo'}</h4>
         <form onsubmit={save}>
           <div class="fields">
-            <label>Indicativo <input bind:value={form.Call} maxlength="12" readonly={Boolean(selected)} required /></label>
+            <label>Indicativo del nodo (SSID incluso)
+              <input bind:value={form.Call} maxlength="12" placeholder="EA7JXH-6" aria-describedby="partner-call-hint" readonly={Boolean(selected)} required />
+            </label>
             <label>Nome del nodo <input bind:value={form.Name} maxlength="120" /></label>
             <label>Nome del referente <input bind:value={form.Contact} maxlength="120" /></label>
             <label>Nome della persona <input bind:value={form.Person} maxlength="120" autocomplete="off" placeholder="Es. Anthony" /></label>
@@ -496,6 +498,7 @@
             <label>Host del nodo <input bind:value={form.Host} maxlength="253" required /></label>
             <label>Porta <input type="number" bind:value={form.Port} min="1" max="65535" required /></label>
           </div>
+          <p class="hint" id="partner-call-hint">Per il collegamento usa l’indicativo completo del nodo remoto, con il suffisso se presente. Il nome del nodo è un’etichetta facoltativa.</p>
           <p class="hint">«Nome della persona» serve solo per la nostra anagrafica: non entra nella configurazione del nodo.</p>
           {#if !selected}
             <label class="remote-auth">Il nodo remoto richiede una password?
