@@ -133,8 +133,10 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				entry.Connection = currentConnection(root, call, snapshot)
 				status := partnerStatus{partner: entry}
 				if callsign.MatchString(call) && len(call) <= 12 {
-					if plan, err := readReconnect(root, call); err == nil {
-						status.LastConnectAttempt = &plan.LastAttempt
+					if plan, err := readReconnect(root, call); err == nil && !plan.Disabled {
+						if !plan.LastAttempt.IsZero() {
+							status.LastConnectAttempt = &plan.LastAttempt
+						}
 						status.Reconnect = "Abilitata"
 						if plan.Host != entry.Host || plan.Port != entry.Port {
 							status.Reconnect = "Sospesa: indirizzo modificato"
@@ -161,7 +163,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			partnerDetails
 			Note           string
 			ConnectNow     bool
-			RemotePassword string
+			RemotePassword *string
 		}
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192))
 		decoder.DisallowUnknownFields()
@@ -169,7 +171,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Controlla indicativo, host, porta, email e lunghezza dei campi.", http.StatusBadRequest)
 			return
 		}
-		if !peerPasswordPattern.MatchString(input.RemotePassword) || (!input.ConnectNow && input.RemotePassword != "") {
+		if input.RemotePassword != nil && !peerPasswordPattern.MatchString(*input.RemotePassword) {
 			http.Error(w, "La password del nodo remoto può contenere al massimo 72 lettere o cifre.", http.StatusBadRequest)
 			return
 		}
@@ -193,17 +195,36 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			entry.Notes = append(entry.Notes, partnerNote{Text: note, At: now})
 		}
 		auto := input.ConnectNow && !exists
-		if auto {
-			plan := reconnectPlan{Host: entry.Host, Port: entry.Port, AutoProvision: true, Password: input.RemotePassword}
+		saveCredential := auto || input.RemotePassword != nil
+		previousPlan, previousErr := readReconnect(root, call)
+		if saveCredential {
+			if previousErr != nil && !os.IsNotExist(previousErr) {
+				http.Error(w, "Impossibile leggere le credenziali precedenti.", http.StatusInternalServerError)
+				return
+			}
+			plan := reconnectPlan{Host: entry.Host, Port: entry.Port, AutoProvision: auto, Disabled: !auto}
+			if previousErr == nil && previousPlan.Host == entry.Host && previousPlan.Port == entry.Port {
+				plan = previousPlan
+				if auto {
+					plan.AutoProvision, plan.Disabled = true, false
+				}
+			}
+			if input.RemotePassword != nil {
+				plan.Password = *input.RemotePassword
+			}
 			if err := saveReconnect(root, call, plan); err != nil {
-				http.Error(w, "Impossibile salvare il collegamento automatico.", http.StatusInternalServerError)
+				http.Error(w, "Impossibile salvare le credenziali del nodo.", http.StatusInternalServerError)
 				return
 			}
 		}
 		partners[call] = entry
 		if err := savePartners(path, partners); err != nil {
-			if auto {
-				_ = os.Remove(reconnectPath(root, call))
+			if saveCredential {
+				if previousErr == nil {
+					_ = saveReconnect(root, call, previousPlan)
+				} else {
+					_ = os.Remove(reconnectPath(root, call))
+				}
 			}
 			if exists {
 				partners[call] = old
@@ -385,7 +406,14 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		lock.Lock()
 		defer lock.Unlock()
-		if err := os.Remove(reconnectPath(root, call)); err != nil && !os.IsNotExist(err) {
+		plan, err := readReconnect(root, call)
+		if err == nil {
+			plan.Disabled = true
+			err = saveReconnect(root, call, plan)
+		} else if os.IsNotExist(err) {
+			err = nil
+		}
+		if err != nil {
 			http.Error(w, "Impossibile disattivare la riconnessione.", http.StatusInternalServerError)
 			return
 		}

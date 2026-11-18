@@ -16,6 +16,7 @@ type reconnectPlan struct {
 	Password      string
 	LastAttempt   time.Time
 	AutoProvision bool `json:",omitempty"`
+	Disabled      bool `json:",omitempty"`
 }
 
 func reconnectPath(root, call string) string {
@@ -53,7 +54,7 @@ func saveReconnect(root, call string, plan reconnectPlan) error {
 }
 
 func (p reconnectPlan) eligible(entry partner, state string) bool {
-	if !canConnectPartner(entry.Provisioning) || p.Host != entry.Host || p.Port != entry.Port ||
+	if p.Disabled || !canConnectPartner(entry.Provisioning) || p.Host != entry.Host || p.Port != entry.Port ||
 		!peerPasswordPattern.MatchString(p.Password) {
 		return false
 	}
@@ -73,7 +74,7 @@ func reconnectPartners(root string, partners map[string]partner, snapshot presen
 			continue
 		}
 		plan, err := readReconnect(root, call)
-		if err != nil || plan.Host != entry.Host || plan.Port != entry.Port {
+		if err != nil || plan.Disabled || plan.Host != entry.Host || plan.Port != entry.Port {
 			continue
 		}
 		if plan.AutoProvision && entry.Provisioning == "" {
