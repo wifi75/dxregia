@@ -177,3 +177,5 @@ Il feed aggiunge il nome dell'entita DXCC ricavato dalla stessa tabella dei pref
 Nel run 44280015487 entrambi i listener rispondono e la fotografia locale continua a essere scritta, ma il backend non la espone. L'hook ora serializza esplicitamente indicativo e stato come stringhe e orari come interi, anche quando gli scalari Perl hanno cambiato tipo durante la sessione. Il nuovo collaudo stampera la fotografia sintetica se la riconnessione fallisce ancora.
 
 Per l'assistenza 2FA il backend distingue i codici già usati da quelli che non corrispondono alla chiave e all'ora corrente. Accetta gli spazi inseriti dall'app quando si copia un codice. La finestra di tolleranza e il blocco del riutilizzo restano attivi. Su Proxmox LXC controllare l'orologio sul nodo host.
+
+Il run 44295449257 ha passato l'intera matrice Linux nativa e Docker amd64/arm64 con la modifica alla diagnosi TOTP. Il commit e3591bab e stato promosso su main. La procedura per l'orologio host Proxmox e il recupero 2FA e nella guida di installazione.

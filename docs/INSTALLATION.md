@@ -18,6 +18,12 @@ L'installatore avvia il pannello anche prima che DXSpider sia configurato. Dopo 
 
 [Specifiche dell'installatore](../dxregia/deploy/README.md) · [Gestione dei nodi partner e backup](OPERATIONS.md) · [Stato di implementazione](../TASK.md)
 
+## Codice 2FA rifiutato
+
+Attiva data e ora automatiche sul telefono. Sul server Linux controlla la sincronizzazione con `timedatectl status`. Se DXRegia gira in un container LXC su Proxmox, esegui il controllo sull'host Proxmox. Se gira in una VM, controlla la VM. Quando il sistema risulta sincronizzato, seleziona nell'app la voce DXRegia associata a questa installazione e attendi il codice successivo.
+
+Un codice rifiutato come già usato va sostituito con quello della finestra successiva. Se i codici nuovi continuano a essere rifiutati con gli orologi sincronizzati, puoi usare uno dei codici di recupero salvati durante l'attivazione per associare di nuovo l'app.
+
 ## Importazione della configurazione iniziale
 
 Da Prima configurazione, apri Importa configurazione DXSpider e scegli DXVars.pm. Puoi poi scegliere Listeners.pm per importare la porta di un unico listener. Il modulo riconosce anche oggetti JSON di impostazioni con campi supportati. I file Perl vengono letti come testo e le assegnazioni letterali riconosciute compilano i campi. Controlla i dati e applica dal wizard. Gli export di utenti, le regole Perl personalizzate, i partner e i filtri richiedono procedure di migrazione dedicate.
