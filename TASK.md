@@ -41,3 +41,7 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [ ] Collaudare nella dashboard i collegamenti tra due nodi e le sessioni Web Mojo.
 - [ ] Aggiungere contatore pubblico e analytics sysop per portale web, con visite, sessioni attive stimate, storico, paesi e domini di provenienza.
 - [ ] Integrare recupero accesso sysop e QR per l'iscrizione TOTP.
+
+## Prima release
+
+- [ ] Dopo il completamento e il collaudo del pacchetto, aggiornare il changelog e pubblicare la release 1.0.0 con tag v1.0.0. Gli aggiornamenti ordinari proseguono con 1.0.1, 1.0.2 e così via.
