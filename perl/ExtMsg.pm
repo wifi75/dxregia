@@ -338,7 +338,8 @@ sub _dochat
 			}
 			if ($line =~ /\Q$expect/i) {
 				if (length $send) {
-					dbg("connect $conn->{cnum}: got: \"$expect\" sending: \"$send\"") if isdbg('connect');
+					# DXRegia, 2026-11-18: omit outgoing login passwords from connection debug logs.
+					dbg("connect $conn->{cnum}: got: \"$expect\" sending: \"$send\"") if isdbg('connect') && $expect !~ /assword/i;
 					$conn->send_later("D$conn->{call}|$send");
 				}
 				delete $conn->{msg}; # get rid any input if a match

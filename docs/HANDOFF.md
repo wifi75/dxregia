@@ -97,3 +97,7 @@ Modulo pubblico e coda privata disponibili. Scheda partner precompilata e nota i
 ## 2026-11-18 — Abilitazione partner in ingresso
 
 Il sysop autenticato può accodare la creazione dell'account Spider in Mojo. L'hook crea l'account con password casuale, scrive l'esito e rimuove la richiesta. Collaudato con Mojo reale su Windows: coda privata, creazione, richiesta della password via Telnet e assenza della password nei log debug di ingresso. Non verificato handshake nodo-nodo completo dopo la creazione. L'hook aggiorna solo la versione DXRegia nota e lascia intatti gli hook personalizzati. Per usare la modifica dei log ExtMsg.pm, avviare Mojo dalla base aggiornata. Mancano invio automatico delle istruzioni e dell'esito, connessione in uscita e collaudo Linux.
+\
+## 2026-11-18 — Collegamento in uscita e notifiche partner\
+\
+Collaudato il collegamento in uscita via API e due Mojo reali su Windows, con autenticazione del partner e porta remota dedicata. Entrambi i nodi hanno riportato Attivo; password assente dai log di debug del laboratorio. Le email di istruzioni e verifica sono attivabili per singolo partner. Sequenza testata con invio simulato; SMTP reale e Linux ancora da verificare. La riconnessione automatica e gli errori specifici di negoziazione sono ancora aperti.

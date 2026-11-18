@@ -31,6 +31,8 @@ type partner struct {
 	RegisteredAt     time.Time
 	FirstConnectedAt *time.Time
 	Provisioning     string
+	Connection       string
+	MailStatus       string
 	Notes            []partnerNote
 }
 
@@ -70,6 +72,24 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 	} else if !os.IsNotExist(err) {
 		return err
 	}
+	mailer, err := loadContactMailer()
+	if err != nil {
+		return err
+	}
+	if mailer != nil {
+		go func() {
+			ticker := time.NewTicker(30 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+					processPartnerMail(root, mailer, readPresence(filepath.Join(root, "local_data", "dxregia-presence.json")))
+				}
+			}
+		}()
+	}
 	var lock sync.Mutex
 	readProvisioningResults(root, path, partners)
 	go func() {
@@ -99,7 +119,17 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		defer lock.Unlock()
 		if r.Method == http.MethodGet {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(partners)
+			snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
+			view := make(map[string]partner, len(partners))
+			for call, entry := range partners {
+				entry.Connection = currentConnection(root, call, snapshot)
+				var job partnerMail
+				if data, err := os.ReadFile(filepath.Join(root, "local_data", "dxregia-partners", call+".mail.json")); err == nil && json.Unmarshal(data, &job) == nil {
+					entry.MailStatus = job.Status
+				}
+				view[call] = entry
+			}
+			json.NewEncoder(w).Encode(view)
 			return
 		}
 		if r.Header.Get("Content-Type") != "application/json" {
@@ -160,6 +190,13 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
 			return
 		}
+		var options struct{ SendMail bool }
+		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256))
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&options); err != io.EOF && (err != nil || decoder.Decode(new(any)) != io.EOF) {
+			http.Error(w, "Richiesta non valida.", http.StatusBadRequest)
+			return
+		}
 		call := r.PathValue("call")
 		lock.Lock()
 		defer lock.Unlock()
@@ -172,18 +209,85 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			w.WriteHeader(http.StatusAccepted)
 			return
 		}
+		var job partnerMail
+		if options.SendMail {
+			if mailer == nil {
+				http.Error(w, "Configura SMTP prima di inviare le istruzioni al partner.", http.StatusConflict)
+				return
+			}
+			var err error
+			job, err = preparePartnerMail(root, entry)
+			if err != nil {
+				http.Error(w, "Per l’email servono l’indirizzo del referente e l’host pubblico del nodo.", http.StatusBadRequest)
+				return
+			}
+		}
 		password, err := queuePartner(root, call)
 		if err != nil {
 			log.Printf("Queue partner: %v", err)
 			http.Error(w, "Impossibile inviare la richiesta a Mojo.", http.StatusServiceUnavailable)
 			return
 		}
+		mailStatus := ""
+		if options.SendMail {
+			job.Password = password
+			if err := writePartnerMail(filepath.Join(root, "local_data", "dxregia-partners", call+".mail.json"), job); err != nil {
+				log.Printf("Queue partner instructions: %v", err)
+				mailStatus = "Istruzioni non accodate. Puoi inviarle manualmente."
+			} else {
+				mailStatus = job.Status
+			}
+		}
 		entry.Provisioning = "In attesa di Mojo"
 		partners[call] = entry
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
-		json.NewEncoder(w).Encode(map[string]string{"Password": password})
+		json.NewEncoder(w).Encode(map[string]string{"Password": password, "MailStatus": mailStatus})
+	})
+	mux.HandleFunc("POST /api/partners/{call}/connect", func(w http.ResponseWriter, r *http.Request) {
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
+			return
+		}
+		var password string
+		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256))
+		if decoder.Decode(&password) != nil || decoder.Decode(new(any)) != io.EOF || !peerPasswordPattern.MatchString(password) {
+			http.Error(w, "Per il collegamento usa una password alfanumerica di massimo 72 caratteri.", http.StatusBadRequest)
+			return
+		}
+		call := r.PathValue("call")
+		lock.Lock()
+		defer lock.Unlock()
+		entry, ok := partners[call]
+		if !ok || !entry.partnerDetails.validate() || entry.Call != call {
+			http.Error(w, "Nodo non trovato o configurazione non valida.", http.StatusNotFound)
+			return
+		}
+		snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
+		if !snapshot.PartnerConnect {
+			http.Error(w, "Mojo deve essere attivo con l’hook DXRegia aggiornato.", http.StatusServiceUnavailable)
+			return
+		}
+		if entry.Provisioning != "Abilitato in Mojo" {
+			http.Error(w, "Abilita prima l’account partner in Mojo.", http.StatusConflict)
+			return
+		}
+		switch currentConnection(root, call, snapshot) {
+		case "Attivo", "In coda", "Collegamento in corso":
+			w.WriteHeader(http.StatusAccepted)
+			return
+		}
+		if err := queueConnection(root, entry, password); err != nil {
+			log.Printf("Queue partner connection: %v", err)
+			http.Error(w, "Impossibile accodare il collegamento.", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusAccepted)
 	})
 	return nil
 }

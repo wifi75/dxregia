@@ -52,3 +52,8 @@ Flusso da completare: approvazione o abilitazione automatica opzionale dopo veri
 ### Abilitazione in ingresso
 
 Dalla scheda salvata, il sysop può scegliere Abilita accesso in ingresso. La richiesta viene eseguita dall'hook Mojo gestito. La scheda mostra la password generata al momento dell'accodamento e l'esito di Mojo quando si aggiorna lo stato. La password serve per il collegamento sul nodo partner. L'account del sysop e gli account preesistenti incompatibili non vengono modificati. Un account abilitato può risultare ancora disconnesso.
+### Collegamento in uscita ed email\
+\
+Abilita gli account partner sui due nodi. Dal nodo che avvia il collegamento, usa Connetti nodo con la password fornita dal nodo remoto se richiesta. DXRegia si collega all'host e alla porta della scheda. Mostra Attivo solo dopo il passaggio allo stato operativo in Mojo. La riconnessione automatica rimane da integrare.\
+\
+Con SMTP configurato, indirizzo del referente e host pubblico, il sysop può scegliere di inviare le istruzioni e l'esito via email quando abilita il partner. Le istruzioni partono dopo la conferma dell'account e contengono host, porta, indicativo e password dedicata. Dopo cinque minuti il worker verifica lo stato del link e invia conferma o indica i controlli da fare. Se Mojo non fornisce dati recenti, l'email precisa che la verifica è rimasta in sospeso.

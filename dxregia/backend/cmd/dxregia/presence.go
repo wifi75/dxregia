@@ -23,8 +23,9 @@ type presenceChannel struct {
 }
 
 type presence struct {
-	At       int64
-	Channels []presenceChannel
+	PartnerConnect bool
+	At             int64
+	Channels       []presenceChannel
 }
 
 func registerPresence(mux *http.ServeMux, root string, auth *sysopAuth) {
@@ -69,10 +70,12 @@ func installPresenceHook(local string) error {
 			return err
 		}
 		sum := sha256.Sum256(current)
-		if hex.EncodeToString(sum[:]) != "539ceccae21bcae0947532e152e99f180b0754aa34faece57c74f0b4a0439e61" {
+		digest := hex.EncodeToString(sum[:])
+		if digest != "539ceccae21bcae0947532e152e99f180b0754aa34faece57c74f0b4a0439e61" &&
+			digest != "7205df58566bee8ccce1b013b4646642d268ff16927fe5b691b371e70464a239" {
 			return nil
 		}
-		f, err = os.OpenFile(path, os.O_WRONLY|os.O_TRUNC, 0600)
+		return upgradePresenceHook(local, path)
 	}
 	if err != nil {
 		return err
@@ -85,4 +88,20 @@ func installPresenceHook(local string) error {
 		os.Remove(path)
 	}
 	return err
+}
+
+func upgradePresenceHook(local, path string) error {
+	tmp, err := os.CreateTemp(local, ".dxregia-hook-")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmp.Name())
+	_, err = tmp.Write(presenceHook)
+	if closeErr := tmp.Close(); err == nil {
+		err = closeErr
+	}
+	if err != nil {
+		return err
+	}
+	return os.Rename(tmp.Name(), path)
 }

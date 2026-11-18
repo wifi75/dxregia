@@ -5,7 +5,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -18,6 +18,9 @@
   let busy = $state(true)
   let peerPassword = $state('')
   let enabling = $state(false)
+  let outgoingPassword = $state('')
+  let sendInstructions = $state(false)
+  let emailStatus = $state('')
 
   onMount(async () => {
     try {
@@ -31,8 +34,18 @@
     }
   })
 
+  onMount(() => {
+    const timer = setInterval(() => {
+      if (selected && !enabling && !busy) void refreshProvisioning()
+    }, 5000)
+    return () => clearInterval(timer)
+  })
+
   function open(partner?: Partner) {
     peerPassword = ''
+    outgoingPassword = ''
+    sendInstructions = false
+    emailStatus = ''
     selected = partner
     form = partner
       ? { Call: partner.Call, Name: partner.Name, Contact: partner.Contact, Email: partner.Email, Host: partner.Host, Port: partner.Port }
@@ -75,6 +88,7 @@
     try {
       const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/enable', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ SendMail: sendInstructions }),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -82,11 +96,37 @@
       }
       if (selected?.Call !== call) return
       if (response.headers.get('content-type')?.includes('application/json')) {
-        peerPassword = (await response.json()).Password ?? ''
+        const result = await response.json()
+        peerPassword = result.Password ?? ''
+        emailStatus = result.MailStatus ?? ''
       }
       await refreshProvisioning()
     } catch {
       error = 'Impossibile inviare la richiesta di abilitazione.'
+    } finally {
+      enabling = false
+    }
+  }
+
+  async function connect(event: SubmitEvent) {
+    event.preventDefault()
+    const call = selected?.Call
+    if (!call || enabling) return
+    enabling = true
+    error = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/connect', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(outgoingPassword),
+      })
+      if (!response.ok) {
+        error = (await response.text()).trim()
+        return
+      }
+      outgoingPassword = ''
+      await refreshProvisioning()
+    } catch {
+      error = 'Impossibile avviare il collegamento.'
     } finally {
       enabling = false
     }
@@ -153,13 +193,24 @@
       <p>Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'Da rilevare'}</p>
       <p>Accesso in ingresso: {selected.Provisioning || 'Non abilitato dal pannello'}</p>
       {#if !selected.Provisioning || !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning)}
+        {#if selected.Email}<label class="mail-opt"><input type="checkbox" bind:checked={sendInstructions} /> Invia le istruzioni e l’esito via email a {selected.Email}</label>{/if}
         <button type="button" disabled={enabling || busy} onclick={enable}>Abilita accesso in ingresso</button>
       {/if}
       <button type="button" disabled={enabling} onclick={refreshProvisioning}>Aggiorna stato Mojo</button>
+      {#if selected.MailStatus || emailStatus}<p>Email: {selected.MailStatus || emailStatus}</p>{/if}
       {#if peerPassword}
         <p>Conserva la password del partner. Servirà per configurare il collegamento dal suo nodo.</p>
         <code>{peerPassword}</code>
       {/if}
+    {/if}
+    {#if selected?.Provisioning === 'Abilitato in Mojo'}
+      <p>Collegamento: {selected.Connection || 'Aggiorna lo stato per verificare'}</p>
+      <form onsubmit={connect}>
+        <label>Password impostata dal nodo remoto, se richiesta
+          <input type="password" bind:value={outgoingPassword} pattern="[A-Za-z0-9]{0,72}" maxlength="72" autocomplete="off" />
+        </label>
+        <button disabled={enabling || busy}>Connetti nodo</button>
+      </form>
     {/if}
     <form onsubmit={save}>
       <div class="fields">
@@ -204,6 +255,8 @@
   ul { padding: 0; list-style: none; }
   li { border-top: 1px solid #d7dfe7; padding: 8px 0; }
   li p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 3px 0; }
+  .mail-opt { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .mail-opt input { min-height: auto; }
   code { overflow-wrap: anywhere; }
   time { color: #485b6d; font-size: .85rem; }
 </style>
