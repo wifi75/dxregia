@@ -45,7 +45,7 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [ ] Collaudare nella dashboard le sessioni Web Mojo.
 - [x] Contatore pubblico e storico privato delle visualizzazioni giornaliere e dei domini di provenienza.
 - [x] Mostrare nell'analytics sysop una stima delle schede pubbliche attive e le visualizzazioni per pagina.
-- [ ] Integrare i paesi di provenienza nell'analytics sysop.
+- [x] Centro di analytics del sysop: pubblico del portale (visitatori unici, lingue, dispositivi, orari) e attività del cluster (bande, modi, entità, nominativi). Resta da integrare il paese di provenienza dei visitatori.
 - [x] Integrare recupero accesso sysop e QR per l'iscrizione TOTP.
 
 ## Prima release
@@ -58,7 +58,12 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Modulo pubblico contatto e peering, coda privata e scheda partner precompilata.
 - [x] Pannello Server di posta con prova di invio (verificato solo il backend con test; consegna reale da provare).
 - [x] Dashboard con LED, Nodi partner in due schede con reinvio email e bandiere DXCC complete (compilate, da verificare nel browser).
-- [ ] Form Contatti con configurazione automatica del partner e email di conferma alla prima connessione, dopo la scelta tra abilitazione automatica e con click del sysop.
+- [x] Form Contatti con configurazione automatica del partner (interruttore, limite di 10 al giorno), email HTML in sei lingue e conferma alla prima connessione. Provata a mano la notifica al sysop; la configurazione automatica completa con un nodo reale è da collaudare.
+- [ ] Verificare l'indirizzo email del richiedente prima di creare l'accesso automatico (oggi chi invia il form può indicare un indicativo non suo).
+- [x] Pagina spot pubblica rifatta (filtri multi-selezione, lente, modo dedotto, suono e giallo sui nuovi spot, tema scuro, layout telefono e tablet), spedizioni DX annunciate (NG3K ADXO), logo «DXREGIA a blocchi pesanti», favicon e documentazione in sei lingue. Verificati nel browser: layout, filtri, popup; non verificati dal vivo: suono, giallo sui nuovi spot e le pagine nelle lingue diverse da italiano.
+- [x] Pannello su `/admin`, accesso con utente e password, dashboard live (SSE), eliminazione di richieste e nodi partner.
+- [ ] Decidere se il modo dedotto dalla frequenza resta con il bordo tratteggiato, diventa continuo o si nasconde.
+- [ ] Tradurre il pannello admin nelle sei lingue (oggi solo italiano) e i documenti tecnici oltre README e guida di installazione.
 - [ ] Collaudare SMTP con un provider reale e completare approvazione, istruzioni al partner e verifica con esito via email.
 
 - [x] Abilitare dal pannello un partner in ingresso con password e conferma di Mojo.
