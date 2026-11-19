@@ -69,9 +69,14 @@ Tras entrar, abre Nodo → Configuración y rellena: indicativo del nodo con SSI
 - **Telnet y cortafuegos.** Comprueba que el puerto Telnet esté abierto en el cortafuegos. Para ser accesible desde Internet, redirígelo en el router hacia el servidor. Las opciones están en Nodo → Opciones Telnet.
 - **Servidor de correo.** Gestión → Servidor de correo. Elige un preajuste (Gmail, Aruba, Office 365) o escribe servidor y puerto, cifrado, remitente, usuario y contraseña; guarda y pulsa Enviar prueba. La contraseña queda en el servidor en un archivo privado. Con Gmail hace falta una contraseña de aplicación. El correo sirve para los avisos que recibes y para las instrucciones que se envían a los socios.
 - **Nodos socios.** Enlaces → Nodos socios → Añadir nodo: indicativo, host, puerto y, si el otro nodo la pide, la contraseña remota. Pulsa Guardar y conectar. Marca la casilla de reintento para reconectar solo tras una caída.
-- **Dejar que otros pidan un enlace.** Tu página de Contacto tiene la solicitud «Enlazar mi nodo». En Enlaces → Solicitudes recibidas un interruptor decide qué ocurre: activado, DXRegia crea el socio, le envía por correo tus datos de conexión en su idioma y vuelve a escribir cuando se conecta (límite por defecto 10 al día); desactivado, apruebas cada solicitud a mano con «Preparar ficha de socio».
 - **Copias de seguridad.** Mira la sección 9.
 - **Idioma, tema y sonido.** Los iconos de arriba a la derecha en las páginas públicas.
+
+### Solicitudes de socios y enlaces entrantes
+
+- **Formulario público.** En **Enlaces → Solicitudes recibidas**, activa la configuración automática. Con SMTP y el nombre de host y puerto Telnet públicos del nodo configurados, DXRegia crea las fichas de los nuevos socios que cumplen los requisitos. Cuando DXSpider habilita la entrada, envía los datos de conexión y una contraseña dedicada. El límite predeterminado es de 10 configuraciones en 24 horas. Con la automatización desactivada, abre la solicitud y prepara la ficha manualmente.
+- **Acceso de CC Cluster sin contraseña.** En **Enlaces → Nodos socios**, elige **Autenticación entrante → Sin contraseña**, confirma la IP pública o el nombre de host de origen y guarda y envía las instrucciones. DXRegia propone el host guardado y actualiza sus direcciones DNS. El otro nodo debe conectarse desde una de esas direcciones. También puedes guardar sin enviar el correo.
+- **Confirmación del enlace.** Después de enviar las instrucciones, DXRegia espera hasta siete días una sesión activa iniciada por el socio y envía un segundo correo al detectarla. Una sesión saliente no genera esta confirmación. Consulta la aceptación por SMTP y el contenido en **Enlaces → Historial de correos de socios**. Si un enlace saliente está ocupando la sesión, la prueba entrante abre una ventana de cinco minutos. La prueba automática es opcional y repite la ventana cada 30 minutos mientras no haya una sesión entrante.
 
 ## 7. Comprobar que funciona
 

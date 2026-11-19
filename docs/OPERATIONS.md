@@ -49,16 +49,19 @@ Per la notifica al sysop, impostare DXREGIA_SMTP_ADDRESS (host:porta del provide
 
 In alternativa alle variabili d'ambiente, il sysop può configurare il server di posta da Gestione → Server di posta: server e porta, cifratura, mittente, utente e password, con preset e invio di una email di prova. Le impostazioni sono in `local_data/dxregia-smtp.json` (file riservato, la password non viene mai restituita dall'API) e valgono subito senza riavvio. Se il file esiste ha priorità sulle variabili `DXREGIA_SMTP_*`; un file non valido disattiva l'invio invece di ripiegare in silenzio sull'ambiente.
 
-Flusso da completare: approvazione o abilitazione automatica opzionale dopo verifica dell'indirizzo email e controllo della richiesta, invio dei parametri di collegamento ufficiali e successivo controllo del link reale in Mojo. Comunicare successo solo dopo lo stato operativo. In caso di fallimento riportare l'ultimo errore rilevato o chiedere i dati mancanti.
+In **Collegamenti → Richieste ricevute**, l’opzione **Configura da solo i nodi che chiedono il collegamento** elabora le richieste dal modulo pubblico per nuovi partner idonei. Servono SMTP e l’host e la porta Telnet pubblici. Dopo l’abilitazione in Mojo parte l’email con i dati e la password dedicata. Il limite predefinito è 10 configurazioni nelle ultime 24 ore. Se l’automazione è disattivata, puoi usare **Prepara scheda partner**. La verifica dell’indirizzo email del richiedente resta da implementare.
 
-### Abilitazione in ingresso
+### Abilitazione in ingresso e conferme email
 
-Dalla scheda salvata, il sysop può scegliere Abilita accesso in ingresso. La richiesta viene eseguita dall'hook Mojo gestito. La scheda mostra la password generata al momento dell'accodamento e l'esito di Mojo quando si aggiorna lo stato. La password serve per il collegamento sul nodo partner. L'account del sysop e gli account preesistenti incompatibili non vengono modificati. Un account abilitato può risultare ancora disconnesso.
-### Collegamento in uscita ed email\
-\
-Abilita gli account partner sui due nodi. Dal nodo che avvia il collegamento, usa Connetti nodo con la password fornita dal nodo remoto se richiesta. DXRegia si collega all'host e alla porta della scheda. Mostra Attivo solo dopo il passaggio allo stato operativo in Mojo. Per attivare la riconnessione, seleziona Riprova automaticamente prima di connettere il nodo. Il backend conserva l'eventuale password remota nel suo archivio privato e distanzia i tentativi di almeno due minuti. Sospende i tentativi quando l'endpoint della scheda differisce da quello autorizzato. Disattiva riconnessione rimuove il piano salvato.\
-\
-Con SMTP configurato, indirizzo del referente e host pubblico, il sysop può scegliere di inviare le istruzioni e l'esito via email quando abilita il partner. Le istruzioni partono dopo la conferma dell'account e contengono host, porta, indicativo e password dedicata. Dopo cinque minuti il worker verifica lo stato del link e invia conferma o indica i controlli da fare. Se Mojo non fornisce dati recenti, l'email precisa che la verifica è rimasta in sospeso.
+Nella scheda del partner scegli **Autenticazione in ingresso**. Con la password, l’email di istruzioni parte dopo la conferma locale di Mojo. Se un partner CC Cluster non può inviare la password all’apertura della sessione, puoi scegliere l’accesso senza password con un IP pubblico o nome host autorizzato. Il pannello propone l’host salvato nella scheda. Il DNS viene aggiornato circa ogni minuto e la risoluzione scade dopo cinque minuti senza aggiornamenti validi. Si confronta l’indirizzo effettivo del socket Telnet. Se il partner esce da un indirizzo diverso da quello a cui punta il suo host, usa il suo indirizzo di uscita effettivo.
+
+Dopo l’invio delle istruzioni, DXRegia attende per un massimo di sette giorni una sessione attiva avviata dal partner. La conferma viene inviata al primo ingresso rilevato. Per le istruzioni con password, dopo cinque minuti può partire anche un avviso se l’ingresso non è ancora attivo. Una sessione in uscita non attiva la conferma. **Storico email partner** mostra il contenuto con le credenziali oscurate e l’esito SMTP. L’accettazione SMTP attesta la presa in carico del messaggio.
+
+### Collegamento in uscita e prova in ingresso
+
+Per collegarti al partner, usa **Connetti ora** con la password remota se richiesta. Con **Riprova da solo se il collegamento cade**, il backend conserva le impostazioni e distanzia i tentativi di almeno due minuti. Se host o porta cambiano, la riconnessione resta sospesa finché non salvi le nuove impostazioni.
+
+DXSpider usa una sola sessione per lo stesso indicativo. **Prova ingresso ora** sospende l’uscita per cinque minuti per permettere al partner di aprire la sessione. La modalità automatica ripete la finestra ogni 30 minuti finché l’ingresso è disconnesso, anche a portale chiuso o dopo un riavvio. In **Stato del nodo** e **Nodi partner**, l’elenco in ingresso mostra soltanto le sessioni attive avviate dai partner.
 
 ## Aggiornamenti: versioni precedenti
 

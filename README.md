@@ -21,7 +21,7 @@ DXRegia makes it easy to install, run and share a DX Cluster node. It keeps DXSp
 - **Registration to send spots** — visitors register on the portal (callsign, email, password) and confirm by email; only registered users can send spots over Telnet. Optional, switched on in the panel.
 - **Install as an app** — the portal installs on a phone's home screen and still opens without a connection.
 - **Partner nodes** — add, connect and auto-reconnect; see who started each link; delete a node to disconnect it and revoke its access.
-- **Link requests on autopilot** — other sysops ask from your Contact page; DXRegia can create their account, email your connection details and confirm when they connect (a switch and a daily limit in the panel).
+- **Link requests on autopilot** — other sysops ask from your Contact page; DXRegia can create their account, email your connection details and confirm when they connect (a switch and a daily limit in the panel). For CC Cluster peers, a public IP or DNS hostname can authorize inbound access without a password. The confirmation email follows an active inbound session.
 - **HTML emails** — instructions and confirmations in six languages through your own SMTP server, set up and tested in the panel.
 - **Classic access kept** — Telnet and DXSpider commands for loggers and users, compatible with existing nodes.
 - **Safe to run** — offline backups with verification, one-command updates with automatic rollback, and visitor statistics without cookies or stored addresses.

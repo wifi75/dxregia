@@ -21,7 +21,7 @@ DXRegia macht es einfach, einen DX-Cluster-Knoten zu installieren, zu betreiben 
 - **Registrierung zum Senden von Spots** — Besucher registrieren sich im Portal (Rufzeichen, E-Mail, Passwort) und bestätigen per E-Mail; nur Registrierte können per Telnet Spots senden. Optional, im Panel einzuschalten.
 - **Als App installierbar** — das Portal lässt sich auf dem Startbildschirm des Smartphones installieren und öffnet sich auch ohne Verbindung.
 - **Partnerknoten** — hinzufügen, verbinden und automatisch wiederverbinden; sehen, wer die Verbindung gestartet hat; einen Knoten löschen, um ihn zu trennen und seinen Zugang zu entziehen.
-- **Verbindungsanfragen automatisch** — andere Sysops fragen über deine Kontaktseite an; DXRegia kann ihr Konto anlegen, ihnen deine Verbindungsdaten mailen und bestätigen, sobald sie verbunden sind (Schalter und Tageslimit im Panel).
+- **Verbindungsanfragen automatisch** — andere Sysops fragen über deine Kontaktseite an; DXRegia kann ihr Konto anlegen, ihnen deine Verbindungsdaten mailen und bestätigen, sobald sie verbunden sind (Schalter und Tageslimit im Panel). CC-Cluster-Partner können per öffentlicher IP-Adresse oder DNS-Hostname ohne Passwort zugelassen werden. Eine zweite E-Mail bestätigt die aktive eingehende Sitzung.
 - **HTML-E-Mails** — Anleitungen und Bestätigungen in sechs Sprachen über deinen eigenen SMTP-Server, im Panel eingerichtet und getestet.
 - **Klassischer Zugang bleibt** — Telnet und DXSpider-Befehle für Logger und Benutzer, kompatibel mit bestehenden Knoten.
 - **Sicher im Betrieb** — Offline-Backups mit Prüfung, Updates mit einem Befehl und automatischem Rollback, Besucherstatistik ohne Cookies und ohne gespeicherte Adressen.

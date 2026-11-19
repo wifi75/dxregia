@@ -69,9 +69,14 @@ Dopo l'accesso apri Nodo → Configurazione e compila: indicativo del nodo con S
 - **Telnet e firewall.** Verifica che la porta Telnet sia aperta nel firewall. Per essere raggiungibile da Internet, inoltrala sul router verso il server. Le opzioni sono in Nodo → Opzioni Telnet.
 - **Server di posta.** Gestione → Server di posta. Scegli un preset (Gmail, Aruba, Office 365) oppure scrivi server e porta, cifratura, indirizzo mittente, utente e password, poi Salva e premi Invia prova. La password resta sul server in un file riservato. Con Gmail serve una password per le app. La posta serve per gli avvisi a te e per le istruzioni inviate ai partner.
 - **Nodi partner.** Collegamenti → Nodi partner → Aggiungi nodo: nominativo, host, porta e, se l'altro nodo la richiede, la password remota. Premi Salva e connetti. Spunta la casella di riprova per riconnettersi da solo dopo una caduta.
-- **Far chiedere il collegamento agli altri.** La tua pagina Contatti ha la richiesta «Collega il mio nodo». In Collegamenti → Richieste ricevute un interruttore decide cosa succede: acceso, DXRegia crea il partner, manda per email i tuoi dati di collegamento nella sua lingua e scrive ancora quando si collega (limite predefinito 10 al giorno); spento, approvi ogni richiesta a mano con «Prepara scheda partner».
 - **Backup.** Vedi la sezione 9.
 - **Lingua, tema e suono.** Le icone in alto a destra nelle pagine pubbliche.
+
+### Richieste partner e collegamenti in ingresso
+
+- **Modulo pubblico.** In **Collegamenti → Richieste ricevute**, attiva **Configura da solo i nodi che chiedono il collegamento**. Con SMTP e l’host e la porta Telnet pubblici del nodo configurati, DXRegia crea le schede dei nuovi partner idonei. Appena DXSpider abilita l’accesso in ingresso, DXRegia invia i dati di collegamento e una password dedicata. Il limite predefinito è di 10 configurazioni in 24 ore. Se disattivi l’automazione, apri la richiesta e usa **Prepara scheda partner**.
+- **Accesso CC Cluster senza password.** In **Collegamenti → Nodi partner**, scegli **Autenticazione in ingresso → Senza password**, conferma l’IP pubblico o il nome host da cui il partner si collega e premi **Salva e invia senza password**. DXRegia propone l’host salvato nella scheda e aggiorna gli indirizzi DNS. Il partner deve collegarsi da uno di questi indirizzi. Puoi anche scegliere **Salva senza inviare**.
+- **Conferma del collegamento.** Dopo l’invio delle istruzioni DXRegia attende per un massimo di sette giorni una sessione attiva avviata dal partner, poi invia una seconda email quando la rileva. La sessione in uscita non fa scattare questa conferma. Controlla l’accettazione da parte di SMTP e il contenuto in **Collegamenti → Storico email partner**. Se la sessione in uscita occupa il collegamento, **Prova ingresso ora** apre una finestra di cinque minuti. La prova automatica è facoltativa e ripete la finestra ogni 30 minuti finché l’ingresso è disconnesso.
 
 ## 7. Verificare che funzioni
 

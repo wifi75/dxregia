@@ -21,7 +21,7 @@ DXRegia rende semplice installare, gestire e condividere un nodo DX Cluster. Man
 - **Registrazione per inviare spot** — i visitatori si registrano dal portale (nominativo, email, password) e confermano via email; solo i registrati possono inviare spot via Telnet. Facoltativa, si attiva dal pannello.
 - **Installabile come app** — il portale si installa sulla schermata Home dello smartphone e si apre anche senza connessione.
 - **Nodi partner** — aggiungi, collega e riconnetti da solo; vedi chi ha avviato ogni collegamento; elimina un nodo per scollegarlo e revocarne l'accesso.
-- **Richieste di collegamento in automatico** — altri sysop chiedono dalla tua pagina Contatti; DXRegia può creare il loro account, mandare per email i tuoi dati di collegamento e confermare quando si collegano (interruttore e limite giornaliero nel pannello).
+- **Richieste di collegamento in automatico** — altri sysop chiedono dalla tua pagina Contatti; DXRegia può creare il loro account, mandare per email i tuoi dati di collegamento e confermare quando si collegano (interruttore e limite giornaliero nel pannello). Per i partner CC Cluster, puoi autorizzare l’ingresso senza password con un IP pubblico o nome host DNS. La seconda email conferma una sessione in ingresso attiva.
 - **Email in HTML** — istruzioni e conferme in sei lingue tramite il tuo server SMTP, configurato e provato dal pannello.
 - **Accesso classico mantenuto** — Telnet e comandi DXSpider per logger e utenti, compatibili con i nodi esistenti.
 - **Sicuro da gestire** — backup offline con verifica, aggiornamenti con un solo comando e ripristino automatico, statistiche dei visitatori senza cookie né indirizzi salvati.

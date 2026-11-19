@@ -21,7 +21,7 @@ O DXRegia torna simples instalar, gerir e partilhar um nó DX Cluster. Mantém o
 - **Registo para enviar spots** — os visitantes registam-se no portal (indicativo, email, palavra-passe) e confirmam por email; só os registados podem enviar spots por Telnet. Opcional, ativa-se no painel.
 - **Instalável como app** — o portal instala-se no ecrã principal do telemóvel e abre mesmo sem ligação.
 - **Nós parceiros** — adicione, ligue e religue automaticamente; veja quem iniciou cada ligação; elimine um nó para o desligar e revogar o acesso.
-- **Pedidos de ligação em automático** — outros sysops pedem a partir da sua página de Contacto; o DXRegia pode criar a conta deles, enviar por e-mail os seus dados de ligação e confirmar quando se ligam (interruptor e limite diário no painel).
+- **Pedidos de ligação em automático** — outros sysops pedem a partir da sua página de Contacto; o DXRegia pode criar a conta deles, enviar por e-mail os seus dados de ligação e confirmar quando se ligam (interruptor e limite diário no painel). Para parceiros CC Cluster, é possível autorizar a entrada sem palavra-passe por IP público ou nome DNS. O segundo e-mail confirma uma sessão de entrada ativa.
 - **E-mails em HTML** — instruções e confirmações em seis idiomas através do seu próprio servidor SMTP, configurado e testado no painel.
 - **Acesso clássico mantido** — Telnet e comandos DXSpider para loggers e utilizadores, compatíveis com os nós existentes.
 - **Seguro de operar** — cópias de segurança offline com verificação, atualizações com um só comando e reversão automática, estatísticas de visitas sem cookies nem endereços guardados.

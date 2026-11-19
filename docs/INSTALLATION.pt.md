@@ -69,9 +69,14 @@ Depois de entrar, abra Nó → Configuração (Nodo → Configurazione) e preenc
 - **Telnet e firewall.** Confirme que a porta Telnet está aberta na firewall. Para ser acessível pela Internet, redirecione-a no router para o servidor. As opções estão em Nó → Opções Telnet (Opzioni Telnet).
 - **Servidor de correio.** Gestão → Servidor de correio (Gestione → Server di posta). Escolha uma predefinição (Gmail, Aruba, Office 365) ou escreva servidor e porta, cifragem, remetente, utilizador e palavra-passe, grave e carregue em Enviar teste (Invia prova). A palavra-passe fica no servidor num ficheiro privado. Com o Gmail precisa de uma palavra-passe de aplicação. O correio serve para os avisos que recebe e para as instruções enviadas aos parceiros.
 - **Nós parceiros.** Ligações → Nós parceiros → Adicionar nó (Collegamenti → Nodi partner → Aggiungi nodo): indicativo, host, porta e, se o outro nó a pedir, a palavra-passe remota. Carregue em Guardar e ligar (Salva e connetti). Marque a caixa de nova tentativa para religar sozinho depois de uma queda.
-- **Deixar que outros peçam uma ligação.** A sua página de Contacto tem o pedido «Ligar o meu nó». Em Ligações → Pedidos recebidos (Richieste ricevute) um interruptor decide: ligado, o DXRegia cria o parceiro, envia-lhe por e-mail os seus dados de ligação no idioma dele e volta a escrever quando se liga (limite por omissão 10 por dia); desligado, aprova cada pedido à mão com «Preparar ficha de parceiro».
 - **Cópias de segurança.** Veja a secção 9.
 - **Idioma, tema e som.** Os ícones no canto superior direito das páginas públicas.
+
+### Pedidos de parceiros e ligações de entrada
+
+- **Formulário público.** Em **Ligações → Pedidos recebidos**, ative a configuração automática. Com SMTP e o nome de anfitrião e a porta Telnet públicos configurados, o DXRegia cria as fichas dos novos parceiros elegíveis. Assim que o DXSpider ativar o acesso de entrada, o DXRegia envia os dados de ligação e uma palavra-passe dedicada. O limite predefinido é de dez configurações em 24 horas. Com a automatização desativada, abra o pedido e prepare manualmente a ficha do parceiro.
+- **Acesso CC Cluster sem palavra-passe.** Em **Ligações → Nós parceiros**, escolha a autenticação de entrada sem palavra-passe, confirme o IP público ou o nome de anfitrião de origem e guarde e envie as instruções. O DXRegia propõe o anfitrião guardado e atualiza os respetivos endereços DNS. O parceiro deve ligar-se a partir de um desses endereços. Também pode guardar sem enviar correio.
+- **Confirmação da ligação.** Depois de enviar as instruções, o DXRegia aguarda até sete dias por uma sessão ativa iniciada pelo parceiro e envia uma segunda mensagem quando a deteta. Uma sessão de saída não gera esta confirmação. Consulte a aceitação por SMTP e o conteúdo no **Histórico de e-mails dos parceiros**. Se uma ligação de saída estiver a ocupar a sessão, o teste de entrada abre uma janela de cinco minutos. O teste automático é opcional e repete a janela a cada 30 minutos enquanto não existir uma sessão de entrada.
 
 ## 7. Confirmar que funciona
 

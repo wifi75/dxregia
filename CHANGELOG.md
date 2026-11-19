@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+### Added
+
+- Passwordless inbound access for CC Cluster peers by public IP or DNS hostname.
+- Partner onboarding emails after local setup and a separate confirmation when an inbound session becomes active.
+- Inbound session overview in the dashboard and a dedicated filter in the partner list.
+
 ## [0.4.0] - 2026-11-18
 
 ### Added

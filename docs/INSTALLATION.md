@@ -69,9 +69,14 @@ After signing in, open Node → Configuration (Nodo → Configurazione) and fill
 - **Telnet and firewall.** Make sure the Telnet port is open in your firewall. To be reachable from the Internet, forward it on your router to the server. Options are in Node → Telnet options (Opzioni Telnet).
 - **Mail server.** Management → Mail server (Gestione → Server di posta). Pick a preset (Gmail, Aruba, Office 365) or type server and port, encryption, sender address, user and password, then Save and press Send test (Invia prova). The password stays on the server in a private file. With Gmail you need an app password. Mail is used for notices to you and for the instructions sent to partners.
 - **Partner nodes.** Links → Partner nodes → Add node (Collegamenti → Nodi partner → Aggiungi nodo): callsign, host, port, and the remote password if the other node asks for one. Press Save and connect (Salva e connetti). Tick the retry box to reconnect automatically after a drop.
-- **Let others ask for a link.** Your public Contact page has a "Link my node" request. In Links → Received requests (Richieste ricevute) a switch decides what happens: on, DXRegia creates the partner, emails them your connection details in their language and emails again when they connect (default limit 10 per day); off, you approve each request by hand with "Prepare partner card".
 - **Backups.** See section 9.
 - **Language, theme and sound.** The icons at the top right of the public pages.
+
+### Partner requests and inbound links
+
+- **Public form.** Under **Links → Received requests**, enable automatic setup. With SMTP and the local node’s public Telnet hostname and port configured, DXRegia creates eligible new partners. Once DXSpider enables inbound access, DXRegia emails the partner the connection details and a dedicated password. The default limit is 10 automatic setups in 24 hours. With automation off, open the request and prepare the partner record manually.
+- **Passwordless CC Cluster access.** Under **Links → Partner nodes**, select **Inbound authentication → Without password**, confirm the public source IP or hostname, then save and send the instructions. DXRegia suggests the node’s saved hostname and refreshes its DNS addresses. The partner must connect from one of those addresses. You can also save without sending email.
+- **Connection confirmation.** After the instructions are sent, DXRegia watches for an active session initiated by the partner for up to seven days and sends a second email when it sees one. An outbound session does not trigger this email. Check SMTP acceptance and message history under **Links → Partner email history**. If an existing outgoing session occupies the link, **Test inbound now** opens a five-minute window for the partner to connect. The automatic test is optional and repeats that window every 30 minutes while inbound is disconnected.
 
 ## 7. Check that it works
 

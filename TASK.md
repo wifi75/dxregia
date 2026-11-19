@@ -67,7 +67,9 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Pannello su `/admin`, accesso con utente e password, dashboard live (SSE), eliminazione di richieste e nodi partner.
 - [ ] Decidere se il modo dedotto dalla frequenza resta con il bordo tratteggiato, diventa continuo o si nasconde.
 - [ ] Tradurre il pannello admin nelle sei lingue (oggi solo italiano) e i documenti tecnici oltre README e guida di installazione.
-- [ ] Collaudare SMTP con un provider reale e completare approvazione, istruzioni al partner e verifica con esito via email.
+- [x] Configurare automaticamente i partner idonei dal modulo pubblico e inviare le istruzioni dopo l’abilitazione locale.
+- [x] Configurare l’accesso CC Cluster per IP o nome DNS e confermare via email la prima sessione in ingresso rilevata.
+- [ ] Collaudare sul server l’intero flusso dal modulo pubblico alla conferma SMTP e la connessione senza password da un CC Cluster remoto.
 
 - [x] Abilitare dal pannello un partner in ingresso con password e conferma di Mojo.
 - [x] Accodare su scelta sysop istruzioni dopo la conferma dell'account e un esito dopo cinque minuti.

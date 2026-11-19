@@ -309,3 +309,7 @@ Versione 0.4.0 (tag v0.4.0, 2026-11-18): impostazioni di DXSpider nel pannello (
 ## Registrazione e profilo Telnet
 
 Il modulo raccoglie nome, località (QTH) e locator (QRA). Alla conferma email Mojo salva il profilo e assegna il nominativo del nodo locale come Home Node. Le richieste in coda nel vecchio formato con il solo hash restano compatibili.
+
+## Richieste partner e conferma in ingresso
+
+I README e le guide di installazione in sei lingue documentano la configurazione automatica dal modulo, l’accesso CC Cluster senza password per IP o DNS e la seconda email, che parte solo quando il partner avvia una sessione attiva. Lo storico registra l’esito SMTP. Il test Go verifica la distinzione tra ingresso e uscita e la build web è passata. Restano da provare sul server SMTP reale e il collegamento in ingresso di un CC Cluster remoto.
