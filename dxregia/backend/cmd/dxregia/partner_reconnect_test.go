@@ -92,3 +92,35 @@ func TestReconnectUsesLiveOutgoingReadinessAfterInboundFailure(t *testing.T) {
 		t.Fatalf("expected outgoing retry without password: %q, %v", data, err)
 	}
 }
+
+func TestAutomaticInboundWindowsRemainEnabled(t *testing.T) {
+	root := t.TempDir()
+	call := "N4ZKF-1"
+	now := time.Now().Truncate(time.Second)
+	partners := map[string]partner{call: {Provisioning: "Abilitato in Mojo"}}
+	if err := os.MkdirAll(filepath.Dir(inboundAutoPath(root, call)), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := writePrivateJSON(inboundAutoPath(root, call), now); err != nil {
+		t.Fatal(err)
+	}
+	snapshot := presence{PartnerConnect: true}
+	runAutomaticInboundTests(root, partners, snapshot, now)
+	if until := inboundTestUntil(root, call); !until.Equal(now.Add(inboundTestWindow)) {
+		t.Fatalf("unexpected first inbound window: %v", until)
+	}
+	due := now.Add(inboundTestInterval)
+	snapshot.Channels = []presenceChannel{{Call: call, Kind: "node", State: "normal"}}
+	runAutomaticInboundTests(root, partners, snapshot, due)
+	if next, err := inboundAutoNext(root, call); err != nil || !next.Equal(due) {
+		t.Fatalf("incoming session altered the saved schedule: %v, %v", next, err)
+	}
+	if until := inboundTestUntil(root, call); until.After(due) {
+		t.Fatalf("opened another window during an incoming session: %v", until)
+	}
+	snapshot.Channels = nil
+	runAutomaticInboundTests(root, partners, snapshot, due)
+	if next, err := inboundAutoNext(root, call); err != nil || !next.Equal(due.Add(inboundTestInterval)) {
+		t.Fatalf("schedule did not continue after disconnection: %v, %v", next, err)
+	}
+}

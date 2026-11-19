@@ -131,3 +131,53 @@ func inboundTestUntil(root, call string) time.Time {
 	}
 	return time.Unix(seconds, 0)
 }
+
+const inboundTestWindow = 5 * time.Minute
+const inboundTestInterval = 30 * time.Minute
+
+func inboundAutoPath(root, call string) string {
+	return filepath.Join(root, "local_data", "dxregia-partners", call+".inbound-auto.json")
+}
+
+func inboundAutoNext(root, call string) (time.Time, error) {
+	var next time.Time
+	data, err := os.ReadFile(inboundAutoPath(root, call))
+	if err == nil {
+		err = json.Unmarshal(data, &next)
+	}
+	return next, err
+}
+
+func hasInboundSession(snapshot presence, call string) bool {
+	for _, channel := range snapshot.Channels {
+		if channel.Call == call && channel.Kind == "node" && !channel.Outbound {
+			return true
+		}
+	}
+	return false
+}
+
+func runAutomaticInboundTests(root string, partners map[string]partner, snapshot presence, now time.Time) {
+	if !snapshot.PartnerConnect {
+		return
+	}
+	for call, entry := range partners {
+		if len(call) > 12 || !callsign.MatchString(call) || entry.Provisioning != "Abilitato in Mojo" || hasInboundSession(snapshot, call) {
+			continue
+		}
+		if _, locked := snapshot.LockedPartners[call]; locked {
+			continue
+		}
+		next, err := inboundAutoNext(root, call)
+		if err != nil || next.After(now) || inboundTestUntil(root, call).After(now) {
+			continue
+		}
+		if err := writePrivateJSON(inboundTestPath(root, call), now.Add(inboundTestWindow).Unix()); err != nil {
+			log.Printf("Open automatic inbound window for %s: %v", call, err)
+			continue
+		}
+		if err := writePrivateJSON(inboundAutoPath(root, call), now.Add(inboundTestInterval)); err != nil {
+			log.Printf("Schedule automatic inbound window for %s: %v", call, err)
+		}
+	}
+}

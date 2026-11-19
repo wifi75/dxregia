@@ -29,6 +29,7 @@ type partnerStatus struct {
 	RetryEligibleAt      *time.Time `json:",omitempty"`
 	PublicMailAcceptedAt *time.Time `json:",omitempty"`
 	InboundTestUntil     *time.Time `json:",omitempty"`
+	InboundAutoNext      *time.Time `json:",omitempty"`
 	MailRetryAt          *time.Time `json:",omitempty"`
 	OutgoingReady        bool
 	CanResetCCInbound    bool
@@ -128,7 +129,9 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				recordFirstConnections(path, partners, snapshot)
 				processAutoPartners(root, path, partners, mailer() != nil, time.Now())
 				readProvisioningResults(root, path, partners)
-				reconnectPartners(root, partners, snapshot, time.Now())
+				now := time.Now()
+				runAutomaticInboundTests(root, partners, snapshot, now)
+				reconnectPartners(root, partners, snapshot, now)
 				lock.Unlock()
 			}
 		}
@@ -167,6 +170,9 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 					}
 				}
 				if callsign.MatchString(call) && len(call) <= 12 {
+					if next, err := inboundAutoNext(root, call); err == nil {
+						status.InboundAutoNext = &next
+					}
 					if data, err := os.ReadFile(publicMailAcceptedPath(root, call)); err == nil {
 						var accepted time.Time
 						if json.Unmarshal(data, &accepted) == nil {
@@ -530,7 +536,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		w.WriteHeader(http.StatusAccepted)
 		json.NewEncoder(w).Encode(map[string]string{"MailStatus": job.Status})
 	})
-	mux.HandleFunc("POST /api/partners/{call}/inbound-test", func(w http.ResponseWriter, r *http.Request) {
+	inboundTest := func(w http.ResponseWriter, r *http.Request) {
 		if !auth.allowed(r) {
 			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
 			return
@@ -547,28 +553,50 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.NotFound(w, r)
 			return
 		}
+		if r.Method == http.MethodDelete {
+			if err := os.Remove(inboundAutoPath(root, call)); err != nil && !os.IsNotExist(err) {
+				http.Error(w, "Impossibile disattivare la prova automatica.", http.StatusServiceUnavailable)
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
 		if _, locked := snapshot.LockedPartners[call]; !snapshot.PartnerConnect || locked || entry.Provisioning != "Abilitato in Mojo" {
 			http.Error(w, "Per la prova serve un nodo attivo con accesso in ingresso abilitato.", http.StatusConflict)
 			return
 		}
-		for _, channel := range snapshot.Channels {
-			if channel.Call == call && channel.Kind == "node" && !channel.Outbound {
-				http.Error(w, "Il partner è già collegato in ingresso.", http.StatusConflict)
+		if r.URL.Query().Get("automatic") == "true" {
+			if err := os.MkdirAll(filepath.Dir(inboundAutoPath(root, call)), 0700); err != nil {
+				http.Error(w, "Impossibile attivare la prova automatica.", http.StatusServiceUnavailable)
 				return
 			}
+			if _, err := inboundAutoNext(root, call); err != nil {
+				if err := writePrivateJSON(inboundAutoPath(root, call), time.Now()); err != nil {
+					http.Error(w, "Impossibile attivare la prova automatica.", http.StatusServiceUnavailable)
+					return
+				}
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		if hasInboundSession(snapshot, call) {
+			http.Error(w, "Il partner è già collegato in ingresso.", http.StatusConflict)
+			return
 		}
 		if inboundTestUntil(root, call).After(time.Now()) {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
-		until := time.Now().Add(5 * time.Minute)
+		until := time.Now().Add(inboundTestWindow)
 		if err := writePrivateJSON(inboundTestPath(root, call), until.Unix()); err != nil {
 			http.Error(w, "Impossibile avviare la prova.", http.StatusServiceUnavailable)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
-	})
+	}
+	mux.HandleFunc("POST /api/partners/{call}/inbound-test", inboundTest)
+	mux.HandleFunc("DELETE /api/partners/{call}/inbound-test", inboundTest)
 	mux.HandleFunc("POST /api/partners/{call}/connect", func(w http.ResponseWriter, r *http.Request) {
 		if !auth.allowed(r) {
 			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)

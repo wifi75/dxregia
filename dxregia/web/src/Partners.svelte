@@ -6,7 +6,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; InboundTestUntil?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; InboundTestUntil?: string; InboundAutoNext?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -110,9 +110,11 @@
 
   let passwordDialog: HTMLDialogElement
   let passwordTarget = $state('')
+  let confirmation = $state<'password' | 'manual' | 'automatic'>('password')
 
-  function confirmPasswordReset() {
+  function openPartnerConfirmation(action: typeof confirmation) {
     if (!selected || enabling || passwordDialog.open) return
+    confirmation = action
     passwordTarget = selected.Call
     passwordDialog.returnValue = ''
     passwordDialog.showModal()
@@ -120,7 +122,8 @@
 
   function finishPasswordReset() {
     if (passwordDialog.returnValue === 'confirm' && selected?.Call === passwordTarget) {
-      void enable(false, true, false, true)
+      if (confirmation === 'password') void enable(false, true, false, true)
+      else void startInboundTest(confirmation === 'automatic')
     }
   }
 
@@ -246,14 +249,14 @@
     }
   }
 
-  async function startInboundTest() {
+  async function startInboundTest(automatic: boolean, disable = false) {
     const call = selected?.Call
-    if (!call || enabling || !confirm('Avviare la prova in ingresso? La sessione in uscita verrà chiusa e la riconnessione resterà sospesa per cinque minuti.')) return
+    if (!call || enabling) return
     enabling = true
     error = ''
     try {
-      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/inbound-test', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/inbound-test' + (automatic ? '?automatic=true' : ''), {
+        method: disable ? 'DELETE' : 'POST', headers: { 'Content-Type': 'application/json' },
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -530,6 +533,15 @@
                 <span class="muted">· Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</span>
               </p>
             {/if}
+            {#if selected.InboundAutoNext}
+              <p class="muted">Prova automatica attiva.
+                {#if selected.Connection === 'Attivo' && selected.Direction === 'Ingresso'}
+                  Il partner è collegato in ingresso.
+                {:else}
+                  Prossima finestra indicativa {date.format(new Date(selected.InboundAutoNext))}.
+                {/if}
+              </p>
+            {/if}
             {#if selected.InboundTestUntil && !(selected.Connection === 'Attivo' && selected.Direction === 'Ingresso')}
               <div class="mail-notice" data-tone="amber" role="status">
                 Prova in ingresso fino alle {date.format(new Date(selected.InboundTestUntil))}. Il partner può tentare il collegamento adesso.
@@ -562,7 +574,7 @@
             {/if}
             <div class="actions">
               {#if selected.CanResetCCInbound && selected.Email}
-                <button type="button" disabled={enabling || busy} onclick={confirmPasswordReset}
+                <button type="button" disabled={enabling || busy} onclick={() => openPartnerConfirmation('password')}
                   title="Sostituisce la password locale del partner e la invia dopo l’abilitazione.">Imposta nuova password e invia l’email</button>
               {:else if selected.Provisioning !== 'Abilitato in Mojo' && selected.Email}
                 <button type="button" disabled={!canEnableInbound || enabling || busy} onclick={() => enable(false, true)}>Abilita e invia l’email a {selected.Email}</button>
@@ -578,8 +590,15 @@
                 {#if !selected.CanResend}<span class="hint">Per reinviare servono l’email del referente e una password conservata da questa versione in poi.</span>{/if}
               {/if}
               {#if selected.Provisioning === 'Abilitato in Mojo' && !selected.InboundTestUntil && !(selected.Connection === 'Attivo' && selected.Direction === 'Ingresso')}
-                <button class="secondary" type="button" disabled={enabling || busy} onclick={startInboundTest}
-                  title="Sospende per cinque minuti la connessione in uscita di questo partner.">Prova collegamento in ingresso</button>
+                <button class="secondary" type="button" disabled={enabling || busy} onclick={() => openPartnerConfirmation('manual')}
+                  title="Apre una finestra in ingresso di cinque minuti.">Prova ingresso ora</button>
+              {/if}
+              {#if selected.InboundAutoNext}
+                <button class="secondary" type="button" disabled={enabling || busy} onclick={() => startInboundTest(false, true)}
+                  title="Interrompe la programmazione delle prossime finestre.">Disattiva prova automatica</button>
+              {:else if selected.Provisioning === 'Abilitato in Mojo'}
+                <button class="secondary" type="button" disabled={enabling || busy} onclick={() => openPartnerConfirmation('automatic')}
+                  title="Programma finestre in ingresso anche a portale chiuso.">Attiva prova automatica</button>
               {/if}
               {#if selected.Email}
                 <button class="secondary" type="button" disabled={enabling || busy} onclick={sendNodeDetails}
@@ -669,11 +688,17 @@
 
 <dialog class="glass-panel password-dialog" bind:this={passwordDialog} onclose={finishPasswordReset}
   aria-labelledby="partner-password-title" aria-describedby="partner-password-description">
-  <h2 id="partner-password-title">Nuova password Telnet</h2>
-  <p id="partner-password-description">{tr('La password Telnet di {} verrà sostituita. Il partner riceverà quella nuova via email.', passwordTarget)}</p>
+  <h2 id="partner-password-title">{confirmation === 'password' ? 'Nuova password Telnet' : confirmation === 'automatic' ? 'Prova automatica in ingresso' : 'Prova in ingresso'}</h2>
+  <p id="partner-password-description">{#if confirmation === 'password'}
+      {tr('La password Telnet di {} verrà sostituita. Il partner riceverà quella nuova via email.', passwordTarget)}
+    {:else if confirmation === 'automatic'}
+      Finché il partner è scollegato in ingresso, ogni 30 minuti DXRegia sospende l’uscita per 5 minuti. La modalità resta attiva anche a portale chiuso e dopo un riavvio.
+    {:else}
+      DXRegia sospende l’uscita per 5 minuti. Il partner può tentare il collegamento in quella finestra.
+    {/if}</p>
   <form method="dialog" class="actions">
     <button class="secondary" value="cancel" autofocus>Annulla</button>
-    <button value="confirm">Imposta e invia</button>
+    <button value="confirm">{confirmation === 'password' ? 'Imposta e invia' : confirmation === 'automatic' ? 'Attiva' : 'Avvia prova'}</button>
   </form>
 </dialog>
 
