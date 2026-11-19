@@ -376,6 +376,10 @@
       <button type="button" onclick={togglePause} disabled={resuming}>{resuming ? t('loading') : paused ? t('spotResume') : t('spotPause')}</button>
     {/if}
     <button type="button" onclick={() => exportSpotCSV(displayed)} disabled={!displayed.length}>{t('spotExportCSV')}</button>
+    <div class="feed-options">
+      <label class="check" title={t('spotConfirmedHint')}><input type="checkbox" bind:checked={onlyConfirmed} /> {t('spotOnlyConfirmed')}</label>
+      <label class="check"><input type="checkbox" bind:checked={highlight} /> {t('spotMarkNew')}</label>
+    </div>
     {#if showSave}
       <form class="save-filter" onsubmit={commitFilter}>
         <label>{t('spotFilterName')}<input bind:value={saveName} maxlength="40" required /></label>
@@ -387,10 +391,6 @@
       </form>
     {/if}
     {#if saveError}<p role="status">{t('spotStorageUnavailable')}</p>{/if}
-  </div>
-  <div class="feed-controls glass-panel">
-    <label class="check" title={t('spotConfirmedHint')}><input type="checkbox" bind:checked={onlyConfirmed} /> {t('spotOnlyConfirmed')}</label>
-    <label class="check"><input type="checkbox" bind:checked={highlight} /> {t('spotMarkNew')}</label>
   </div>
   {#if paused || reviewing}
     <p class="spot-timing" role="status">{paused ? t('spotWaiting', { n: pending.length }) : t('spotReviewing', { n: recovered })}</p>
@@ -483,9 +483,11 @@
 
 <style>
   .feed-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 8px 10px; margin-bottom: 8px; }
-  .feed-controls label { display: grid; gap: 3px; font-size: .8rem; font-weight: 650; min-width: 0; }
+  .feed-controls label { display: grid; max-width: 100%; gap: 3px; font-size: .8rem; font-weight: 650; min-width: 0; }
   .feed-controls select, .feed-controls input:not([type=checkbox]), .feed-controls button { min-height: 34px; min-width: 0; }
+  .feed-controls select { max-width: 100%; padding: 4px 7px; border: 1px solid #acbfce; border-radius: 6px; background: #fff; color: #173653; color-scheme: light; font: inherit; }
   .feed-controls input:not([type=checkbox]) { width: 100%; }
+  .feed-options { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; min-width: 0; }
   .feed-controls .check { display: flex; align-items: center; gap: 5px; min-height: 34px; }
   .check input { width: auto; min-height: 0; }
   .save-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; flex-basis: 100%; }
