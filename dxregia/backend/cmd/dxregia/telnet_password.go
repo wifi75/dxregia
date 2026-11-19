@@ -129,6 +129,10 @@ func (a *sysopAuth) registerWebPasswordChange(mux *http.ServeMux) {
 		if !a.confirmPasswordChange(w, r, change.Code) {
 			return
 		}
+		if err := a.removeWebSession(); err != nil {
+			http.Error(w, "Impossibile revocare la sessione corrente.", http.StatusInternalServerError)
+			return
+		}
 		if err := a.savePassword(change.Password); err != nil {
 			http.Error(w, "Impossibile salvare la password web.", http.StatusInternalServerError)
 			return

@@ -44,7 +44,7 @@ func archivePartnerDelivery(root, call, kind, to, password string, content mailC
 		Status: "unknown",
 	}
 	path := filepath.Join(dir, record.ID+".json")
-	if err := writePartnerMailJSON(path, record); err != nil {
+	if err := writePrivateJSON(path, record); err != nil {
 		return err
 	}
 	deliveryErr := send(to, content)
@@ -52,7 +52,7 @@ func archivePartnerDelivery(root, call, kind, to, password string, content mailC
 	if deliveryErr != nil {
 		record.Status = "failed"
 	}
-	if err := writePartnerMailJSON(path, record); err != nil {
+	if err := writePrivateJSON(path, record); err != nil {
 		log.Printf("Save partner mail history status: %v", err)
 	}
 	return deliveryErr

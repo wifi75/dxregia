@@ -28,7 +28,7 @@ func TestAnalyzeSpotsCountsBandsModesAndEntities(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, fmt.Sprintf("%03d.dat", now.YearDay())), []byte(file), 0600); err != nil {
 		t.Fatal(err)
 	}
-	report := analyzeSpots(root, 1, now, map[int]string{226: "United States", 230: "Germany"})
+	report := analyzeSpots(root, 1, now, map[int]string{226: "United States", 230: "Germany"}, map[int]string{226: "NA", 230: "EU"})
 	if report.Total != 3 {
 		t.Fatalf("expected 3 spots in the last 24 hours, got %d", report.Total)
 	}
@@ -49,7 +49,14 @@ func TestAnalyzeSpotsCountsBandsModesAndEntities(t *testing.T) {
 			t.Errorf("inferMode(%v) = %q, want %q", khz, got, want)
 		}
 	}
-	week := analyzeSpots(root, 7, now, nil)
+	if report.BandHours["NA"]["20m"][11] != 1 || report.BandHours["all"]["40m"][9] != 1 {
+		t.Fatal("incorrect band and continent totals by hour")
+	}
+	today := analyzeSpots(root, 0, now, nil, nil)
+	if today.Total != 3 || today.UniqueDX != 2 || today.UniqueSpotters != 2 || today.UniqueEntities != 2 {
+		t.Fatalf("incorrect UTC daily totals: %+v", today)
+	}
+	week := analyzeSpots(root, 7, now, nil, nil)
 	if week.Total != 4 || len(week.Days) != 7 {
 		t.Fatalf("week: total %d, days %d", week.Total, len(week.Days))
 	}

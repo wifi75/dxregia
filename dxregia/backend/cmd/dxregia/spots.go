@@ -62,14 +62,7 @@ func spotEntities(root string) map[int]string {
 	if root == "" {
 		return nil
 	}
-	source := filepath.Join(root, "data", "prefix_data.pl")
-	local := filepath.Join(root, "local_data", "prefix_data.pl")
-	if info, err := os.Stat(local); err == nil {
-		if bundled, err := os.Stat(source); err != nil || !bundled.ModTime().After(info.ModTime()) {
-			source = local
-		}
-	}
-	f, err := os.Open(source)
+	f, err := os.Open(spotDataPath(root, "prefix_data.pl"))
 	if err != nil {
 		return nil
 	}
@@ -93,6 +86,17 @@ func spotEntities(root string) map[int]string {
 		names[code] = strings.ReplaceAll(name, "-", " ")
 	}
 	return names
+}
+
+func spotDataPath(root, name string) string {
+	source := filepath.Join(root, "data", name)
+	local := filepath.Join(root, "local_data", name)
+	if info, err := os.Stat(local); err == nil {
+		if bundled, err := os.Stat(source); err != nil || !bundled.ModTime().After(info.ModTime()) {
+			return local
+		}
+	}
+	return source
 }
 
 func recentSpots(path string, limit int) ([]publicSpot, error) {

@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { lang } from './i18n.svelte'
 
-  type Event = { At: number; Kind: string; Message: string; Call?: string; Host?: string; Session?: string; Direction?: string }
+  type Event = { At: number; Kind: string; Message: string; Call?: string; Host?: string; Session?: string; Direction?: string; Country?: string }
   let events = $state<Event[]>([])
   let category = $state('')
   let busy = $state(false)
@@ -10,6 +11,7 @@
   let anonymous = $state(false)
   let visible = $derived(category ? events.filter(event => event.Kind === category) : events)
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'medium', timeZone: 'UTC' })
+  const countryNames = $derived(new Intl.DisplayNames([lang()], { type: 'region' }))
 
   async function refresh() {
     if (busy) return
@@ -53,9 +55,10 @@
     <div class="table-wrap">
       <table>
         <thead><tr><th scope="col">Data e ora UTC</th><th scope="col">Categoria</th><th scope="col">Nominativo</th><th scope="col">IP o host</th><th scope="col">Direzione</th><th scope="col">Sessione</th><th scope="col">Evento</th></tr></thead>
-        <tbody>{#each visible as event}<tr><td>{event.At ? date.format(new Date(event.At * 1000)) : '—'}</td><td>{event.Kind}</td><td>{event.Call || '—'}</td><td>{event.Host || '—'}</td><td>{event.Direction || '—'}</td><td>{event.Session || '—'}</td><td>{event.Message}</td></tr>{/each}</tbody>
+        <tbody>{#each visible as event}<tr><td>{event.At ? date.format(new Date(event.At * 1000)) : '—'}</td><td>{event.Kind}</td><td><span class="callsign">{event.Call || '—'}{#if event.Call && event.Country && /^[A-Z]{2}$/.test(event.Country)}<img src={'/flags/' + event.Country.toLowerCase() + '.svg'} width="22" height="16" alt={countryNames.of(event.Country) || event.Country} title={countryNames.of(event.Country)} />{/if}</span></td><td>{event.Host || '—'}</td><td>{event.Direction || '—'}</td><td>{event.Session || '—'}</td><td>{event.Message}</td></tr>{/each}</tbody>
       </table>
     </div>
+    {#if visible.some(event => event.Call && event.Country)}<p class="geo-credit"><a href="https://db-ip.com/" target="_blank" rel="noreferrer">IP Geolocation by DB-IP</a></p>{/if}
   {:else if !busy}
     <p>Nessun evento corrisponde ai filtri.</p>
   {/if}
@@ -71,4 +74,6 @@
   th, td { padding: .5rem .6rem; border-bottom: 1px solid #c5d7e2; }
   th { background: #edf6fa; }
   td:first-child { white-space: nowrap; }
+  .callsign { display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; }
+  .geo-credit { margin-bottom: 0; font-size: .82rem; }
 </style>

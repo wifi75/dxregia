@@ -39,11 +39,11 @@ func loadContactMailer() (*contactMailer, error) {
 	}, nil
 }
 
-func (m *contactMailer) notify(config string, request contactRequest) string {
+func (m *contactMailer) notify(config string, prefs emailPreferences, request contactRequest) string {
 	data, err := os.ReadFile(config)
 	var node nodeConfig
-	if err != nil || json.Unmarshal(data, &node) != nil || node.Email == "" {
-		return "Manca l’email del sysop"
+	if err != nil || json.Unmarshal(data, &node) != nil {
+		return "Profilo del nodo non disponibile"
 	}
 	kind := "Messaggio al sysop"
 	if request.Kind == "partner" {
@@ -59,13 +59,22 @@ func (m *contactMailer) notify(config string, request contactRequest) string {
 	}
 	content := mailForSysop("DXRegia · nuova richiesta da "+request.Call, "Nuova richiesta da "+request.Call,
 		"Hai ricevuto una richiesta dal portale. Puoi rispondere direttamente a questa email.", rows, request.Message)
-	if err := m.send(node.Email, buildMessage(m.from, node.Email, request.Email, content)); err != nil {
-		return "Invio non riuscito"
+	to := prefs.destination(node.Email)
+	notifySysop := (request.Kind == "partner" && prefs.PartnerRequests) || (request.Kind != "partner" && prefs.PortalMessages)
+	status := "Notifica al sysop disattivata"
+	if notifySysop {
+		if to == "" {
+			return "Manca l’email del sysop"
+		}
+		if err := m.send(to, buildMessage(m.from, to, request.Email, content)); err != nil {
+			return "Invio non riuscito"
+		}
+		status = "Notifica inviata al sysop"
 	}
 	// Ricevuta per chi ha scritto, nella sua lingua. Un errore qui non invalida la notifica al sysop.
 	ack := mailRequestReceived(request.Lang, node.Node, request)
 	_ = m.send(request.Email, buildMessage(m.from, request.Email, node.Email, ack))
-	return "Notifica inviata al sysop"
+	return status
 }
 
 func (m *contactMailer) send(to, message string) error {

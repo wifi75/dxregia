@@ -1,6 +1,10 @@
 // Testi del portale pubblico in sei lingue. L'italiano è la lingua di riferimento: le altre devono avere le stesse chiavi.
 const it = {
   navSpots: 'Spot in diretta', navContact: 'Contatti', langLabel: 'Lingua',
+  navStats: "Statistiche", statsDay: "Spot ricevuti dalle 00:00 UTC", statsUnavailable: "Statistiche del cluster non disponibili.",
+  statsBandHour: "Attività per banda e ora", statsContinent: "Continente del DX", statsBands: "Attività per banda",
+  statsTopDx: "DX più spottati", statsTopSpotters: "Spotter più attivi", statsEntities: "Entità DXCC",
+  statsUniqueDx: "DX distinti", statsUniqueSpotters: "Spotter distinti", statsModes: "Modi",
   searchShort: 'Cerca…',
   themeDark: 'Passa al tema scuro', themeLight: 'Passa al tema chiaro',
   visitsLabel: 'Visite al portale',
@@ -64,6 +68,10 @@ type Catalog = Record<Key, string>
 
 const en: Catalog = {
   navSpots: 'Live spots', navContact: 'Contact', langLabel: 'Language',
+  navStats: "Statistics", statsDay: "Spots received since 00:00 UTC", statsUnavailable: "Cluster statistics are unavailable.",
+  statsBandHour: "Activity by band and hour", statsContinent: "DX continent", statsBands: "Band activity",
+  statsTopDx: "Most spotted DX", statsTopSpotters: "Most active spotters", statsEntities: "DXCC entities",
+  statsUniqueDx: "Unique DX", statsUniqueSpotters: "Unique spotters", statsModes: "Modes",
   searchShort: 'Search…',
   themeDark: 'Switch to dark theme', themeLight: 'Switch to light theme',
   visitsLabel: 'Portal visits',
@@ -125,6 +133,10 @@ const en: Catalog = {
 
 const es: Catalog = {
   navSpots: 'Spots en directo', navContact: 'Contacto', langLabel: 'Idioma',
+  navStats: "Estadísticas", statsDay: "Spots recibidos desde las 00:00 UTC", statsUnavailable: "Estadísticas no disponibles.",
+  statsBandHour: "Actividad por banda y hora", statsContinent: "Continente del DX", statsBands: "Actividad por banda",
+  statsTopDx: "DX más anunciados", statsTopSpotters: "Spotters más activos", statsEntities: "Entidades DXCC",
+  statsUniqueDx: "DX distintos", statsUniqueSpotters: "Spotters distintos", statsModes: "Modos",
   searchShort: 'Buscar…',
   themeDark: 'Cambiar al tema oscuro', themeLight: 'Cambiar al tema claro',
   visitsLabel: 'Visitas al portal',
@@ -186,6 +198,10 @@ const es: Catalog = {
 
 const de: Catalog = {
   navSpots: 'Live-Spots', navContact: 'Kontakt', langLabel: 'Sprache',
+  navStats: "Statistik", statsDay: "Empfangene Spots seit 00:00 UTC", statsUnavailable: "Clusterstatistik nicht verfügbar.",
+  statsBandHour: "Aktivität nach Band und Stunde", statsContinent: "DX-Kontinent", statsBands: "Bandaktivität",
+  statsTopDx: "Häufigste DX-Stationen", statsTopSpotters: "Aktivste Spotter", statsEntities: "DXCC-Gebiete",
+  statsUniqueDx: "Eindeutige DX", statsUniqueSpotters: "Eindeutige Spotter", statsModes: "Betriebsarten",
   searchShort: 'Suchen…',
   themeDark: 'Zum dunklen Design wechseln', themeLight: 'Zum hellen Design wechseln',
   visitsLabel: 'Besuche des Portals',
@@ -247,6 +263,10 @@ const de: Catalog = {
 
 const fr: Catalog = {
   navSpots: 'Spots en direct', navContact: 'Contact', langLabel: 'Langue',
+  navStats: "Statistiques", statsDay: "Spots reçus depuis 00:00 UTC", statsUnavailable: "Statistiques indisponibles.",
+  statsBandHour: "Activité par bande et par heure", statsContinent: "Continent du DX", statsBands: "Activité par bande",
+  statsTopDx: "DX les plus signalés", statsTopSpotters: "Spotters les plus actifs", statsEntities: "Entités DXCC",
+  statsUniqueDx: "DX distincts", statsUniqueSpotters: "Spotters distincts", statsModes: "Modes",
   searchShort: 'Chercher…',
   themeDark: 'Passer au thème sombre', themeLight: 'Passer au thème clair',
   visitsLabel: 'Visites du portail',
@@ -308,6 +328,10 @@ const fr: Catalog = {
 
 const pt: Catalog = {
   navSpots: 'Spots em direto', navContact: 'Contacto', langLabel: 'Idioma',
+  navStats: "Estatísticas", statsDay: "Spots recebidos desde as 00:00 UTC", statsUnavailable: "Estatísticas indisponíveis.",
+  statsBandHour: "Atividade por banda e hora", statsContinent: "Continente do DX", statsBands: "Atividade por banda",
+  statsTopDx: "DX mais anunciados", statsTopSpotters: "Spotters mais ativos", statsEntities: "Entidades DXCC",
+  statsUniqueDx: "DX distintos", statsUniqueSpotters: "Spotters distintos", statsModes: "Modos",
   searchShort: 'Pesquisar…',
   themeDark: 'Mudar para o tema escuro', themeLight: 'Mudar para o tema claro',
   visitsLabel: 'Visitas ao portal',

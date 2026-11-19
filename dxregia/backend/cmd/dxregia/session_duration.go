@@ -74,7 +74,12 @@ func (a *sysopAuth) registerSessionDuration(mux *http.ServeMux) {
 			http.Error(w, "Impossibile salvare la durata.", http.StatusInternalServerError)
 			return
 		}
-		a.expires = time.Now().Add(time.Duration(change.Hours) * time.Hour)
+		expires := time.Now().Add(time.Duration(change.Hours) * time.Hour)
+		if err := a.persistWebSession(expires); err != nil {
+			http.Error(w, "Durata salvata. Impossibile aggiornare la sessione corrente.", http.StatusInternalServerError)
+			return
+		}
+		a.expires = expires
 		w.WriteHeader(http.StatusNoContent)
 	})
 }

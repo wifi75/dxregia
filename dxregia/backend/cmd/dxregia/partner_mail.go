@@ -33,11 +33,11 @@ func preparePartnerMail(root string, entry partner) (partnerMail, error) {
 }
 
 func writePartnerMail(path string, job partnerMail) error {
-	return writePartnerMailJSON(path, job)
+	return writePrivateJSON(path, job)
 }
 
-func writePartnerMailJSON(path string, value any) error {
-	tmp, err := os.CreateTemp(filepath.Dir(path), ".partner-mail-")
+func writePrivateJSON(path string, value any) error {
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".dxregia-json-")
 	if err != nil {
 		return err
 	}

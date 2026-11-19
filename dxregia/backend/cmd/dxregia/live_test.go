@@ -20,7 +20,7 @@ func TestLiveStreamSignalsChangesToSignedInSysopOnly(t *testing.T) {
 	if err := os.WriteFile(presenceFile, []byte(`{"At":1}`), 0600); err != nil {
 		t.Fatal(err)
 	}
-	auth := &sysopAuth{session: "token", expires: time.Now().Add(time.Hour), factorOK: true}
+	auth := &sysopAuth{session: sessionHash("token"), expires: time.Now().Add(time.Hour), factorOK: true}
 	mux := http.NewServeMux()
 	registerLive(mux, root, auth)
 	server := httptest.NewServer(mux)

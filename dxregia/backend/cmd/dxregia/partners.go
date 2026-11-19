@@ -99,10 +99,11 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 					return
 				case <-ticker.C:
 					m := mailer()
-					if m == nil {
-						continue
+					snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
+					if m != nil {
+						processPartnerMail(root, m, snapshot)
 					}
-					processPartnerMail(root, m, readPresence(filepath.Join(root, "local_data", "dxregia-presence.json")))
+					processPartnerAlerts(root, snapshot, time.Now().UTC())
 				}
 			}
 		}()

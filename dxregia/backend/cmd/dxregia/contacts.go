@@ -70,7 +70,11 @@ func registerContacts(ctx context.Context, mux *http.ServeMux, root string, auth
 					if index < 0 {
 						continue
 					}
-					status := m.notify(config, item)
+					prefs, err := readEmailPreferences(root)
+					if err != nil {
+						continue
+					}
+					status := m.notify(config, prefs, item)
 					lock.Lock()
 					// L'elenco può cambiare mentre l'email parte (ad esempio se il sysop elimina una richiesta).
 					if at := slices.IndexFunc(requests, func(other contactRequest) bool { return other.ID == item.ID }); at >= 0 {

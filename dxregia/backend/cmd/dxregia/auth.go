@@ -92,6 +92,7 @@ func registerAuth(mux *http.ServeMux, root, bootstrapFile string) (*sysopAuth, e
 	} else if !os.IsNotExist(err) {
 		return nil, err
 	}
+	auth.restoreWebSession()
 	auth.registerWebPasswordChange(mux)
 	auth.registerSessionDuration(mux)
 	mux.HandleFunc("GET /api/auth", auth.route("status"))
@@ -132,7 +133,8 @@ func bootstrapPassword(file string) (string, error) {
 
 func (a *sysopAuth) signedIn(r *http.Request) bool {
 	cookie, err := r.Cookie(sysopCookie)
-	return err == nil && a.session != "" && cookie.Value == a.session && time.Now().Before(a.expires)
+	return err == nil && a.session != "" && time.Now().Before(a.expires) &&
+		subtle.ConstantTimeCompare([]byte(sessionHash(cookie.Value)), []byte(a.session)) == 1
 }
 
 func (a *sysopAuth) allowed(r *http.Request) bool {
@@ -199,6 +201,9 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				}
 			}
 			token, err := randomToken()
+			if err == nil {
+				err = a.removeWebSession()
+			}
 			if err == nil && action == "password" {
 				err = a.savePassword(password)
 			}
@@ -207,7 +212,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				http.Error(w, "Impossibile completare l’operazione.", http.StatusInternalServerError)
 				return
 			}
-			a.session, a.expires = token, time.Now().Add(20*time.Minute)
+			a.session, a.expires = sessionHash(token), time.Now().Add(20*time.Minute)
 			a.factorOK, a.pendingKey = false, ""
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
 				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
@@ -272,11 +277,18 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				return
 			}
 			a.factor, a.pendingKey, a.factorOK = verified, "", true
-			a.session, a.expires = token, time.Now().Add(time.Duration(a.sessionHours())*time.Hour)
+			a.session, a.expires = sessionHash(token), time.Now().Add(time.Duration(a.sessionHours())*time.Hour)
+			if err := a.persistWebSession(a.expires); err != nil {
+				log.Printf("Save sysop session: %v", err)
+			}
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
 				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
 		case "logout":
 			if a.signedIn(r) {
+				if err := a.removeWebSession(); err != nil {
+					http.Error(w, "Impossibile terminare la sessione.", http.StatusInternalServerError)
+					return
+				}
 				a.session, a.pendingKey, a.factorOK = "", "", false
 			}
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Path: "/", MaxAge: -1, HttpOnly: true,

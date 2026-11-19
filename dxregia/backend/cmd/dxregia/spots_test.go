@@ -23,3 +23,13 @@ func TestSpotEntitiesFromBundledMojoData(t *testing.T) {
 		}
 	}
 }
+
+func TestSpotContinentsFromBundledMojoData(t *testing.T) {
+	root := filepath.Join("..", "..", "..", "..", "engine")
+	continents := spotContinents(root)
+	for code, want := range map[int]string{85: "EU", 95: "AS", 226: "NA", 172: "AF", 179: "EU", 182: "AS"} {
+		if got := continents[code]; got != want {
+			t.Errorf("DXCC %d continent = %q, want %q", code, got, want)
+		}
+	}
+}

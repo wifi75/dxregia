@@ -99,6 +99,7 @@ func main() {
 	registerNodeLists(mux, *setupRoot, auth)
 	registerConnections(mux, *setupRoot, auth)
 	registerPartnerMailHistory(mux, *setupRoot, auth)
+	registerEmailPreferences(mux, *setupRoot, auth)
 	registerUsers(mux, *setupRoot, auth)
 	registerAutoPartner(mux, *setupRoot, auth)
 	registerLive(mux, *setupRoot, auth)
@@ -116,6 +117,7 @@ func main() {
 		log.Fatal(err)
 	}
 	registerAnalytics(mux, *setupRoot, auth, traffic)
+	registerClusterStats(mux, *setupRoot)
 	var activeTarget atomic.Value
 	activeTarget.Store(*target)
 	if err := registerSetup(service, &children, mux, *setupRoot, *setupPerl, *setupInternal, number, *setupFixedPort, auth, func(port int) {
@@ -141,6 +143,10 @@ func main() {
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
 	mux.HandleFunc("GET /spots", func(w http.ResponseWriter, r *http.Request) {
+		traffic.view(r)
+		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
+	})
+	mux.HandleFunc("GET /statistiche", func(w http.ResponseWriter, r *http.Request) {
 		traffic.view(r)
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})

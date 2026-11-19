@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/oschwald/maxminddb-golang"
 )
 
 type mojoLogEvent struct {
@@ -23,6 +25,7 @@ type mojoLogEvent struct {
 	Host      string `json:",omitempty"`
 	Session   string `json:",omitempty"`
 	Direction string `json:",omitempty"`
+	Country   string `json:",omitempty"`
 }
 
 var mojoConnectionLine = regexp.MustCompile(`^([0-9]{9,12})\^\(connect\) (?:Connected [0-9]+ to ([A-Za-z0-9.:-]+) ([0-9]{1,5})|\*\*\*Connect [0-9]+ Failed to ([A-Za-z0-9.:-]+) ([0-9]{1,5})(?: .*?)?|connect [0-9]+: timed out after ([0-9]+) seconds(?: (incoming|outgoing)(?: ([A-Z0-9-]{1,12}))?)?)\s*$`)
@@ -137,6 +140,14 @@ func registerMojoLog(mux *http.ServeMux, auth *sysopAuth, root string) {
 		events = append(events, appendMojoEvents(nil, logTail(month), func(line string) (mojoLogEvent, bool) { return filter(parseMojoSession(line)) })...)
 		events = append(events, appendMojoEvents(nil, logTail(filepath.Join(base, "dxregia-startup.log")), func(line string) (mojoLogEvent, bool) { return filter(parseMojoStartup(line)) })...)
 		sort.SliceStable(events, func(i, j int) bool { return events[i].At > events[j].At })
+		if db, err := maxminddb.Open(filepath.Join(root, "dbip-country.mmdb")); err == nil {
+			defer db.Close()
+			for i := range events {
+				if events[i].Call != "" {
+					events[i].Country = accessCountry(db, events[i].Host)
+				}
+			}
+		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(events)
 	})

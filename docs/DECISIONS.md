@@ -15,3 +15,7 @@ La prima release completa e collaudata sarà 1.0.0, con tag Git v1.0.0. Aggiorna
 ## 2026-11-18 — Registrazione degli utenti dal portale
 
 Chi vuole inviare spot si registra dal portale con nominativo, email e password e conferma un link ricevuto via email; solo allora Mojo crea l'utente registrato, con la password salvata come hash bcrypt (`{DXREGIA-BCRYPT}`), e Telnet la chiede. Scelta tra modulo con email, approvazione del sysop e registrazione a mano: modulo con email, perché non richiede interventi e verifica almeno l'indirizzo. L'indirizzo pubblico del sito nei link lo imposta il sysop e non si ricava mai dalla richiesta (altrimenti un'intestazione Host falsa farebbe spedire link verso siti altrui). La funzione richiede l'opzione Mojo «solo utenti registrati dal sysop inviano spot» (reqreg=1); con reqreg=2 il flag registered significa il contrario. Limite noto: la conferma prova il possesso dell'email, non del nominativo. Dati conservati: nominativo, email e data in `.dxregia-registrations.json` (hash della password, mai la password; del link solo l'hash SHA-256), da dichiarare nell'informativa di chi pubblica il nodo.
+
+## 2026-11-19 — Sessioni sysop e statistiche pubbliche
+
+DXRegia conserva la sessione già verificata nel database di stato locale del nodo come file privato con hash del cookie, impronta delle credenziali e scadenza. Il file resta fuori dai backup. Le statistiche degli spot sono pubbliche da mezzanotte UTC. Analytics del portale resta riservato al sysop.

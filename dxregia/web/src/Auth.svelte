@@ -10,7 +10,7 @@
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
   import BackupVerify from './BackupVerify.svelte'
-  import MailSettings from './MailSettings.svelte'
+  import EmailSettings from './EmailSettings.svelte'
   import PartnerMailHistory from './PartnerMailHistory.svelte'
   import NodeMessage from './NodeMessage.svelte'
   import NodeStartup from './NodeStartup.svelte'
@@ -113,6 +113,8 @@
     page = 'stato'
   }
   let password = $state('')
+  let revealPassword = $state(false)
+  let capsLock = $state(false)
   let user = $state('')
   let error = $state('')
   let busy = $state(false)
@@ -120,6 +122,10 @@
   let codes = $state<string[]>([])
   let qr = $state('')
   let challenge = $derived(session?.mustVerify && !session.mustChange)
+
+  function updateCapsLock(event: KeyboardEvent) {
+    capsLock = !challenge && event.getModifierState('CapsLock')
+  }
 
   $effect(() => {
     const secret = session?.enrollmentKey
@@ -189,6 +195,8 @@
     if (!session || busy) return
     busy = true
     error = ''
+    revealPassword = false
+    capsLock = false
     try {
       const endpoint = session.mustChange ? 'password' : session.mustVerify ? (recovery ? 'recovery' : 'totp') : 'login'
       const response = await fetch('/api/auth/' + endpoint, {
@@ -313,7 +321,7 @@
         {:else if page === 'hop'}
           <NodeHops />
         {:else if page === 'posta'}
-          <MailSettings />
+          <EmailSettings />
         {:else if page === 'backup'}
           <BackupVerify />
         {:else if page === 'password'}
@@ -340,14 +348,35 @@
             <input type="text" required bind:value={user} autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="64" />
           </label>
         {/if}
-        <label>
-          {session.mustChange ? 'Nuova password' : challenge ? (recovery ? 'Codice di recupero' : 'Codice a sei cifre') : 'Password'}
-          <input type={challenge && !recovery ? 'text' : 'password'} required bind:value={password}
-            inputmode={challenge && !recovery ? 'numeric' : undefined}
-            pattern={challenge ? (recovery ? '[0-9a-f]{48}' : '[0-9]{6}') : undefined}
-            autocomplete={session.mustChange ? 'new-password' : session.mustVerify ? 'one-time-code' : 'current-password'}
-            minlength={session.mustChange ? 12 : undefined} />
-        </label>
+        <div class="password-field">
+          <label for="sysop-password">
+            {session.mustChange ? 'Nuova password' : challenge ? (recovery ? 'Codice di recupero' : 'Codice a sei cifre') : 'Password'}
+          </label>
+          <div class="password-input" class:with-toggle={!challenge}>
+            <input id="sysop-password" type={(challenge ? !recovery : revealPassword) ? 'text' : 'password'} required bind:value={password}
+              inputmode={challenge && !recovery ? 'numeric' : undefined}
+              pattern={challenge ? (recovery ? '[0-9a-f]{48}' : '[0-9]{6}') : undefined}
+              autocomplete={session.mustChange ? 'new-password' : session.mustVerify ? 'one-time-code' : 'current-password'}
+              autocapitalize="off" spellcheck="false" onkeydown={updateCapsLock} onkeyup={updateCapsLock} onblur={() => { capsLock = false }}
+              minlength={session.mustChange ? 12 : undefined} />
+            {#if !challenge}
+              <button class="password-toggle" type="button" aria-controls="sysop-password"
+                aria-label={revealPassword ? 'Nascondi password' : 'Mostra password'}
+                title={revealPassword ? 'Nascondi password' : 'Mostra password'}
+                onclick={() => { revealPassword = !revealPassword }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+                  <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" /><circle cx="12" cy="12" r="2.5" />
+                  {#if revealPassword}<path d="m3 3 18 18" />{/if}
+                </svg>
+              </button>
+            {/if}
+          </div>
+          <div role="status">
+            {#if capsLock}
+              <span class="caps-lock"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 8h-4v6H8v-6H4l8-8Z M8 21h8" /></svg>Bloc Maiusc attivo</span>
+            {/if}
+          </div>
+        </div>
         {#if session.mustChange}<p>Usa almeno 12 caratteri. Dopo il cambio imposterai il secondo fattore.</p>{/if}
         {#if error}<p role="alert">{error}</p>{/if}
         <button disabled={busy}>{session.mustChange ? 'Salva password' : session.mustVerify ? 'Verifica codice' : 'Accedi'}</button>
@@ -368,6 +397,14 @@
   .auth-card label { display: grid; gap: 8px; font-weight: 650; }
   .auth-card input { width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; }
   .auth-card form button { justify-self: center; width: auto; min-width: 120px; min-height: 40px; padding: 0 28px; margin-top: 4px; }
+  .password-field { display: grid; }
+  .password-field label { margin-bottom: 8px; }
+  .password-input { position: relative; }
+  .password-input.with-toggle input { padding-inline-end: 50px; }
+  .password-input input::-ms-reveal { display: none; }
+  .auth-card form .password-toggle { position: absolute; inset-inline-end: 3px; top: 3px; bottom: 3px; display: grid; place-items: center; width: 40px; min-width: 0; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 5px; background: transparent; color: #214e80; box-shadow: none; }
+  .auth-card form .password-toggle:hover { background: #dfedf7; }
+  .caps-lock { display: inline-flex; gap: 6px; align-items: center; margin-top: 8px; color: #79470c; font-size: .85rem; font-weight: 650; }
   .auth-card > button { margin-top: 14px; }
   .auth-card img { display: block; margin: 10px auto; }
   .auth-card details, .auth-card > p { text-align: left; }

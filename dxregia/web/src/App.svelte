@@ -11,12 +11,14 @@
   import { currentTheme, toggleTheme } from './theme.svelte'
   let langOpen = $state(false)
   import Spots from './Spots.svelte'
+  import ClusterStats from './ClusterStats.svelte'
   import Contact from './Contact.svelte'
   import { trackPortalPresence } from './portalPresence'
   const contactPage = window.location.pathname === '/contatti'
   const registerPage = window.location.pathname === '/registrazione'
   const confirmPage = window.location.pathname === '/registrazione/conferma'
-  const toolPage = contactPage || registerPage || confirmPage
+  const statsPage = window.location.pathname === '/statistiche'
+  const toolPage = contactPage || registerPage || confirmPage || statsPage
   let registrationOpen = $state(false)
   if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
     fetch('/api/register/status').then(async response => { if (response.ok) registrationOpen = (await response.json()).Enabled === true }).catch(() => {})
@@ -57,7 +59,7 @@
   $effect(() => { adminTranslator?.setLanguage(lang()) })
 
   $effect(() => {
-    document.title = 'DXRegia – ' + (!publicPortal ? translate('Amministrazione', lang() as never) : contactPage ? t('cTitle') : registerPage ? t('regTitle') : confirmPage ? t('confTitle') : t('spotsTitle'))
+    document.title = 'DXRegia – ' + (!publicPortal ? translate('Amministrazione', lang() as never) : contactPage ? t('cTitle') : registerPage ? t('regTitle') : confirmPage ? t('confTitle') : statsPage ? t('navStats') : t('spotsTitle'))
   })
 </script>
 
@@ -74,6 +76,7 @@
   <div class="tools">
   <nav aria-label="Portale">
     <a href="/spots" aria-current={publicPortal && !toolPage ? 'page' : undefined}>{publicPortal ? t('navSpots') : 'Spot in diretta'}</a>
+    {#if publicPortal}<a class="stats-link" href="/statistiche" aria-current={statsPage ? 'page' : undefined}>{t('navStats')}</a>{/if}
     <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>{publicPortal ? t('navContact') : 'Contatti'}</a>
     {#if publicPortal && registrationOpen}<a href="/registrazione" aria-current={registerPage || confirmPage ? 'page' : undefined}>{t('navRegister')}</a>{/if}
   </nav>
@@ -130,6 +133,8 @@
   <Register />
 {:else if contactPage}
   <Contact />
+{:else if statsPage}
+  <ClusterStats />
 {:else if publicPortal}
   <Spots />
 {:else}
@@ -186,13 +191,14 @@
     .lang-btn, .tool { width: 36px; min-height: 36px; }
   }
   @media (max-width: 420px) {
-    header nav { flex-wrap: nowrap; gap: .1rem; }
+    header nav { flex-wrap: wrap; gap: .1rem; }
     header a { padding: .35rem .45rem; font-size: .85rem; white-space: nowrap; }
     .tools { gap: .3rem; }
     .lang-btn, .tool { width: 32px; min-height: 32px; }
   }
   header a { color: #234968; font-weight: 650; padding: .55rem .8rem; border-radius: .5rem; text-decoration: none; }
   header a:hover, header a[aria-current=page] { background: #e7f0f7; color: #143a60; }
+  header .stats-link { background: #dcecf8; }
   main { width: 100%; padding: 24px clamp(14px, 2vw, 36px); }
   .install-hint { margin: 8px auto 0; max-width: 560px; padding: 10px 14px; border: 1px solid #9db8cc; border-radius: 12px; background: #ffffffee; color: #143a60; font-size: .92rem; text-align: center; }
 </style>

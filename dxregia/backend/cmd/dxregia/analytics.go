@@ -45,21 +45,22 @@ type portalReport struct {
 }
 
 type spotsReport struct {
-	Total       uint64
-	Days        []dayPoint
-	Hours       []uint64
-	Bands       []countItem
-	Modes       []countItem
-	Entities    []countItem
-	TopDX       []countItem
-	TopSpotters []countItem
+	Total                                                 uint64
+	Days                                                  []dayPoint
+	Hours                                                 []uint64
+	Bands                                                 []countItem
+	Modes                                                 []countItem
+	Entities                                              []countItem
+	TopDX                                                 []countItem
+	TopSpotters                                           []countItem
+	BandHours                                             map[string]map[string][]uint64
+	UniqueDX, UniqueSpotters, UniqueEntities, UniqueModes int
 }
 
 type analyticsReport struct {
 	GeneratedAt time.Time
 	Days        int
 	Portal      portalReport
-	Spots       spotsReport
 }
 
 var analyticsBands = []struct {
@@ -68,7 +69,7 @@ var analyticsBands = []struct {
 }{
 	{"160m", 1800, 2000}, {"80m", 3500, 4000}, {"60m", 5250, 5450}, {"40m", 7000, 7300}, {"30m", 10100, 10150},
 	{"20m", 14000, 14350}, {"17m", 18068, 18168}, {"15m", 21000, 21450}, {"12m", 24890, 24990}, {"10m", 28000, 29700},
-	{"6m", 50000, 54000},
+	{"6m", 50000, 54000}, {"4m", 70000, 70500}, {"2m", 144000, 148000}, {"70cm", 420000, 450000},
 }
 
 var analyticsMode = regexp.MustCompile(`(?i)\b(FT8|FT4|SSB|CW|RTTY|PSK31|USB|LSB)\b`)
@@ -78,6 +79,9 @@ func analyticsBand(khz float64) string {
 		if khz >= band.Low && khz <= band.High {
 			return band.Name
 		}
+	}
+	if khz >= 1000000 {
+		return "SHF"
 	}
 	if khz >= 70000 {
 		return "VHF+"
@@ -145,12 +149,25 @@ func topItems(counts map[string]uint64, limit int) []countItem {
 }
 
 // analyzeSpots legge l'archivio degli spot degli ultimi giorni. Una riga ha: frequenza^nominativo^ora^commento^spotter^entità.
-func analyzeSpots(root string, days int, now time.Time, names map[int]string) spotsReport {
-	report := spotsReport{Hours: make([]uint64, 24)}
+func analyzeSpots(root string, days int, now time.Time, names, continents map[int]string) spotsReport {
+	report := spotsReport{Hours: make([]uint64, 24), BandHours: make(map[string]map[string][]uint64)}
 	since := now.Add(-time.Duration(days) * 24 * time.Hour).Unix()
+	if days == 0 {
+		since = now.UTC().Truncate(24 * time.Hour).Unix()
+	}
 	perDay := map[string]uint64{}
 	bands, modes, dx, spotters := map[string]uint64{}, map[string]uint64{}, map[string]uint64{}, map[string]uint64{}
 	entityCounts := map[int]uint64{}
+	dxEntities, spotterEntities := make(map[string]int), make(map[string]int)
+	addHour := func(continent, band string, hour int) {
+		if report.BandHours[continent] == nil {
+			report.BandHours[continent] = make(map[string][]uint64)
+		}
+		if report.BandHours[continent][band] == nil {
+			report.BandHours[continent][band] = make([]uint64, 24)
+		}
+		report.BandHours[continent][band][hour]++
+	}
 	for back := 0; back <= days; back++ {
 		date := now.UTC().AddDate(0, 0, -back)
 		file := filepath.Join(root, "local_data", "spots", fmt.Sprintf("%04d", date.Year()), fmt.Sprintf("%03d.dat", date.YearDay()))
@@ -161,7 +178,7 @@ func analyzeSpots(root string, days int, now time.Time, names map[int]string) sp
 		scanner := bufio.NewScanner(handle)
 		scanner.Buffer(make([]byte, 64*1024), 1<<20)
 		for scanner.Scan() {
-			columns := strings.SplitN(scanner.Text(), "^", 7)
+			columns := strings.SplitN(scanner.Text(), "^", 8)
 			if len(columns) < 6 || len(columns[1]) > 24 || len(columns[4]) > 24 {
 				continue
 			}
@@ -177,7 +194,9 @@ func analyzeSpots(root string, days int, now time.Time, names map[int]string) sp
 			report.Total++
 			perDay[when.Format(time.DateOnly)]++
 			report.Hours[when.Hour()]++
-			bands[analyticsBand(khz)]++
+			band := analyticsBand(khz)
+			bands[band]++
+			addHour("all", band, when.Hour())
 			mode := strings.ToUpper(analyticsMode.FindString(columns[3]))
 			if mode == "" {
 				mode = inferMode(khz)
@@ -192,6 +211,15 @@ func analyzeSpots(root string, days int, now time.Time, names map[int]string) sp
 			spotters[columns[4]]++
 			if entity, err := strconv.Atoi(columns[5]); err == nil && entity > 0 && entity != 666 {
 				entityCounts[entity]++
+				dxEntities[columns[1]] = entity
+				if continent := continents[entity]; continent != "" {
+					addHour(continent, band, when.Hour())
+				}
+			}
+			if len(columns) > 6 {
+				if entity, err := strconv.Atoi(columns[6]); err == nil && entity > 0 && entity != 666 {
+					spotterEntities[columns[4]] = entity
+				}
 			}
 		}
 		handle.Close()
@@ -221,6 +249,13 @@ func analyzeSpots(root string, days int, now time.Time, names map[int]string) sp
 	report.Modes = topItems(modes, 8)
 	report.TopDX = topItems(dx, 10)
 	report.TopSpotters = topItems(spotters, 10)
+	for i := range report.TopDX {
+		report.TopDX[i].DXCC = dxEntities[report.TopDX[i].Name]
+	}
+	for i := range report.TopSpotters {
+		report.TopSpotters[i].DXCC = spotterEntities[report.TopSpotters[i].Name]
+	}
+	report.UniqueDX, report.UniqueSpotters, report.UniqueEntities, report.UniqueModes = len(dx), len(spotters), len(entityCounts), len(modes)
 	for code, count := range entityCounts {
 		name := names[code]
 		if name == "" {
@@ -234,9 +269,6 @@ func analyzeSpots(root string, days int, now time.Time, names map[int]string) sp
 		}
 		return report.Entities[i].Name < report.Entities[j].Name
 	})
-	if len(report.Entities) > 12 {
-		report.Entities = report.Entities[:12]
-	}
 	return report
 }
 
@@ -281,7 +313,6 @@ func registerAnalytics(mux *http.ServeMux, root string, auth *sysopAuth, t *traf
 	if auth == nil || root == "" || t == nil {
 		return
 	}
-	names := spotEntities(root)
 	var lock sync.Mutex
 	cache := map[int]analyticsReport{}
 	mux.HandleFunc("GET /api/analytics", func(w http.ResponseWriter, r *http.Request) {
@@ -299,7 +330,7 @@ func registerAnalytics(mux *http.ServeMux, root string, auth *sysopAuth, t *traf
 		report, ok := cache[days]
 		lock.Unlock()
 		if !ok || now.Sub(report.GeneratedAt) > 15*time.Second {
-			report = analyticsReport{GeneratedAt: now, Days: days, Portal: t.report(days, now), Spots: analyzeSpots(root, days, now, names)}
+			report = analyticsReport{GeneratedAt: now, Days: days, Portal: t.report(days, now)}
 			lock.Lock()
 			cache[days] = report
 			lock.Unlock()

@@ -102,3 +102,9 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Avvisare in dashboard se un partner e bloccato in Mojo e offrire lo sblocco con un pulsante rosso.
 - [x] Aggiungere lo storico sysop delle email dei nodi partner, con contenuto oscurato e stato di invio.
 - [x] Firmare le email del portale con icona DXRegia incorporata, link al repository, link al cluster pubblico e credito autore.
+
+- [x] Aggiungere la visibilità della password e l’indicatore Bloc Maiusc nella schermata sysop.
+- [x] Riprendere la sessione sysop già verificata dopo il riavvio del servizio.
+- [x] Separare Email e SMTP e notificare disconnessione e ripristino dei nodi partner.
+- [x] Aggiungere le bandiere al log DXSpider e riallineare DXCC e Commento nella tabella desktop.
+- [x] Pubblicare le statistiche radio nella home del cluster e semplificare Stato del nodo.

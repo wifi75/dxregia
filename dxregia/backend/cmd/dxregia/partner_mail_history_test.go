@@ -42,10 +42,10 @@ func TestPartnerMailHistoryRedactsCredentialsAndRequiresSysop(t *testing.T) {
 		}
 	}
 	mux := http.NewServeMux()
-	auth := &sysopAuth{session: "session", expires: time.Now().Add(time.Hour)}
+	auth := &sysopAuth{session: sessionHash("session"), expires: time.Now().Add(time.Hour)}
 	registerPartnerMailHistory(mux, root, auth)
 	req := httptest.NewRequest(http.MethodGet, "/api/partners/mail-history?q=Q3QQQ-2", nil)
-	req.AddCookie(&http.Cookie{Name: sysopCookie, Value: auth.session})
+	req.AddCookie(&http.Cookie{Name: sysopCookie, Value: "session"})
 	response := httptest.NewRecorder()
 	mux.ServeHTTP(response, req)
 	if response.Code != http.StatusUnauthorized {
