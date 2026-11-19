@@ -10,6 +10,8 @@
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
+  let onlyInbound = $state(false)
+  let inboundPartners = $derived(partners.filter(partner => partner.Connection === 'Attivo' && partner.Direction === 'Ingresso'))
   let selected = $state<Partner>()
   let form = $state<Details>(empty())
   let editing = $state(false)
@@ -443,30 +445,38 @@
   {#if message}<p role="status">{message}</p>{/if}
   {#if statusError}<p role="status">{statusError}</p>{/if}
   {#if partners.length}
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
-        <tbody>
-          {#each partners.toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
-            {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in Mojo' : partner.InboundTestUntil && partner.Connection !== 'Attivo' ? 'Prova in ingresso' : partner.Connection || 'Stato in attesa'}
-            <tr class:current={selected?.Call === partner.Call}>
-              <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
-              <td>{partner.Name || '—'}</td>
-              <td>{partner.Contact || '—'}</td>
-              <td>
-                <span class="observed-state">
-                  <span class="led" data-tone={statusError ? 'neutral' : partner.Locked ? 'red' : state === 'Prova in ingresso' ? 'amber' : connectionTone(partner.Connection)}
-                    title={state} aria-hidden="true"></span>
-                  {state}
-                </span>
-              </td>
-              <td>{directionLabel(partner.Direction)}</td>
-              <td>{date.format(new Date(partner.RegisteredAt))}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
+    <div class="actions partner-filters" role="group" aria-label="Mostra nodi partner">
+      <button type="button" class:secondary={onlyInbound} aria-pressed={!onlyInbound} onclick={() => onlyInbound = false}>Tutti i nodi</button>
+      <button type="button" class:secondary={!onlyInbound} aria-pressed={onlyInbound} onclick={() => onlyInbound = true}>Nodi collegati in ingresso <span>({statusError ? '—' : inboundPartners.length})</span></button>
     </div>
+    {#if onlyInbound && (statusError || !inboundPartners.length)}
+      <p class="muted">{statusError ? 'Stato delle sessioni non disponibile.' : 'Nessun nodo collegato in ingresso.'}</p>
+    {:else}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
+          <tbody>
+            {#each (onlyInbound ? inboundPartners : partners).toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
+              {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in Mojo' : partner.InboundTestUntil && partner.Connection !== 'Attivo' ? 'Prova in ingresso' : partner.Connection || 'Stato in attesa'}
+              <tr class:current={selected?.Call === partner.Call}>
+                <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
+                <td>{partner.Name || '—'}</td>
+                <td>{partner.Contact || '—'}</td>
+                <td>
+                  <span class="observed-state">
+                    <span class="led" data-tone={statusError ? 'neutral' : partner.Locked ? 'red' : state === 'Prova in ingresso' ? 'amber' : connectionTone(partner.Connection)}
+                      title={state} aria-hidden="true"></span>
+                    {state}
+                  </span>
+                </td>
+                <td>{directionLabel(partner.Direction)}</td>
+                <td>{date.format(new Date(partner.RegisteredAt))}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   {:else if !busy && !error && !statusError}
     <p>Nessun nodo partner registrato.</p>
   {/if}
@@ -788,6 +798,7 @@
   h2 { margin: 0; font-size: 1.15rem; }
   h3 { margin: 0; font-size: 1.2rem; }
   h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 1rem; }
+  .partner-filters { margin-top: 12px; }
   .table-wrap { overflow: auto; margin-top: 12px; }
   table { width: 100%; text-align: left; border-collapse: collapse; white-space: nowrap; }
   th, td { padding: 5px 8px; border-bottom: 1px solid #d7dfe7; }

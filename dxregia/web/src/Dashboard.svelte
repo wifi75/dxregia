@@ -23,6 +23,7 @@
   let fresh = $derived(Boolean(snapshot?.At) && now / 1000 - (snapshot?.At ?? 0) < 20)
   let channels = $derived(fresh ? snapshot?.Channels ?? [] : [])
   let nodes = $derived(channels.filter(channel => channel.Kind === 'node'))
+  let inboundNodes = $derived(nodes.filter(node => node.State === 'normal' && node.Outbound === false))
   let sessions = $derived(channels.filter(channel => channel.Kind === 'telnet' || channel.Kind === 'web'))
   let partnerCalls = $derived(Object.keys(directory).sort())
   let lockedCalls = $derived(partnerCalls.filter(call => directory[call].Locked))
@@ -144,25 +145,48 @@
     {/if}
   </article>
 
-  <article class="glass-panel box users">
-    <header class="box-head"><h2>Radioamatori collegati al tuo nodo</h2><span class="count">{sessions.length}</span></header>
-    <p class="sub">Utenti connessi in questo momento via Telnet o dal web.</p>
-    {#if sessions.length}
-      <ul class="rows">
-        {#each sessions as session (session.Call + session.Kind)}
-          <li>
-            <span class="led" data-tone="green" aria-hidden="true"></span>
-            <strong>{session.Call}</strong>
-            <span class="muted">{session.Kind === 'telnet' ? 'Telnet' : 'Web Mojo'}</span>
-            <span class="state">dalle {time.format(new Date(session.Since * 1000))}</span>
-          </li>
-        {/each}
-      </ul>
-    {:else}
-      <p class="muted">Nessuna sessione Telnet o Web Mojo attiva.</p>
-    {/if}
-  </article>
-
+  <div class="side-boxes">
+    <article class="glass-panel box inbound">
+      <header class="box-head"><h2>Nodi collegati in ingresso</h2><span class="count">{fresh ? inboundNodes.length : '—'}</span></header>
+      <p class="sub">Nodi che hanno avviato una sessione verso il tuo cluster.</p>
+      {#if !fresh}
+        <p class="muted">Stato delle sessioni non disponibile.</p>
+      {:else if inboundNodes.length}
+        <ul class="rows">
+          {#each inboundNodes as node (node.Call)}
+            <li>
+              <span class="led" data-tone="green" aria-hidden="true"></span>
+              <strong>{node.Call}</strong>
+              {#if directory[node.Call]?.Name && directory[node.Call].Name !== node.Call}
+                <span class="muted">{directory[node.Call].Name}</span>
+              {/if}
+              {#if node.Since > 0}<span class="state">dalle {time.format(new Date(node.Since * 1000))}</span>{/if}
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="muted">Nessun nodo collegato in ingresso.</p>
+      {/if}
+    </article>
+    <article class="glass-panel box users">
+      <header class="box-head"><h2>Radioamatori collegati al tuo nodo</h2><span class="count">{sessions.length}</span></header>
+      <p class="sub">Utenti connessi in questo momento via Telnet o dal web.</p>
+      {#if sessions.length}
+        <ul class="rows">
+          {#each sessions as session (session.Call + session.Kind)}
+            <li>
+              <span class="led" data-tone="green" aria-hidden="true"></span>
+              <strong>{session.Call}</strong>
+              <span class="muted">{session.Kind === 'telnet' ? 'Telnet' : 'Web Mojo'}</span>
+              <span class="state">dalle {time.format(new Date(session.Since * 1000))}</span>
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="muted">Nessuna sessione Telnet o Web Mojo attiva.</p>
+      {/if}
+    </article>
+  </div>
 </div>
 
 <style>
@@ -195,6 +219,8 @@
   .partner-state small { margin: 0; white-space: nowrap; }
   .partner-state .led { width: 8px; height: 8px; flex-basis: 8px; }
   .partner-table .tag { white-space: nowrap; }
+  .side-boxes { display: grid; gap: 14px; min-width: 0; }
+  .inbound { border-top: 3px solid #167b50; }
   .users { border-top: 4px solid #2fa36b; }
   .sub { margin: 4px 0 10px; color: #5b6e80; font-size: .88rem; }
   .columns { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
