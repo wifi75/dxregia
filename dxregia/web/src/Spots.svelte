@@ -321,8 +321,9 @@
     th:nth-child(4) { width: 200px; }
     th:nth-child(5) { width: 220px; }
     th:nth-child(4), td:nth-child(4) { padding-left: calc(clamp(10px, 1.15vw, 20px) + 20px); }
-    th:nth-child(5), td:nth-child(5) { padding-left: calc(clamp(10px, 1.15vw, 20px) + 8px); }
+    th:nth-child(5), td:nth-child(5) { padding-left: calc(clamp(10px, 1.15vw, 20px) + 3px); }
     th:nth-child(6), td:nth-child(6) { padding-left: calc(clamp(10px, 1.15vw, 20px) - 2px); }
+    td:nth-child(5), td.comment { font-size: .94em; }
   }
   td:nth-child(2), td:nth-child(3) { overflow: visible; text-overflow: clip; }
   th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #c4d6e3; }
