@@ -326,9 +326,9 @@
   // Stato reale del collegamento verso di te: il canale di DXSpider è uno solo, quindi si distingue chi l'ha aperto.
   function incomingInfo(partner?: Partner) {
     if (!partner) return { tone: 'neutral', text: '' }
-    if (partner.Connection === 'Attivo' && partner.Direction === 'Ingresso') return { tone: 'green', text: 'Il partner è collegato al tuo nodo adesso.' }
-    if (partner.Connection === 'Attivo') return { tone: 'neutral', text: '' }
-    return { tone: 'neutral', text: 'Il partner non è collegato al tuo nodo in questo momento.' }
+    if (partner.Connection === 'Attivo' && partner.Direction === 'Ingresso') return { tone: 'green', text: 'Attivo in ingresso · sessione avviata dal partner' }
+    if (partner.Connection === 'Attivo' && partner.Direction === 'Uscita') return { tone: 'neutral', text: 'Sessione attuale avviata dal tuo nodo (in uscita).' }
+    return { tone: 'neutral', text: 'Nessuna sessione in ingresso attiva.' }
   }
 
   function directionLabel(direction?: string) {
@@ -570,8 +570,8 @@
               <p class="observed-state" role="status">
                 <span class="led" data-tone={incoming.tone} aria-hidden="true"></span>
                 {incoming.text}
-                <span class="muted">· Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</span>
               </p>
+              <p class="muted">Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</p>
             {/if}
             <label>Autenticazione in ingresso
               <select bind:value={inboundMode} disabled={enabling || busy}>
