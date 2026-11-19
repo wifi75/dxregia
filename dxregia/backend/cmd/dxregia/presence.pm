@@ -17,6 +17,7 @@ sub process {
     reload_lists();
     provision_users();
     provision_partners();
+    test_partner_inbound($now);
     connect_partners();
     remove_partners();
     my @channels;
@@ -447,6 +448,29 @@ sub partner_connect_script {
     return $script . "client $remote_call telnet\n";
 }
 
+sub test_partner_inbound {
+    my ($now) = @_;
+    my $dir = "$main::local_data/dxregia-partners";
+    opendir(my $dh, $dir) or return;
+    my @tests = grep { /\A[A-Z0-9]+(?:-[0-9]+)?[.]inbound-test\z/ } readdir($dh);
+    closedir($dh);
+    for my $file (@tests) {
+        my ($call) = split /[.]/, $file, 2;
+        next if length($call) > 12 || $call eq $main::mycall || $call eq $main::myalias;
+        my $path = "$dir/$file";
+        open(my $request, '<:raw', $path) or next;
+        my $until = '';
+        read($request, $until, 32);
+        close($request);
+        if ($until !~ /\A[0-9]{1,12}\s*\z/ || $until <= $now) {
+            unlink $path;
+            next;
+        }
+        my $channel = DXChannel::get($call);
+        $channel->disconnect if $channel && $channel->is_node && $channel->{outbound};
+    }
+}
+
 sub connect_partners {
     my $dir = "$main::local_data/dxregia-partners";
     opendir(my $dh, $dir) or return;
@@ -454,6 +478,7 @@ sub connect_partners {
     closedir($dh);
     foreach my $file (@pending) {
         my ($call) = $file =~ /\A([A-Z0-9-]+)[.]connect\z/;
+        next if -e "$dir/$call.inbound-test";
         open(my $request, '<:raw', "$dir/$file") or next;
         my $data = '';
         read($request, $data, 1024);

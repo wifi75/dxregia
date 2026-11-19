@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -73,7 +75,7 @@ func reconnectPartners(root string, partners map[string]partner, snapshot presen
 		if _, locked := snapshot.LockedPartners[call]; locked {
 			continue
 		}
-		if !entry.partnerDetails.validate() || call != entry.Call {
+		if !entry.partnerDetails.validate() || call != entry.Call || inboundTestUntil(root, call).After(now) {
 			continue
 		}
 		plan, err := readReconnect(root, call)
@@ -109,4 +111,23 @@ func partnerOutgoingReady(entry partner, snapshot presence) bool {
 		return snapshot.OutgoingReady[entry.Call]
 	}
 	return canConnectPartner(entry.Provisioning)
+}
+
+func inboundTestPath(root, call string) string {
+	return filepath.Join(root, "local_data", "dxregia-partners", call+".inbound-test")
+}
+
+func inboundTestUntil(root, call string) time.Time {
+	if len(call) > 12 || !callsign.MatchString(call) {
+		return time.Time{}
+	}
+	data, err := os.ReadFile(inboundTestPath(root, call))
+	if err != nil {
+		return time.Time{}
+	}
+	seconds, err := strconv.ParseInt(strings.TrimSpace(string(data)), 10, 64)
+	if err != nil {
+		return time.Time{}
+	}
+	return time.Unix(seconds, 0)
 }

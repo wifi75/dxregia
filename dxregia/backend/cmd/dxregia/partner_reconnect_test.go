@@ -79,7 +79,14 @@ func TestReconnectUsesLiveOutgoingReadinessAfterInboundFailure(t *testing.T) {
 		t.Fatalf("unexpected request without a verified local account: %v", err)
 	}
 	snapshot.OutgoingReady[entry.Call] = true
+	if err := writePrivateJSON(inboundTestPath(root, entry.Call), now.Add(time.Minute).Unix()); err != nil {
+		t.Fatal(err)
+	}
 	reconnectPartners(root, partners, snapshot, now)
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		t.Fatalf("queued an outgoing connection during the inbound test: %v", err)
+	}
+	reconnectPartners(root, partners, snapshot, now.Add(2*time.Minute))
 	data, err := os.ReadFile(path)
 	if err != nil || string(data) != "node.example.org\n7300\n" {
 		t.Fatalf("expected outgoing retry without password: %q, %v", data, err)

@@ -6,7 +6,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; InboundTestUntil?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -226,6 +226,27 @@
         : { call, state: 'failed', text: (await response.text()).trim() || 'Il server di posta non ha confermato l’invio.' }
     } catch {
       publicMail = { call, state: 'failed', text: 'Invio non confermato. Controlla lo Storico email partner.' }
+    } finally {
+      enabling = false
+    }
+  }
+
+  async function startInboundTest() {
+    const call = selected?.Call
+    if (!call || enabling || !confirm('Avviare la prova in ingresso? La sessione in uscita verrà chiusa e la riconnessione resterà sospesa per cinque minuti.')) return
+    enabling = true
+    error = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/inbound-test', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      })
+      if (!response.ok) {
+        error = (await response.text()).trim()
+        return
+      }
+      await refreshProvisioning()
+    } catch {
+      error = 'Impossibile avviare la prova in ingresso.'
     } finally {
       enabling = false
     }
@@ -494,6 +515,17 @@
                 <span class="muted">· Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</span>
               </p>
             {/if}
+            {#if selected.InboundTestUntil && !(selected.Connection === 'Attivo' && selected.Direction === 'Ingresso')}
+              <div class="mail-notice" data-tone="amber" role="status">
+                Prova in ingresso fino alle {date.format(new Date(selected.InboundTestUntil))}. Il partner può tentare il collegamento adesso.
+              </div>
+            {/if}
+            {#if selected.PublicMailAcceptedAt}
+              <div class="mail-notice" data-tone="green" role="status">
+                <span class="led" data-tone="green" aria-hidden="true"></span>
+                <span><strong>Email con dati pubblici</strong> · Accettata da SMTP il {date.format(new Date(selected.PublicMailAcceptedAt))}.</span>
+              </div>
+            {/if}
             {#if selected.MailStatus || emailStatus}
               {@const tone = mailTone(selected.MailStatus || emailStatus, selected.MailRetryAt)}
               <div class="mail-notice" data-tone={tone} role="status">
@@ -529,6 +561,10 @@
               {#if selected.Provisioning === 'Abilitato in Mojo'}
                 <button type="button" disabled={enabling || busy || !selected.CanResend} onclick={resend}>Reinvia le istruzioni via email</button>
                 {#if !selected.CanResend}<span class="hint">Per reinviare servono l’email del referente e una password conservata da questa versione in poi.</span>{/if}
+              {/if}
+              {#if selected.Provisioning === 'Abilitato in Mojo' && !selected.InboundTestUntil && !(selected.Connection === 'Attivo' && selected.Direction === 'Ingresso')}
+                <button class="secondary" type="button" disabled={enabling || busy} onclick={startInboundTest}
+                  title="Sospende per cinque minuti la connessione in uscita di questo partner.">Prova collegamento in ingresso</button>
               {/if}
               {#if selected.Email}
                 <button class="secondary" type="button" disabled={enabling || busy} onclick={sendNodeDetails}

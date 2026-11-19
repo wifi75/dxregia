@@ -25,15 +25,17 @@ type partnerDetails struct {
 
 type partnerStatus struct {
 	partner
-	LastConnectAttempt *time.Time `json:",omitempty"`
-	RetryEligibleAt    *time.Time `json:",omitempty"`
-	MailRetryAt        *time.Time `json:",omitempty"`
-	OutgoingReady      bool
-	CanResetCCInbound  bool
-	CanResend          bool   `json:",omitempty"`
-	Locked             bool   `json:",omitempty"`
-	CanUnlock          bool   `json:",omitempty"`
-	Direction          string `json:",omitempty"`
+	LastConnectAttempt   *time.Time `json:",omitempty"`
+	RetryEligibleAt      *time.Time `json:",omitempty"`
+	PublicMailAcceptedAt *time.Time `json:",omitempty"`
+	InboundTestUntil     *time.Time `json:",omitempty"`
+	MailRetryAt          *time.Time `json:",omitempty"`
+	OutgoingReady        bool
+	CanResetCCInbound    bool
+	CanResend            bool   `json:",omitempty"`
+	Locked               bool   `json:",omitempty"`
+	CanUnlock            bool   `json:",omitempty"`
+	Direction            string `json:",omitempty"`
 }
 
 type partnerNote struct {
@@ -147,6 +149,9 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			for call, entry := range partners {
 				entry.Connection = currentConnection(root, call, snapshot)
 				status := partnerStatus{partner: entry, OutgoingReady: partnerOutgoingReady(entry, snapshot)}
+				if until := inboundTestUntil(root, call); until.After(time.Now()) {
+					status.InboundTestUntil = &until
+				}
 				status.CanResetCCInbound = snapshot.CCInboundReset[call] && entry.Provisioning != "In attesa di Mojo" && entry.Provisioning != "Abilitato in Mojo"
 				status.CanUnlock, status.Locked = snapshot.LockedPartners[call]
 				if snapshot.LockedPartners == nil && entry.Provisioning == lockedPartnerStatus {
@@ -162,6 +167,12 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 					}
 				}
 				if callsign.MatchString(call) && len(call) <= 12 {
+					if data, err := os.ReadFile(publicMailAcceptedPath(root, call)); err == nil {
+						var accepted time.Time
+						if json.Unmarshal(data, &accepted) == nil {
+							status.PublicMailAcceptedAt = &accepted
+						}
+					}
 					if plan, err := readReconnect(root, call); err == nil && !plan.Disabled {
 						if !plan.LastAttempt.IsZero() {
 							status.LastConnectAttempt = &plan.LastAttempt
@@ -473,6 +484,9 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Invio dei dati del nodo non confermato. Controlla lo storico email e la configurazione SMTP.", http.StatusBadGateway)
 			return
 		}
+		if err := writePrivateJSON(publicMailAcceptedPath(root, call), time.Now().UTC()); err != nil {
+			log.Printf("Save public partner mail confirmation: %v", err)
+		}
 		w.WriteHeader(http.StatusNoContent)
 	})
 	mux.HandleFunc("POST /api/partners/{call}/resend", func(w http.ResponseWriter, r *http.Request) {
@@ -516,6 +530,45 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		w.WriteHeader(http.StatusAccepted)
 		json.NewEncoder(w).Encode(map[string]string{"MailStatus": job.Status})
 	})
+	mux.HandleFunc("POST /api/partners/{call}/inbound-test", func(w http.ResponseWriter, r *http.Request) {
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
+			return
+		}
+		call := r.PathValue("call")
+		lock.Lock()
+		defer lock.Unlock()
+		entry, ok := partners[call]
+		if !ok || !callsign.MatchString(call) || len(call) > 12 {
+			http.NotFound(w, r)
+			return
+		}
+		snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
+		if _, locked := snapshot.LockedPartners[call]; !snapshot.PartnerConnect || locked || entry.Provisioning != "Abilitato in Mojo" {
+			http.Error(w, "Per la prova serve un nodo attivo con accesso in ingresso abilitato.", http.StatusConflict)
+			return
+		}
+		for _, channel := range snapshot.Channels {
+			if channel.Call == call && channel.Kind == "node" && !channel.Outbound {
+				http.Error(w, "Il partner è già collegato in ingresso.", http.StatusConflict)
+				return
+			}
+		}
+		if inboundTestUntil(root, call).After(time.Now()) {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		until := time.Now().Add(5 * time.Minute)
+		if err := writePrivateJSON(inboundTestPath(root, call), until.Unix()); err != nil {
+			http.Error(w, "Impossibile avviare la prova.", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("POST /api/partners/{call}/connect", func(w http.ResponseWriter, r *http.Request) {
 		if !auth.allowed(r) {
 			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
@@ -546,6 +599,10 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		if _, locked := snapshot.LockedPartners[call]; locked {
 			http.Error(w, lockedPartnerStatus, http.StatusConflict)
+			return
+		}
+		if inboundTestUntil(root, call).After(time.Now()) {
+			http.Error(w, "Il collegamento in uscita è sospeso durante la prova in ingresso.", http.StatusConflict)
 			return
 		}
 		if !partnerOutgoingReady(entry, snapshot) {
@@ -675,4 +732,8 @@ func savePartners(path string, partners map[string]partner) error {
 		return err
 	}
 	return os.Rename(tmp.Name(), path)
+}
+
+func publicMailAcceptedPath(root, call string) string {
+	return filepath.Join(root, "local_data", "dxregia-partners", call+".public-mail-accepted.json")
 }
