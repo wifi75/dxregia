@@ -211,7 +211,7 @@
     if (provisioning === 'Abilitato in Mojo') return { tone: 'green', text: 'Abilitato: il partner può collegarsi al tuo nodo.' }
     if (provisioning === 'In attesa di Mojo') return { tone: 'amber', text: 'Operazione in corso: attendi qualche secondo.' }
     if (provisioning === 'Nodo bloccato in Mojo') return { tone: 'red', text: 'Nodo bloccato in Mojo' }
-    if (provisioning?.includes('verificare')) return { tone: 'red', text: 'Accesso in ingresso da verificare: esiste già un account Mojo per questo indicativo.' }
+    if (provisioning?.includes('verificare')) return { tone: 'red', text: 'Accesso in ingresso sospeso: verifica il tipo e le credenziali locali del nodo.' }
     return { tone: 'neutral', text: 'Non abilitato: il partner non può collegarsi al tuo nodo.' }
   }
 

@@ -321,6 +321,13 @@ sub register_partner_account {
     $channel->registered(1) if $channel;
 }
 
+# Existing CC Cluster peers keep their type and local credentials.
+sub existing_ccluster_peer {
+    my ($user) = @_;
+    return $user && $user->sort eq 'L' && ($user->priv || 0) <= 1 &&
+        !$user->lockout && $user->passwd;
+}
+
 sub provision_partners {
     my $dir = "$main::local_data/dxregia-partners";
     opendir(my $dh, $dir) or return;
@@ -345,6 +352,8 @@ sub provision_partners {
                 $result = 'Account Mojo esistente da verificare';
             } elsif ($user && $user->sort eq 'S' && ($user->priv || 0) <= 1 && $user->lockout && !$unlock) {
                 $result = 'Nodo bloccato in Mojo';
+            } elsif ($outgoing && existing_ccluster_peer($user)) {
+                $result = 'Pronto in uscita';
             } elsif ($user && (($user->lockout && !$unlock) || $user->sort ne 'S' || (!$user->passwd && !$outgoing))) {
                 $result = 'Account Mojo esistente da verificare';
             } else {
@@ -433,7 +442,7 @@ sub connect_partners {
         my $user = DXUser::get($call);
         my $result = 'Account Mojo non abilitato';
         if (length($call) <= 12 && $call ne $main::mycall && $call ne $main::myalias &&
-            $user && $user->sort eq 'S' && !$user->lockout && $user->passwd) {
+            (($user && $user->sort eq 'S' && !$user->lockout && $user->passwd) || existing_ccluster_peer($user))) {
             if (DXChannel::get($call) || Msg->conns($call)) {
                 $result = 'Sessione gia presente';
             } elsif (!defined($password) || $host !~ /\A[A-Za-z0-9.:-]{1,253}\z/ ||

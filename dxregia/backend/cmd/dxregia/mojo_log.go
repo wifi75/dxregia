@@ -79,7 +79,11 @@ func mojoDebugParser(tail string) func(string) (mojoLogEvent, bool) {
 			switch m[3] {
 			case "Account Mojo esistente da verificare", "Nodo bloccato in Mojo", "Pronto in uscita", "Abilitato in Mojo", "Tentativo avviato", "Account Mojo non abilitato", "Sessione gia presente", "Parametri non validi", "Avvio non riuscito", "Indicativo riservato", "Richiesta non valida":
 				at, _ := strconv.ParseInt(m[1], 10, 64)
-				return mojoLogEvent{At: at, Kind: "Collegamenti", Message: m[3], Call: m[2]}, true
+				message := m[3]
+				if message == "Account Mojo esistente da verificare" {
+					message = "Configurazione sospesa: verifica il tipo e le credenziali locali del nodo"
+				}
+				return mojoLogEvent{At: at, Kind: "Collegamenti", Message: message, Call: m[2]}, true
 			}
 			return mojoLogEvent{}, false
 		}
