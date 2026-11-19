@@ -1,0 +1,68 @@
+export type Spot = {
+  Frequency: number; Call: string; At: number; Comment: string; Spotter: string; DXCC: number
+  Cursor?: string; Entity?: string; Continent?: string; SpotterContinent?: string; CQ?: number; ITU?: number
+  Grids?: string[]; Special?: boolean
+}
+
+export const bands = [
+  ['160 m', 1800, 2000], ['80 m', 3500, 4000], ['60 m', 5250, 5450],
+  ['40 m', 7000, 7300], ['30 m', 10100, 10150], ['20 m', 14000, 14350],
+  ['17 m', 18068, 18168], ['15 m', 21000, 21450], ['12 m', 24890, 24990],
+  ['10 m', 28000, 29700], ['6 m', 50000, 54000], ['VHF+', 70000, Infinity],
+] as const
+export const bandFor = (frequency: number) => bands.find(([, low, high]) => frequency >= low && frequency <= high)?.[0] ?? ''
+export const spotKey = (spot: Spot) => [spot.At, spot.Call, spot.Frequency, spot.Spotter, spot.Comment].join('|')
+
+export function commentMatcher(query: string) {
+  const alternatives: { word: string; exclude: boolean }[][] = [[]]
+  for (const match of query.toLowerCase().matchAll(/(-)?(?:"([^"]+)"|([^"\s]+))/g)) {
+    const [, excluded, phrase, word] = match
+    if (!excluded && word === 'or' && alternatives.at(-1)!.length) {
+      alternatives.push([])
+    } else {
+      alternatives.at(-1)!.push({ word: phrase ?? word, exclude: Boolean(excluded) })
+    }
+  }
+  const groups = alternatives.filter(group => group.length)
+  return (text: string) => {
+    const value = text.toLowerCase()
+    return !groups.length || groups.some(group => group.every(term => value.includes(term.word) !== term.exclude))
+  }
+}
+
+export function corroboratedSpots(rows: Spot[]) {
+  const confirmed = new Set<string>()
+  const byCall = new Map<string, Spot[]>()
+  for (const spot of [...rows].sort((a, b) => a.At - b.At)) {
+    const key = spot.Call.toUpperCase()
+    const reporters = byCall.get(key) ?? []
+    const nearby = reporters.filter(previous => spot.At - previous.At <= 180)
+    for (const previous of nearby) {
+      if (spot.Spotter && previous.Spotter && spot.Spotter.toUpperCase() !== previous.Spotter.toUpperCase() &&
+          Math.abs(spot.Frequency - previous.Frequency) <= 1) {
+        confirmed.add(spotKey(spot))
+        confirmed.add(spotKey(previous))
+      }
+    }
+    nearby.push(spot)
+    byCall.set(key, nearby)
+  }
+  return confirmed
+}
+
+export function exportSpotCSV(rows: Spot[]) {
+  const cell = (value: string | number) => {
+    const text = String(value)
+    const safe = typeof value === 'string' && /^[\s\u0000-\u001f]*[=+\-@]/.test(text) ? "'" + text : text
+    return '"' + safe.replaceAll('"', '""') + '"'
+  }
+  const csv = ['UTC,DX,kHz,Spotter,DXCC,Comment',
+    ...rows.map(row => [new Date(row.At * 1000).toISOString(), row.Call, row.Frequency, row.Spotter, row.Entity ?? row.DXCC, row.Comment]
+      .map(cell).join(','))].join('\r\n')
+  const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'dxregia-spots.csv'
+  link.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}

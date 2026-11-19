@@ -6,6 +6,8 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ### Added
 
+- Saved web spot filters, compact and band views, a side-by-side band comparison, pause with archive recovery, corroboration, comment operators and filtered CSV export.
+- DXCC directory, callsign suggestions and history, prefix exceptions, and geographic filters from DXSpider spot records.
 - Node diagnostics for session refresh delay, disk space, log growth and managed process IDs.
 - Latest spot age, web arrival timing and conditional spot snapshots, plus resumable live dashboard updates.
 - Opt-in public status at /stato and configurable retention for event archives.

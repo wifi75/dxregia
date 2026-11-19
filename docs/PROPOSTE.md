@@ -4,29 +4,29 @@ Elenco ricostruito. I numeri 31–33 corrispondono alle proposte originali recup
 
 ## Portale spot
 
-- [ ] **1.** Filtri salvati
-- [ ] **2.** Vista compatta
-- [ ] **3.** Vista per banda
-- [ ] **4.** Evidenzia paesi nuovi
-- [ ] **5.** Pausa del flusso
-- [ ] **6.** Riprendi dal punto di pausa
-- [ ] **7.** Mostra spot verificati
-- [ ] **8.** Confronta più bande
-- [ ] **9.** Cerca per commento con operatori
-- [ ] **10.** Esporta i risultati filtrati
+- [x] **1.** Filtri salvati
+- [x] **2.** Vista compatta
+- [x] **3.** Vista per banda
+- [x] **4.** Evidenzia paesi nuovi
+- [x] **5.** Pausa del flusso
+- [x] **6.** Riprendi dal punto di pausa
+- [x] **7.** Mostra spot verificati
+- [x] **8.** Confronta più bande
+- [x] **9.** Cerca per commento con operatori
+- [x] **10.** Esporta i risultati filtrati
 
 ## Ricerca e DXCC
 
-- [ ] **11.** Completa la mappa DXCC
-- [ ] **12.** Autocompletamento nominativi
-- [ ] **13.** Filtro per continente del segnalatore
-- [ ] **14.** Filtro per continente del DX
-- [ ] **15.** Filtro per zona CQ
-- [ ] **16.** Filtro per zona ITU
-- [ ] **17.** Filtro per locator
-- [ ] **18.** Vista per prefissi speciali
-- [ ] **19.** Cronologia per nominativo
-- [ ] **20.** Scheda DXCC con bande osservate
+- [x] **11.** Completa la mappa DXCC
+- [x] **12.** Autocompletamento nominativi
+- [x] **13.** Filtro per continente del segnalatore
+- [x] **14.** Filtro per continente del DX
+- [x] **15.** Filtro per zona CQ
+- [x] **16.** Filtro per zona ITU
+- [x] **17.** Filtro per locator
+- [x] **18.** Vista per prefissi speciali
+- [x] **19.** Cronologia per nominativo
+- [x] **20.** Scheda DXCC con bande osservate
 
 ## Allarmi radio
 
