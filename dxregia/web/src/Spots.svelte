@@ -354,21 +354,21 @@
   </section>
   <div class="feed-controls glass-panel">
     <label>{t('spotSavedFilters')}
-      <select value={selectedFilter} onchange={event => restoreFilter(event.currentTarget.value)}>
+      <select class="button-select" value={selectedFilter} onchange={event => restoreFilter(event.currentTarget.value)}>
         <option value="">{t('spotChooseFilter')}</option>
         {#each savedFilters as filter (filter.name)}<option value={filter.name} disabled={Boolean(filter.expires && filter.expires < filterToday)}>{filter.name}{filter.expires && filter.expires < filterToday ? ' · ' + t('radioExpired') : ''}</option>{/each}
       </select>
     </label>
     <button type="button" aria-expanded={showSave} onclick={() => { showSave = !showSave; saveName = selectedFilter; saveExpiry = savedFilters.find(item => item.name === selectedFilter)?.expires ?? ''; saveError = false }}>{t('spotSaveFilter')}</button>
     <label>{t('spotView')}
-      <select bind:value={view}>
+      <select class="button-select" bind:value={view}>
         <option value="table">{t('spotTable')}</option><option value="compact">{t('spotCompact')}</option>
         <option value="band">{t('spotByBand')}</option><option value="compare">{t('spotBandCompare')}</option>
       </select>
     </label>
     {#if comparisonBands.length}
-      <label>{t('bands')} A<select bind:value={bandA}>{#each bands as [band]}<option>{band}</option>{/each}</select></label>
-      {#if view === 'compare'}<label>{t('bands')} B<select bind:value={bandB}>{#each bands as [band]}<option>{band}</option>{/each}</select></label>{/if}
+      <label>{t('bands')} A<select class="button-select" bind:value={bandA}>{#each bands as [band]}<option>{band}</option>{/each}</select></label>
+      {#if view === 'compare'}<label>{t('bands')} B<select class="button-select" bind:value={bandB}>{#each bands as [band]}<option>{band}</option>{/each}</select></label>{/if}
     {/if}
     {#if reviewing}
       <button type="button" onclick={returnLive}>{t('spotBackLive')}</button>
@@ -485,7 +485,8 @@
   .feed-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 8px 10px; margin-bottom: 8px; }
   .feed-controls label { display: grid; max-width: 100%; gap: 3px; font-size: .8rem; font-weight: 650; min-width: 0; }
   .feed-controls select, .feed-controls input:not([type=checkbox]), .feed-controls button { min-height: 34px; min-width: 0; }
-  .feed-controls select { max-width: 100%; padding: 4px 7px; border: 1px solid #acbfce; border-radius: 6px; background: #fff; color: #173653; color-scheme: light; font: inherit; }
+  .feed-controls > button, .feed-controls select { height: 38px; }
+  .feed-controls select { max-width: 100%; color-scheme: dark; font-size: .9375rem; }
   .feed-controls input:not([type=checkbox]) { width: 100%; }
   .feed-options { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; min-width: 0; }
   .feed-controls .check { display: flex; align-items: center; gap: 5px; min-height: 34px; }

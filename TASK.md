@@ -8,7 +8,7 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
-- [x] Riunire i comandi avanzati degli spot e le opzioni di conferma e DXCC in un’unica barra. Verificato su Edge a larghezza desktop e ridotta.
+- [x] Riunire i comandi avanzati degli spot e le opzioni di conferma e DXCC in un’unica barra, con i menu a tendina nello stile dei pulsanti. Verificato su Edge a larghezza desktop e ridotta.
 
 - [x] Preparare DXRegia 0.5.0 con guide in sei lingue, pacchetti nativi, grafici disco/RAM, ricerca unica, navigazione stabile e localizzazione del banner Telnet.
 
