@@ -110,3 +110,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Pubblicare le statistiche radio nella home del cluster e semplificare Stato del nodo.
 - [x] Rifinire su desktop la posizione di DXCC e la dimensione del testo di paesi e commenti.
 - [x] Allineare i campi di accesso e aggiungere i riferimenti nel footer del login.
+- [x] Rendere cliccabile tutto il banner Aurora su smartphone.

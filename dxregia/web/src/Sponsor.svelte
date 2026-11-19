@@ -67,7 +67,8 @@
     .sponsor { gap: 12px; padding: 10px 44px 10px 12px; margin-bottom: 10px; }
     .icon { width: 44px; height: 44px; border-radius: 10px; }
     .name { font-size: 1.25rem; }
-    .get { margin-left: auto; padding: 8px 14px; font-size: .9rem; }
-    .close { top: 50%; margin-top: -15px; right: 8px; }
+    .get { position: static; margin-left: auto; padding: 8px 14px; font-size: .9rem; }
+    .get::after { content: ''; position: absolute; inset: 0; border-radius: 12px; }
+    .close { z-index: 1; top: 50%; margin-top: -15px; right: 8px; }
   }
 </style>
