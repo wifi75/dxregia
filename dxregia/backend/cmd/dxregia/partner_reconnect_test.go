@@ -59,3 +59,29 @@ func TestReconnectQueuesOnlyDueMatchingPartner(t *testing.T) {
 	reconnectPartners(root, partners, snapshot, later.Add(time.Second))
 	absent()
 }
+
+func TestReconnectUsesLiveOutgoingReadinessAfterInboundFailure(t *testing.T) {
+	root := t.TempDir()
+	now := time.Now()
+	entry := partner{
+		partnerDetails: partnerDetails{Call: "N4ZKF-1", Host: "node.example.org", Port: 7300},
+		Provisioning:   "Account Mojo esistente da verificare",
+	}
+	plan := reconnectPlan{Host: entry.Host, Port: entry.Port}
+	if err := saveReconnect(root, entry.Call, plan); err != nil {
+		t.Fatal(err)
+	}
+	partners := map[string]partner{entry.Call: entry}
+	snapshot := presence{PartnerConnect: true, OutgoingReady: map[string]bool{}}
+	reconnectPartners(root, partners, snapshot, now)
+	path := filepath.Join(root, "local_data", "dxregia-partners", entry.Call+".connect")
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		t.Fatalf("unexpected request without a verified local account: %v", err)
+	}
+	snapshot.OutgoingReady[entry.Call] = true
+	reconnectPartners(root, partners, snapshot, now)
+	data, err := os.ReadFile(path)
+	if err != nil || string(data) != "node.example.org\n7300\n" {
+		t.Fatalf("expected outgoing retry without password: %q, %v", data, err)
+	}
+}

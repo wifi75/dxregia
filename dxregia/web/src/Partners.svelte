@@ -6,7 +6,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -26,6 +26,7 @@
   let storedPassword = false
   let autoReconnect = $state(false)
   let emailStatus = $state('')
+  let publicMail = $state<{ call: string; state: 'sending' | 'accepted' | 'failed'; text: string }>()
   let localNode = $state('')
 
   let checkingStatus = $state(false)
@@ -212,17 +213,16 @@
     if (!call || enabling) return
     enabling = true
     error = message = ''
+    publicMail = { call, state: 'sending', text: 'Invio dei dati pubblici in corso…' }
     try {
       const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/send-node-details', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
       })
-      if (!response.ok) {
-        error = (await response.text()).trim()
-        return
-      }
-      message = 'Dati pubblici del nodo inviati. Verifica il messaggio nello Storico email partner.'
+      publicMail = response.ok
+        ? { call, state: 'accepted', text: 'Email con i dati pubblici accettata dal server di posta. La trovi nello Storico email partner.' }
+        : { call, state: 'failed', text: (await response.text()).trim() || 'Il server di posta non ha confermato l’invio.' }
     } catch {
-      error = 'Invio non confermato. Controlla lo Storico email partner.'
+      publicMail = { call, state: 'failed', text: 'Invio non confermato. Controlla lo Storico email partner.' }
     } finally {
       enabling = false
     }
@@ -395,7 +395,7 @@
     {@const incoming = incomingInfo(selected)}
     {@const lockedInMojo = Boolean(selected?.Locked)}
     {@const canEnableInbound = selected && !lockedInMojo && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '') && !selected.Provisioning?.includes('verificare')}
-    {@const outgoingReady = selected?.Provisioning === 'Abilitato in Mojo' || selected?.Provisioning === 'Pronto in uscita'}
+    {@const outgoingReady = selected?.OutgoingReady ?? (selected?.Provisioning === 'Abilitato in Mojo' || selected?.Provisioning === 'Pronto in uscita')}
     <div class="detail">
       <header class="detail-head">
         <h3 id="partner-draft" tabindex="-1">{selected ? selected.Call : 'Nuovo nodo partner'}</h3>
@@ -494,7 +494,7 @@
               {@const tone = mailTone(selected.MailStatus || emailStatus, selected.MailRetryAt)}
               <div class="mail-notice" data-tone={tone} role="status">
                 <span class="led" data-tone={tone} aria-hidden="true"></span>
-                <span><strong>Email</strong> · {selected.MailStatus || emailStatus}
+                <span><strong>Email con credenziali</strong> · {selected.MailStatus || emailStatus}
                   {#if selected.MailRetryAt} · Prossimo tentativo {date.format(new Date(selected.MailRetryAt))}{/if}
                 </span>
               </div>
@@ -525,13 +525,19 @@
               {/if}
               {#if selected.Email}
                 <button class="secondary" type="button" disabled={enabling || busy} onclick={sendNodeDetails}
-                  title="Invia indicativo, host e porta. L’accesso e le password restano invariati.">Invia dati pubblici via email</button>
+                  title="Invia indicativo, host e porta. L’accesso e le password restano invariati.">{publicMail?.call === selected.Call && publicMail.state === 'sending' ? 'Invio in corso…' : 'Invia dati pubblici via email'}</button>
               {/if}
               <button class="secondary" type="button" disabled={enabling || busy || checkingStatus} onclick={async () => {
                 manualStatusCall = selected?.Call ?? ''
                 await refreshProvisioning()
               }}>Aggiorna stato</button>
-              {#if manualStatusCall === selected.Call}
+              {#if publicMail?.call === selected.Call}
+              <div class="mail-notice public-mail-result" data-tone={publicMail.state === 'accepted' ? 'green' : publicMail.state === 'failed' ? 'red' : 'amber'} role="status">
+                <span class="led" data-tone={publicMail.state === 'accepted' ? 'green' : publicMail.state === 'failed' ? 'red' : 'amber'} aria-hidden="true"></span>
+                <span>{publicMail.text}</span>
+              </div>
+            {/if}
+            {#if manualStatusCall === selected.Call}
                 <span class="hint" role="status">
                   {checkingStatus ? 'Controllo dello stato in corso.' : statusError || `Ultimo stato: ${inbound.text}`}
                 </span>
@@ -605,6 +611,8 @@
 
 <style>
   .mail-notice { display: flex; align-items: baseline; gap: .5rem; padding: .65rem .75rem; border: 1px solid #b4cbd8; border-radius: 6px; }
+  .public-mail-result { flex-basis: 100%; }
+  .mail-notice[data-tone='green'] { border-color: #7db59d; background: #e8f6ef; color: #145b3d; }
   .mail-notice[data-tone='red'] { border-color: #d8898b; background: #fff0f0; color: #8c2127; }
   .mail-notice[data-tone='amber'] { border-color: #d7ad67; background: #fff5de; color: #764800; }
 

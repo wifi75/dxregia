@@ -28,10 +28,11 @@ type partnerStatus struct {
 	LastConnectAttempt *time.Time `json:",omitempty"`
 	RetryEligibleAt    *time.Time `json:",omitempty"`
 	MailRetryAt        *time.Time `json:",omitempty"`
-	CanResend          bool       `json:",omitempty"`
-	Locked             bool       `json:",omitempty"`
-	CanUnlock          bool       `json:",omitempty"`
-	Direction          string     `json:",omitempty"`
+	OutgoingReady      bool
+	CanResend          bool   `json:",omitempty"`
+	Locked             bool   `json:",omitempty"`
+	CanUnlock          bool   `json:",omitempty"`
+	Direction          string `json:",omitempty"`
 }
 
 type partnerNote struct {
@@ -144,7 +145,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			view := make(map[string]partnerStatus, len(partners))
 			for call, entry := range partners {
 				entry.Connection = currentConnection(root, call, snapshot)
-				status := partnerStatus{partner: entry}
+				status := partnerStatus{partner: entry, OutgoingReady: partnerOutgoingReady(entry, snapshot)}
 				status.CanUnlock, status.Locked = snapshot.LockedPartners[call]
 				if snapshot.LockedPartners == nil && entry.Provisioning == lockedPartnerStatus {
 					status.Locked, status.CanUnlock = true, true
@@ -166,7 +167,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 						status.Reconnect = "Abilitata"
 						if plan.Host != entry.Host || plan.Port != entry.Port {
 							status.Reconnect = "Sospesa: indirizzo modificato"
-						} else if plan.eligible(entry, entry.Connection) {
+						} else if plan.eligible(entry, entry.Connection, snapshot) {
 							earliest := plan.LastAttempt.Add(reconnectDelay)
 							status.RetryEligibleAt = &earliest
 						}
@@ -541,7 +542,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, lockedPartnerStatus, http.StatusConflict)
 			return
 		}
-		if !canConnectPartner(entry.Provisioning) {
+		if !partnerOutgoingReady(entry, snapshot) {
 			http.Error(w, "Abilita prima l’account partner in Mojo.", http.StatusConflict)
 			return
 		}

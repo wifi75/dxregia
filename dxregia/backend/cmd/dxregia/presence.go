@@ -30,6 +30,7 @@ type presence struct {
 	At             int64
 	Channels       []presenceChannel
 	LockedPartners map[string]bool
+	OutgoingReady  map[string]bool
 }
 
 func registerPresence(mux *http.ServeMux, root string, auth *sysopAuth) {
@@ -99,7 +100,9 @@ func installPresenceHook(local string) error {
 			digest != "273fa53809bfcf9d9bcd3a3d7b2df3f17e408ab3ea0b6b9eadda55b34d08d864" &&
 			digest != "3cf5a3e6610acc6c8cdcb59cf1691689e9b65fa60a6bbd73831e471a941622e4" &&
 			digest != "964ae6d952b40c708062e45bce2c99ca2a418a52e022110d3794170d6232caa0" &&
-			digest != "e3273d12506b766d232be4b564d84c4c2899ae1b248ef150052c9aff720295c5" {
+			digest != "e3273d12506b766d232be4b564d84c4c2899ae1b248ef150052c9aff720295c5" &&
+			digest != "fc499f41ab3d32458aa45880893cfcf069571a62a426d76c3efbd17803042b5d" &&
+			digest != "35b6b511a2faeb1212d227e1fe455052262394451f885245f2abac98e33601c1" {
 			return nil
 		}
 		return upgradePresenceHook(local, path)

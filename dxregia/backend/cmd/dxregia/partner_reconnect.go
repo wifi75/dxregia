@@ -53,16 +53,16 @@ func saveReconnect(root, call string, plan reconnectPlan) error {
 	return os.Rename(tmp.Name(), path)
 }
 
-func (p reconnectPlan) eligible(entry partner, state string) bool {
-	if p.Disabled || !canConnectPartner(entry.Provisioning) || p.Host != entry.Host || p.Port != entry.Port ||
+func (p reconnectPlan) eligible(entry partner, state string, snapshot presence) bool {
+	if p.Disabled || !partnerOutgoingReady(entry, snapshot) || p.Host != entry.Host || p.Port != entry.Port ||
 		!peerPasswordPattern.MatchString(p.Password) {
 		return false
 	}
-	return state == "Disconnesso" || state == "Collegamento non confermato" || state == "Avvio non riuscito"
+	return state == "Disconnesso" || state == "Collegamento non confermato" || state == "Avvio non riuscito" || state == "Account Mojo non abilitato"
 }
 
-func (p reconnectPlan) due(entry partner, state string, now time.Time) bool {
-	return p.eligible(entry, state) && !now.Before(p.LastAttempt.Add(reconnectDelay))
+func (p reconnectPlan) due(entry partner, state string, snapshot presence, now time.Time) bool {
+	return p.eligible(entry, state, snapshot) && !now.Before(p.LastAttempt.Add(reconnectDelay))
 }
 
 func reconnectPartners(root string, partners map[string]partner, snapshot presence, now time.Time) {
@@ -80,13 +80,13 @@ func reconnectPartners(root string, partners map[string]partner, snapshot presen
 		if err != nil || plan.Disabled || plan.Host != entry.Host || plan.Port != entry.Port {
 			continue
 		}
-		if plan.AutoProvision && entry.Provisioning == "" {
+		if plan.AutoProvision && entry.Provisioning == "" && !partnerOutgoingReady(entry, snapshot) {
 			if err := queueOutgoingPartner(root, call); err != nil {
 				log.Printf("Queue outgoing partner %s: %v", call, err)
 			}
 			continue
 		}
-		if !plan.due(entry, currentConnection(root, call, snapshot), now) {
+		if !plan.due(entry, currentConnection(root, call, snapshot), snapshot, now) {
 			continue
 		}
 		plan.LastAttempt = now
@@ -102,4 +102,11 @@ func reconnectPartners(root string, partners map[string]partner, snapshot presen
 
 func canConnectPartner(status string) bool {
 	return status == "Abilitato in Mojo" || status == "Pronto in uscita"
+}
+
+func partnerOutgoingReady(entry partner, snapshot presence) bool {
+	if snapshot.OutgoingReady != nil {
+		return snapshot.OutgoingReady[entry.Call]
+	}
+	return canConnectPartner(entry.Provisioning)
 }
