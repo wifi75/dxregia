@@ -81,7 +81,11 @@ func TestWebSpotsConcurrentReadersAndRevalidation(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/spots", nil)
 	initial := httptest.NewRecorder()
 	mux.ServeHTTP(initial, req)
-	req.Header.Set("If-None-Match", initial.Header().Get("ETag"))
+	tag := initial.Header().Get("ETag")
+	if len(tag) < 2 || tag[0] != '"' || tag[len(tag)-1] != '"' {
+		t.Fatalf("invalid quoted ETag: %q", tag)
+	}
+	req.Header.Set("If-None-Match", tag)
 	unchanged := httptest.NewRecorder()
 	mux.ServeHTTP(unchanged, req)
 	if unchanged.Code != http.StatusNotModified || unchanged.Body.Len() != 0 {
@@ -91,6 +95,13 @@ func TestWebSpotsConcurrentReadersAndRevalidation(t *testing.T) {
 	changed := httptest.NewRecorder()
 	mux.ServeHTTP(changed, req)
 	latest := snapshot()
+	var changedBody spotSnapshot
+	if err := json.NewDecoder(changed.Body).Decode(&changedBody); err != nil {
+		t.Fatal(err)
+	}
+	if changedBody.Sequence != latest.Sequence || changedBody.LatestAt != latest.LatestAt {
+		t.Fatalf("stale JSON after archive update: version %d, latest %d", changedBody.Sequence, changedBody.LatestAt)
+	}
 	if changed.Code != http.StatusOK || changed.Header().Get("ETag") == initial.Header().Get("ETag") ||
 		latest.Sequence <= first.Sequence || latest.LatestAt != now.Unix()+100 {
 		t.Fatalf("updated archive did not invalidate cache, status %d, sequence %d, latest %d",

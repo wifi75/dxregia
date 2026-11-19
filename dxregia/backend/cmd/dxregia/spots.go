@@ -66,29 +66,59 @@ func fileSignature(paths ...string) string {
 	return signature.String()
 }
 
+type spotFileVersion struct {
+	modified, size int64
+	directory      bool
+}
+
+func spotFileStat(path string) spotFileVersion {
+	info, err := os.Stat(path)
+	if err != nil {
+		return spotFileVersion{}
+	}
+	return spotFileVersion{info.ModTime().UnixNano(), info.Size(), info.IsDir()}
+}
+
+type spotFeed struct {
+	snapshot spotSnapshot
+	body     []byte
+	etag     string
+}
+
 func registerSpots(mux *http.ServeMux, root string) func() spotSnapshot {
 	directory := loadDXCC(root)
 	registerSpotResearch(mux, root, directory)
+	path := filepath.Join(root, "local_data", "spots")
 	var mu sync.Mutex
-	var signature string
-	var cached spotSnapshot
+	var previous [3]spotFileVersion
+	var paths [2]string
+	var archiveDay time.Time
+	var cached spotFeed
 	epoch := time.Now().UnixNano()
-	snapshot := func() spotSnapshot {
+	feed := func() spotFeed {
 		mu.Lock()
 		defer mu.Unlock()
-		paths := spotArchivePaths(root, time.Now())
-		path := filepath.Join(root, "local_data", "spots")
-		nextSignature := fileSignature(path, paths[0], paths[1])
-		if nextSignature == signature {
+		day := time.Now().UTC().Truncate(24 * time.Hour)
+		newDay := day != archiveDay
+		if newDay {
+			paths = spotArchivePaths(root, day)
+			archiveDay = day
+		}
+		var current [3]spotFileVersion
+		if root != "" {
+			current = [3]spotFileVersion{spotFileStat(path), spotFileStat(paths[0]), spotFileStat(paths[1])}
+		}
+		if !newDay && current == previous {
 			return cached
 		}
-		next := spotSnapshot{Spots: make([]publicSpot, 0, 100), Sequence: cached.Sequence + 1}
-		if info, err := os.Stat(path); root != "" && err == nil && info.IsDir() {
+		next := spotSnapshot{Spots: make([]publicSpot, 0, 100), Sequence: cached.snapshot.Sequence + 1}
+		if current[0].directory {
 			next.Available = true
 			for _, file := range paths {
 				if len(next.Spots) >= 100 {
 					break
 				}
+				// A missing file is normal, but still let the reader report other errors.
 				rows, err := recentSpots(file, 100-len(next.Spots))
 				if err != nil && !os.IsNotExist(err) {
 					next.Available = false
@@ -106,22 +136,30 @@ func registerSpots(mux *http.ServeMux, root string) func() spotSnapshot {
 				next.Spots = append(next.Spots, rows...)
 			}
 		}
-		signature, cached = nextSignature, next
+		// The same snapshot drives the JSON, ETag and health checks.
+		body, err := json.Marshal(next)
+		if err == nil {
+			body = append(body, '\n')
+		}
+		previous, cached = current, spotFeed{snapshot: next, body: body, etag: fmt.Sprintf(`"%d-%d"`, epoch, next.Sequence)}
 		return cached
 	}
 	mux.HandleFunc("GET /api/spots", func(w http.ResponseWriter, r *http.Request) {
-		spots := snapshot()
-		etag := fmt.Sprintf("\"%d-%d\"", epoch, spots.Sequence)
-		w.Header().Set("ETag", etag)
+		current := feed()
+		if current.body == nil {
+			http.Error(w, "Spot feed unavailable.", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("ETag", current.etag)
 		w.Header().Set("Cache-Control", "no-cache")
-		if r.Header.Get("If-None-Match") == etag {
+		if r.Header.Get("If-None-Match") == current.etag {
 			w.WriteHeader(http.StatusNotModified)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(spots)
+		_, _ = w.Write(current.body)
 	})
-	return snapshot
+	return func() spotSnapshot { return feed().snapshot }
 }
 
 var prefixEntity = regexp.MustCompile(`^\s*[0-9]+\s*=>\s*bless\(\s*\{\s*name\s*=>\s*'([^']+)',\s*dxcc\s*=>\s*([0-9]+),`)

@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Riutilizzare il JSON del feed spot per ogni versione dell’archivio. Il benchmark locale da 100 righe misura circa 137 → 59 µs per risposta completa e 34 → 9 allocazioni per richiesta.
+
 - [x] Riunire i comandi avanzati degli spot e le opzioni di conferma e DXCC in un’unica barra, con i menu a tendina nello stile dei pulsanti. Verificato su Edge a larghezza desktop e ridotta.
 
 - [x] Preparare DXRegia 0.5.0 con guide in sei lingue, pacchetti nativi, grafici disco/RAM, ricerca unica, navigazione stabile e localizzazione del banner Telnet.

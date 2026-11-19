@@ -356,3 +356,5 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 - Stato e sessioni misura disco e RAM ogni 30 secondi e conserva in memoria fino a un’ora di campioni. La ricerca unica del portale accetta dx:, de:, comment:, virgolette, esclusioni e OR. Le schede sono nel menu superiore.
 
 - La barra avanzata degli spot riunisce filtri salvati, vista, azioni e le opzioni di conferma e DXCC. I menu a tendina condividono lo stile dei pulsanti. I controlli vanno a capo quando lo spazio è ridotto. Verificata la build e provati i controlli in Edge con larghezze di 504 e 1280 pixel.
+
+- Il feed /api/spots riutilizza il JSON e l’ETag finché i file degli spot restano uguali. Nei benchmark locali Windows amd64 da 100 righe, la mediana di tre prove passa da circa 137 a 59 µs per le risposte complete. Le richieste condizionali passano da circa 71 a 62 µs. I test Go verificano il JSON aggiornato quando arriva uno spot, il 304 e 32 lettori simultanei.
