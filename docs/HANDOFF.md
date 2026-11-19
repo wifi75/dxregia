@@ -302,3 +302,4 @@ Versione 0.4.0 (tag v0.4.0, 2026-11-18): impostazioni di DXSpider nel pannello (
 - Dashboard Sala operativa con tabella partner, storico email con ultimo esito dai job esistenti e guida inline per hop e filtri. Test Go e build Vite passati.
 - Installatore nativo: bind IPv4 pubblico per configurazioni nuove, URL LAN e utente sysop stampati con la password temporanea. Guide in sei lingue aggiornate. Sintassi shell verificata; prova pulita su Debian/Ubuntu da fare.
 - 2FA opzionale in Gestione > Password; le configurazioni 2FA esistenti restano attive. Cambio iniziale della password sempre obbligatorio. Login senza fattore aggiuntivo e sessione persistente verificati nei test Go; build web passata. Commento desktop 10 px a sinistra.
+- Dashboard: stato e ora della sessione partner sulla stessa riga, con separatore. Build verificata.

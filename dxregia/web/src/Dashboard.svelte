@@ -131,8 +131,8 @@
               {@const tone = locked || !node ? 'red' : node.State === 'normal' ? 'green' : 'amber'}
               <tr>
                 <td><strong>{call}</strong>{#if directory[call]?.Name && directory[call].Name !== call}<small>{directory[call].Name}</small>{/if}</td>
-                <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in Mojo' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}</span>
-                  {#if node?.State === 'normal'}<small>{'Dalle ' + time.format(new Date(node.Since * 1000))}</small>{/if}</td>
+                <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in Mojo' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}
+                  {#if !locked && node?.State === 'normal'}<small>· dalle {time.format(new Date(node.Since * 1000))}</small>{/if}</span></td>
                 <td>{#if node}<span class="tag">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{:else}—{/if}</td>
               </tr>
             {/each}
@@ -192,6 +192,7 @@
   .partner-table th { color: #3f5c71; background: #e8f1f7; font-size: .8rem; }
   .partner-table small { display: block; color: #506678; margin-top: .18rem; }
   .partner-state { display: inline-flex; align-items: center; gap: .55rem; }
+  .partner-state small { margin: 0; white-space: nowrap; }
   .partner-state .led { width: 8px; height: 8px; flex-basis: 8px; }
   .partner-table .tag { white-space: nowrap; }
   .users { border-top: 4px solid #2fa36b; }
