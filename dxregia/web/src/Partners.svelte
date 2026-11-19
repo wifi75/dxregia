@@ -6,7 +6,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -108,20 +108,23 @@
     }
   }
 
-  async function enable(outgoingOnly = false, mail = false, unlock = false) {
+  async function enable(outgoingOnly = false, mail = false, unlock = false, resetCCInbound = false) {
     const call = selected?.Call
     if (!call || enabling) return
     if (unlock && !confirm(tr('Sbloccare {} in Mojo e preparare il collegamento? Se il nodo ha già una password locale, potrà usarla per collegarsi.', call))) return
+    if (resetCCInbound && !confirm(tr('Impostare una nuova password Telnet per {} e inviarla via email? La password precedente verrà sostituita.', call))) return
     enabling = true
+    if (mail) emailStatus = 'In attesa dell’abilitazione'
     error = ''
     message = ''
     try {
       const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/enable', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ SendMail: !outgoingOnly && mail, OutgoingOnly: outgoingOnly, Unlock: unlock }),
+        body: JSON.stringify({ SendMail: !outgoingOnly && mail, OutgoingOnly: outgoingOnly, Unlock: unlock, ResetCCInbound: resetCCInbound }),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
+        if (mail) emailStatus = error || "Richiesta di invio non riuscita"
         return
       }
       if (selected?.Call !== call) return
@@ -231,6 +234,7 @@
   function mailTone(status?: string, retryAt?: string) {
     if (retryAt || status?.startsWith('In attesa') || status?.includes('accodate')) return 'amber'
     if (status?.includes('non riuscit') || status?.includes('non inviate')) return 'red'
+    if (status?.startsWith('Istruzioni inviate') || status?.startsWith('Conferma inviata') || status?.includes('avviso inviato')) return 'green'
     return 'neutral'
   }
 
@@ -510,7 +514,10 @@
               <div class="actions"><button class="secondary" type="button" onclick={revealPassword}>Mostra la password del partner</button></div>
             {/if}
             <div class="actions">
-              {#if selected.Provisioning !== 'Abilitato in Mojo' && selected.Email}
+              {#if selected.CanResetCCInbound && selected.Email}
+                <button type="button" disabled={enabling || busy} onclick={() => enable(false, true, false, true)}
+                  title="Sostituisce la password locale del partner e la invia dopo l’abilitazione.">Imposta nuova password e invia l’email</button>
+              {:else if selected.Provisioning !== 'Abilitato in Mojo' && selected.Email}
                 <button type="button" disabled={!canEnableInbound || enabling || busy} onclick={() => enable(false, true)}>Abilita e invia l’email a {selected.Email}</button>
                 {#if canEnableInbound}
                   <button class="secondary" type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita senza email</button>

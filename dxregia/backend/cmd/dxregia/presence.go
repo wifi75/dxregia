@@ -31,6 +31,7 @@ type presence struct {
 	Channels       []presenceChannel
 	LockedPartners map[string]bool
 	OutgoingReady  map[string]bool
+	CCInboundReset map[string]bool
 }
 
 func registerPresence(mux *http.ServeMux, root string, auth *sysopAuth) {
@@ -102,7 +103,9 @@ func installPresenceHook(local string) error {
 			digest != "964ae6d952b40c708062e45bce2c99ca2a418a52e022110d3794170d6232caa0" &&
 			digest != "e3273d12506b766d232be4b564d84c4c2899ae1b248ef150052c9aff720295c5" &&
 			digest != "fc499f41ab3d32458aa45880893cfcf069571a62a426d76c3efbd17803042b5d" &&
-			digest != "35b6b511a2faeb1212d227e1fe455052262394451f885245f2abac98e33601c1" {
+			digest != "35b6b511a2faeb1212d227e1fe455052262394451f885245f2abac98e33601c1" &&
+			digest != "f64bf04fcdd96f99d9354273fb6aa28b3c0edf139e39f7fbcac102db61d72634" &&
+			digest != "94659275ad298ad2dfc0de4715c472e2fc422f129e5f4aec518e42f4ca0add80" {
 			return nil
 		}
 		return upgradePresenceHook(local, path)

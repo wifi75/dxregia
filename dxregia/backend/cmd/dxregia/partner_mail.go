@@ -134,7 +134,7 @@ func advancePartnerMail(dir string, send func(string, string, mailContent) error
 	}
 	connected := false
 	for _, channel := range snapshot.Channels {
-		if channel.Call == job.Call && channel.Kind == "node" && channel.State == "normal" {
+		if channel.Call == job.Call && channel.Kind == "node" && channel.State == "normal" && !channel.Outbound {
 			connected = true
 			break
 		}

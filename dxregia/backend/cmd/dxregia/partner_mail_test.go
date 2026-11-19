@@ -50,6 +50,11 @@ func TestPartnerMailLifecycle(t *testing.T) {
 		t.Fatal("pending notice sent twice")
 	}
 	snapshot := presence{At: time.Now().Unix(), Channels: []presenceChannel{{Call: job.Call, Kind: "node", State: "normal"}}}
+	snapshot.Channels[0].Outbound = true
+	if advancePartnerMail(dir, send, snapshot, &job) || len(sent) != 2 {
+		t.Fatal("an outbound session must not confirm inbound access")
+	}
+	snapshot.Channels[0].Outbound = false
 	if !advancePartnerMail(dir, send, snapshot, &job) || len(sent) != 3 || !job.WatchUntil.IsZero() ||
 		!strings.Contains(sent[2].Subject, "connected") {
 		t.Fatal("missing confirmation of a real peer")

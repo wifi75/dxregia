@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var inboundPasswordPattern = regexp.MustCompile(`^[0-9a-f]{48}$`)
@@ -13,11 +15,23 @@ var inboundPasswordPattern = regexp.MustCompile(`^[0-9a-f]{48}$`)
 const lockedPartnerStatus = "Nodo bloccato in Mojo"
 
 func queuePartner(root, call string) (string, error) {
+	return queuePartnerCredential(root, call, false)
+}
+
+func queuePartnerCredential(root, call string, resetCCInbound bool) (string, error) {
 	password, err := randomToken()
 	if err != nil {
 		return "", err
 	}
-	if err := queuePartnerProvision(root, call, password); err != nil {
+	request := password
+	if resetCCInbound {
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			return "", err
+		}
+		request = "reset-cc-inbound:" + string(hash)
+	}
+	if err := queuePartnerProvision(root, call, request); err != nil {
 		return "", err
 	}
 	// Conserva la password in ingresso in un file privato, per poterla reinviare al referente.
