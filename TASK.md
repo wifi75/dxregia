@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Integrare le proposte 21–30. Regole per gli spot e registro locale, riepilogo, ore di silenzio, scadenze e consenso per le notifiche. Flussi verificati su Edge con feed e consegna di sistema simulati.
+
 - [x] Integrare nel portale le proposte 1–20 dopo le anteprime. Verificati catalogo e metadati DXCC, storico, recupero da archivio, CSV e interazioni del portale su Edge con dati simulati.
 
 - [x] Completare le proposte 171–190 con misure sul feed, diagnostica del nodo, conservazione opzionale, guida rapida e modelli per le issue. Le prove HTTP usano 32 lettori del feed e una rubrica con 250 partner sintetici. Il collaudo Raspberry Pi fisico resta al punto 131.

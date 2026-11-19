@@ -339,3 +339,11 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 - Il portale continua a campionare durante la pausa e recupera gli arrivi dall’archivio usando giorno UTC e posizione del record. Il server recupera fino a 1.000 eventi da un massimo di 7 giorni, con lettura limitata a 256 KiB per file. Il portale segnala il recupero parziale e mostra gli arrivi in ordine cronologico.
 - Catalogo derivato dai dati del motore, con CQ e ITU del record, continente del DX e dello spotter per entità ed eccezioni per nominativo esatto da cty.dat. La cronologia cerca nei 7 giorni disponibili, fino a 8.000 record o 1 MiB per giorno. Il riepilogo bande usa tutte le righe indicizzate dell’entità. La tabella ritorna al massimo 200 risultati.
 - Test Go per metadati, esclusione degli IP dagli spot pubblici, cronologia e ripresa tra giorni UTC. Prova della build del portale su Edge headless con feed simulato a larghezza ridotta.
+
+
+## 2026-11-19 — Allarmi radio del portale
+
+- La scheda **Allarmi radio** salva nel browser fino a 20 regole per nominativo, banda, modo, frequenza, nuova entità DXCC o attività portatile e mobile. Più criteri della stessa regola devono corrispondere insieme. L’avviso DXCC scatta una volta per entità e regola. Un filtro salvato e una regola possono scadere alla fine del giorno locale indicato.
+- Il portale deve restare aperto e ricevere gli aggiornamenti del feed. La prima fotografia inizializza il monitoraggio. Le notifiche di sistema si attivano su richiesta e dipendono dal browser. Il registro continua anche con notifiche spente, in pausa nella vista spot o durante le ore di silenzio.
+- Segnalazioni con lo stesso nominativo, banda e modo si raggruppano per 15 minuti. Il browser riceve al massimo una notifica al minuto. Il riepilogo conserva gli ultimi sette giorni con attività e il registro fino a 200 gruppi.
+- Verifica Edge con feed e notifiche simulate nella build web, regola CW portatile a frequenza esatta, consenso esplicito, gruppi, riepilogo, silenzio e deduplicazione per entità. La consegna del sistema operativo su dispositivi reali resta da provare.

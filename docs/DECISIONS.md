@@ -23,3 +23,8 @@ DXRegia conserva la sessione già verificata nel database di stato locale del no
 ## 2026-11-19 — Conservazione degli eventi e stato pubblico facoltativi
 
 La conservazione automatica è esplicita e disattivata alla prima installazione. Agisce sui soli archivi riconosciuti dei log, del debug e dello storico email. La pagina /stato è disattivata in partenza ed espone solo lo stato osservato del motore e il timestamp dell’ultimo spot. La diagnostica di processi e disco rimane riservata al sysop.
+
+
+## 2026-11-19 — Allarmi radio locali al browser
+
+Le regole e gli esiti radio vengono salvati nel browser. Il portale usa il feed degli spot già disponibile e il consenso esplicito per le notifiche di sistema. Il riepilogo e le ore di silenzio seguono l’ora locale del dispositivo. Il monitoraggio si svolge mentre il portale è aperto.

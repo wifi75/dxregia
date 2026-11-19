@@ -6,6 +6,7 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ### Added
 
+- Browser-local radio alert rules, opted-in system notifications, quiet hours, grouped reports, daily summaries and saved filter expiry.
 - Saved web spot filters, compact and band views, a side-by-side band comparison, pause with archive recovery, corroboration, comment operators and filtered CSV export.
 - DXCC directory, callsign suggestions and history, prefix exceptions, and geographic filters from DXSpider spot records.
 - Node diagnostics for session refresh delay, disk space, log growth and managed process IDs.

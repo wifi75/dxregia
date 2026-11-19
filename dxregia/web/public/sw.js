@@ -47,3 +47,14 @@ self.addEventListener('fetch', event => {
     )
   }
 })
+
+self.addEventListener('notificationclick', event => {
+  if (event.notification.tag !== 'dxregia-radio-alerts') return
+  event.notification.close()
+  const target = new URL('/spots?view=alerts', self.location.origin).href
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async windows => {
+    const existing = windows.find(client => client.url === target)
+    if (existing) return existing.focus()
+    return self.clients.openWindow(target)
+  }))
+})

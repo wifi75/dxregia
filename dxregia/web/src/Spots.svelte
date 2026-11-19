@@ -6,17 +6,26 @@
   import { soundOn, chirp, unlockAudio } from './sound.svelte'
 
   import SpotResearch from './SpotResearch.svelte'
-  import { bandFor, bands, commentMatcher, corroboratedSpots, exportSpotCSV, spotKey, type Spot } from './spotTools'
+  import { alertStorageKey, bandFor, bands, localDay, commentMatcher, corroboratedSpots, groupOf, modeInfo, exportSpotCSV, spotKey, type Spot } from './spotTools'
 
-  type SavedFilter = { name: string; bands: string[]; modes: string[]; noFt8: boolean; query: string; comment: string; confirmed: boolean }
+  type SavedFilter = { name: string; bands: string[]; modes: string[]; noFt8: boolean; query: string; comment: string; confirmed: boolean; expires?: string }
   const filterKey = 'dxregia-spot-filters'
   let savedFilters = $state<SavedFilter[]>([])
   let selectedFilter = $state('')
   let saveName = $state('')
+  let saveExpiry = $state('')
   let showSave = $state(false)
   let saveError = $state(false)
-  let activePage = $state<'feed' | 'research'>('feed')
+  let activePage = $state<'feed' | 'research' | 'alerts'>(new URLSearchParams(location.search).get('view') === 'alerts' ? 'alerts' : 'feed')
   let researchOpened = $state(false)
+  let RadioAlerts = $state<typeof import('./RadioAlerts.svelte').default>()
+  let alertsFailed = $state(false)
+
+  async function loadAlerts() {
+    if (RadioAlerts) return
+    try { RadioAlerts = (await import('./RadioAlerts.svelte')).default }
+    catch { alertsFailed = true }
+  }
   let view = $state<'table' | 'compact' | 'band' | 'compare'>('table')
   let bandA = $state('20 m')
   let bandB = $state('15 m')
@@ -47,15 +56,15 @@
   function commitFilter(event: SubmitEvent) {
     event.preventDefault()
     const name = saveName.trim()
-    if (!name) return
+    if (!name || (saveExpiry && saveExpiry < localDay(new Date()))) return
     const next = savedFilters.filter(filter => filter.name !== name).slice(-19)
-    next.push({ name, bands: [...bandSel], modes: [...modeSel], noFt8, query, comment: commentQuery, confirmed: onlyConfirmed })
-    if (persistFilters(next)) { selectedFilter = name; showSave = false; saveName = '' }
+    next.push({ name, bands: [...bandSel], modes: [...modeSel], noFt8, query, comment: commentQuery, confirmed: onlyConfirmed, expires: saveExpiry })
+    if (persistFilters(next)) { selectedFilter = name; showSave = false; saveName = ''; saveExpiry = '' }
   }
   function restoreFilter(name: string) {
     selectedFilter = name
     const filter = savedFilters.find(filter => filter.name === name)
-    if (!filter) return
+    if (!filter || (filter.expires && filter.expires < localDay(new Date()))) return
     bandSel = [...filter.bands]; modeSel = [...filter.modes]; noFt8 = filter.noFt8
     query = filter.query; commentQuery = filter.comment; onlyConfirmed = filter.confirmed
   }
@@ -142,35 +151,10 @@
   let reading = false
   let latestAt = $state(0)
   let spotClock = $state(Date.now())
+  const filterToday = $derived(localDay(new Date(spotClock)))
   let arrivalDelay = $state<number>()
   let archiveUpdatedAt = 0
   let views = $state<number>()
-  const modeFor = (comment: string) => comment.match(/\b(FT8|FT4|SSB|CW|RTTY|PSK31|USB|LSB)\b/i)?.[1].toUpperCase() ?? ''
-  // Se il commento non indica il modo, lo si deduce dalla frequenza (piano di banda IARU regione 1).
-  const ft8 = [1840, 3573, 5357, 7074, 10136, 14074, 18100, 21074, 24915, 28074, 50313]
-  const ft4 = [3575.5, 7047.5, 10140, 14080, 18104, 21140, 24919, 28180, 50318]
-  const segments: [number, number, string][] = [
-    [1800, 1838, 'CW'], [1838, 1843, 'DIGI'], [1843, 2000, 'SSB'],
-    [3500, 3570, 'CW'], [3570, 3600, 'DIGI'], [3600, 3800, 'SSB'],
-    [5351, 5367, 'DIGI'],
-    [7000, 7040, 'CW'], [7040, 7060, 'DIGI'], [7060, 7200, 'SSB'],
-    [10100, 10130, 'CW'], [10130, 10150, 'DIGI'],
-    [14000, 14070, 'CW'], [14070, 14099, 'DIGI'], [14112, 14350, 'SSB'],
-    [18068, 18095, 'CW'], [18095, 18109, 'DIGI'], [18111, 18168, 'SSB'],
-    [21000, 21070, 'CW'], [21070, 21150, 'DIGI'], [21151, 21450, 'SSB'],
-    [24890, 24915, 'CW'], [24915, 24931, 'DIGI'], [24931, 24990, 'SSB'],
-    [28000, 28070, 'CW'], [28070, 28190, 'DIGI'], [28225, 29700, 'SSB'],
-    [50000, 50100, 'CW'], [50100, 50300, 'SSB'], [50300, 50500, 'DIGI'],
-  ]
-  function inferMode(khz: number) {
-    if (ft8.some(value => Math.abs(khz - value) <= 1.2)) return 'FT8'
-    if (ft4.some(value => Math.abs(khz - value) <= 1.2)) return 'FT4'
-    return segments.find(([low, high]) => khz >= low && khz < high)?.[2] ?? ''
-  }
-  const modeInfo = (spot: Spot) => {
-    const declared = modeFor(spot.Comment)
-    return declared ? { mode: declared, inferred: false } : { mode: inferMode(spot.Frequency), inferred: true }
-  }
   const colors: Record<string, string> = {
     '160 m': '#f1bfae', '80 m': '#f6cf9b', '60 m': '#f2dbaf', '40 m': '#f2e39a',
     '30 m': '#cbe19c', '20 m': '#ffd48a', '17 m': '#dfcbf7', '15 m': '#aee1ed',
@@ -189,7 +173,6 @@
       return { spot, key: base + '#' + n, id: base }
     })
   }
-  const groupOf = (value: string) => ['FT8', 'FT4', 'RTTY', 'PSK31'].includes(value) ? 'DIGI' : ['SSB', 'USB', 'LSB'].includes(value) ? 'SSB' : value
   let filtered = $derived(shown.filter(spot =>
     (!bandSel.length || bandSel.includes(bandFor(spot.Frequency))) &&
     (!modeSel.length || modeSel.includes(groupOf(modeInfo(spot).mode))) &&
@@ -277,6 +260,10 @@
     } catch { /* il piè di pagina funziona anche senza */ }
   })
   onMount(() => {
+    const syncAlerts = (event: StorageEvent) => { if (event.key === alertStorageKey && event.newValue) void loadAlerts() }
+    window.addEventListener('storage', syncAlerts)
+    try { if (activePage === 'alerts' || localStorage.getItem(alertStorageKey)) void loadAlerts() }
+    catch { if (activePage === 'alerts') void loadAlerts() }
     try {
       const stored: unknown = JSON.parse(localStorage.getItem(filterKey) || '[]')
       if (Array.isArray(stored)) savedFilters = stored.slice(-20).filter(item => item && typeof item.name === 'string' &&
@@ -296,7 +283,7 @@
     }).catch(() => {})
     const timer = setInterval(refresh, 5000)
     const clockTimer = setInterval(() => { spotClock = Date.now() }, 1000)
-    return () => { clearInterval(timer); clearInterval(adxoTimer); clearInterval(clockTimer); window.removeEventListener('click', closePopup); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock) }
+    return () => { clearInterval(timer); clearInterval(adxoTimer); clearInterval(clockTimer); window.removeEventListener('storage', syncAlerts); window.removeEventListener('click', closePopup); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock) }
   })
 </script>
 
@@ -305,7 +292,12 @@
   <nav class="spot-tabs" aria-label={t('spotViews')}>
     <button class="chip" type="button" aria-pressed={activePage === 'feed'} onclick={() => activePage = 'feed'}>{t('navSpots')}</button>
     <button class="chip" type="button" aria-pressed={activePage === 'research'} onclick={() => { researchOpened = true; activePage = 'research' }}>{t('spotResearch')}</button>
+    <button class="chip" type="button" aria-pressed={activePage === 'alerts'} onclick={() => { activePage = 'alerts'; void loadAlerts() }}>{t('radioAlerts')}</button>
   </nav>
+  <div hidden={activePage !== 'alerts'}>
+    {#if RadioAlerts}<RadioAlerts {spots} {available} />
+    {:else}<p role="status">{alertsFailed ? t('archiveDown') : t('loading')}</p>{/if}
+  </div>
   {#if researchOpened}<div hidden={activePage !== 'research'}><SpotResearch {spots} /></div>{/if}
   <div hidden={activePage !== 'feed'}>
   <section class="filters glass-panel glass-enter" aria-label={t('filters')}>
@@ -367,10 +359,10 @@
     <label>{t('spotSavedFilters')}
       <select value={selectedFilter} onchange={event => restoreFilter(event.currentTarget.value)}>
         <option value="">{t('spotChooseFilter')}</option>
-        {#each savedFilters as filter (filter.name)}<option value={filter.name}>{filter.name}</option>{/each}
+        {#each savedFilters as filter (filter.name)}<option value={filter.name} disabled={Boolean(filter.expires && filter.expires < filterToday)}>{filter.name}{filter.expires && filter.expires < filterToday ? ' · ' + t('radioExpired') : ''}</option>{/each}
       </select>
     </label>
-    <button type="button" aria-expanded={showSave} onclick={() => { showSave = !showSave; saveName = selectedFilter; saveError = false }}>{t('spotSaveFilter')}</button>
+    <button type="button" aria-expanded={showSave} onclick={() => { showSave = !showSave; saveName = selectedFilter; saveExpiry = savedFilters.find(item => item.name === selectedFilter)?.expires ?? ''; saveError = false }}>{t('spotSaveFilter')}</button>
     <label>{t('spotView')}
       <select bind:value={view}>
         <option value="table">{t('spotTable')}</option><option value="compact">{t('spotCompact')}</option>
@@ -390,6 +382,7 @@
     {#if showSave}
       <form class="save-filter" onsubmit={commitFilter}>
         <label>{t('spotFilterName')}<input bind:value={saveName} maxlength="40" required /></label>
+        <label>{t('radioExpiry')}<input type="date" bind:value={saveExpiry} min={filterToday} /></label>
         <button type="submit">{t('spotSaveFilter')}</button>
         {#if savedFilters.some(filter => filter.name === saveName.trim())}
           <button type="button" onclick={() => { if (persistFilters(savedFilters.filter(filter => filter.name !== saveName.trim()))) { selectedFilter = ''; saveName = ''; showSave = false } }}>{t('spotRemoveFilter')}</button>
