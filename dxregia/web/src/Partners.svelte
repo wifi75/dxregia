@@ -108,11 +108,26 @@
     }
   }
 
+  let passwordDialog: HTMLDialogElement
+  let passwordTarget = $state('')
+
+  function confirmPasswordReset() {
+    if (!selected || enabling || passwordDialog.open) return
+    passwordTarget = selected.Call
+    passwordDialog.returnValue = ''
+    passwordDialog.showModal()
+  }
+
+  function finishPasswordReset() {
+    if (passwordDialog.returnValue === 'confirm' && selected?.Call === passwordTarget) {
+      void enable(false, true, false, true)
+    }
+  }
+
   async function enable(outgoingOnly = false, mail = false, unlock = false, resetCCInbound = false) {
     const call = selected?.Call
     if (!call || enabling) return
     if (unlock && !confirm(tr('Sbloccare {} in Mojo e preparare il collegamento? Se il nodo ha già una password locale, potrà usarla per collegarsi.', call))) return
-    if (resetCCInbound && !confirm(tr('Impostare una nuova password Telnet per {} e inviarla via email? La password precedente verrà sostituita.', call))) return
     enabling = true
     if (mail) emailStatus = 'In attesa dell’abilitazione'
     error = ''
@@ -547,7 +562,7 @@
             {/if}
             <div class="actions">
               {#if selected.CanResetCCInbound && selected.Email}
-                <button type="button" disabled={enabling || busy} onclick={() => enable(false, true, false, true)}
+                <button type="button" disabled={enabling || busy} onclick={confirmPasswordReset}
                   title="Sostituisce la password locale del partner e la invia dopo l’abilitazione.">Imposta nuova password e invia l’email</button>
               {:else if selected.Provisioning !== 'Abilitato in Mojo' && selected.Email}
                 <button type="button" disabled={!canEnableInbound || enabling || busy} onclick={() => enable(false, true)}>Abilita e invia l’email a {selected.Email}</button>
@@ -652,7 +667,21 @@
   {/if}
 </section>
 
+<dialog class="glass-panel password-dialog" bind:this={passwordDialog} onclose={finishPasswordReset}
+  aria-labelledby="partner-password-title" aria-describedby="partner-password-description">
+  <h2 id="partner-password-title">Nuova password Telnet</h2>
+  <p id="partner-password-description">{tr('La password Telnet di {} verrà sostituita. Il partner riceverà quella nuova via email.', passwordTarget)}</p>
+  <form method="dialog" class="actions">
+    <button class="secondary" value="cancel" autofocus>Annulla</button>
+    <button value="confirm">Imposta e invia</button>
+  </form>
+</dialog>
+
 <style>
+  .password-dialog { width: min(440px, calc(100% - 32px)); box-sizing: border-box; padding: 24px; color: var(--glass-text); }
+  .password-dialog::backdrop { background: #0b2238a0; backdrop-filter: blur(3px); }
+  .password-dialog .actions { justify-content: flex-end; }
+
   .mail-notice { display: flex; align-items: baseline; gap: .5rem; padding: .65rem .75rem; border: 1px solid #b4cbd8; border-radius: 6px; }
   .public-mail-result { flex-basis: 100%; }
   .mail-notice[data-tone='green'] { border-color: #7db59d; background: #e8f6ef; color: #145b3d; }
