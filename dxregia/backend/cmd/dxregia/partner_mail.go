@@ -17,6 +17,7 @@ type partnerMail struct {
 	Status                                     string
 	Lang, Contact                              string
 	PendingSent                                bool
+	SwitchFromIP                               bool
 	QueuedAt, RetryAt                          time.Time
 	Attempts                                   int
 	WatchUntil                                 time.Time
@@ -114,6 +115,15 @@ func advancePartnerMail(dir string, send func(string, string, mailContent) error
 			job.Password = ""
 			job.Status = "Abilitazione non riuscita. Istruzioni non inviate."
 			return true
+		}
+		if job.SwitchFromIP {
+			if err := os.Remove(filepath.Join(dir, job.Call+".inbound-ip")); err != nil && !os.IsNotExist(err) {
+				if !retryPartnerMail(job, err, "Passaggio alla password non riuscito. Istruzioni non inviate.", now) {
+					job.Password = ""
+				}
+				return true
+			}
+			job.SwitchFromIP = false
 		}
 		if err := send("instructions", job.Recipient, mailInstructions(job.Lang, *job, job.Contact)); err != nil {
 			if !retryPartnerMail(job, err, "Invio istruzioni non riuscito", now) {

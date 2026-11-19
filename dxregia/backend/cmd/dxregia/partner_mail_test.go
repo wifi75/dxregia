@@ -155,3 +155,19 @@ func TestMailMessageIsMultipart(t *testing.T) {
 		t.Fatal("HTML icon does not match the embedded PNG")
 	}
 }
+
+func TestIPInstructionsOmitCredentials(t *testing.T) {
+	for _, lang := range mailLanguages {
+		msg := mailIPInstructions(partnerMail{
+			Call: "N4ZKF-1", LocalNode: "IU3WJQ-7", Host: "cluster.example.org", Port: 8000, Lang: lang,
+			Password: "must-not-be-included",
+		})
+		script := "connect telnet cluster.example.org 8000\n'login' 'N4ZKF-1'\nclient IU3WJQ-7 telnet"
+		if !strings.Contains(msg.Text, script) {
+			t.Errorf("%s: missing expected passwordless connect script", lang)
+		}
+		if strings.Contains(msg.HTML+msg.Text, "must-not-be-included") || strings.Contains(msg.Text, "'password:'") {
+			t.Errorf("%s: included credential material", lang)
+		}
+	}
+}

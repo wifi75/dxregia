@@ -204,6 +204,21 @@ func mailNodeDetails(job partnerMail) mailContent {
 	})
 }
 
+func mailIPInstructions(job partnerMail) mailContent {
+	s := textsFor(job.Lang)
+	v := mailValues(job.Call, job.LocalNode, job.Contact, job.Host, job.Port)
+	title := fill(s.IPTitle, v)
+	script := fmt.Sprintf("timeout 15\nconnect telnet %s %d\n'login' '%s'\nclient %s telnet", job.Host, job.Port, job.Call, job.LocalNode)
+	return renderMail("DXRegia · "+title, mailBlocks{
+		Preheader: title, Title: title, Hello: fill(s.Hello, v), Intro: s.IPIntro,
+		DataTitle: s.DataTitle, Tone: "info", Lang: job.Lang,
+		Rows: []mailRow{{s.LNode, job.LocalNode, false}, {s.LHost, job.Host, false},
+			{s.LPort, fmt.Sprint(job.Port), false}, {s.LCall, job.Call, false}},
+		ScriptTitle: s.ScriptTitle, Script: script, ScriptNote: s.ScriptNote,
+		Footer: s.Footer, Auto: fill(s.AutoNote, v),
+	})
+}
+
 func mailInstructions(lang string, job partnerMail, contact string) mailContent {
 	s := textsFor(lang)
 	v := mailValues(job.Call, job.LocalNode, contact, job.Host, job.Port)

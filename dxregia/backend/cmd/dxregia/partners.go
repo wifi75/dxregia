@@ -326,7 +326,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
 			return
 		}
-		var options struct{ SendMail, OutgoingOnly, Unlock, ResetCCInbound bool }
+		var options struct{ SendMail, OutgoingOnly, Unlock, ResetCCInbound, SwitchFromIP bool }
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256))
 		decoder.DisallowUnknownFields()
 		if err := decoder.Decode(&options); err != io.EOF && (err != nil || decoder.Decode(new(any)) != io.EOF) {
@@ -342,6 +342,10 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			return
 		}
 		snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
+		if options.SwitchFromIP && (!options.ResetCCInbound || !options.SendMail || partnerInboundIP(root, call) == "") {
+			http.Error(w, "Per passare dall’IP alla password serve una nuova password da inviare al partner.", http.StatusConflict)
+			return
+		}
 		if options.ResetCCInbound && (options.OutgoingOnly || options.Unlock || !snapshot.CCInboundReset[call]) {
 			http.Error(w, "Questo account CC Cluster non può essere aggiornato dal pannello.", http.StatusConflict)
 			return
@@ -358,7 +362,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, lockedPartnerStatus, http.StatusConflict)
 			return
 		}
-		if entry.Provisioning == "In attesa di Mojo" || (!options.Unlock && entry.Provisioning == "Abilitato in Mojo") {
+		if entry.Provisioning == "In attesa di Mojo" || (!options.Unlock && !options.SwitchFromIP && entry.Provisioning == "Abilitato in Mojo") {
 			w.WriteHeader(http.StatusAccepted)
 			return
 		}
@@ -402,6 +406,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		mailStatus := ""
 		if options.SendMail {
 			job.Password = password
+			job.SwitchFromIP = options.SwitchFromIP
 			if err := writePartnerMail(filepath.Join(root, "local_data", "dxregia-partners", call+".mail.json"), job); err != nil {
 				log.Printf("Queue partner instructions: %v", err)
 				mailStatus = "Istruzioni non accodate. Puoi inviarle manualmente."
@@ -553,12 +558,21 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		call := r.PathValue("call")
 		lock.Lock()
-		defer lock.Unlock()
-		if _, ok := partners[call]; !ok || !validPartnerIPCall(call) {
+		locked := true
+		defer func() {
+			if locked {
+				lock.Unlock()
+			}
+		}()
+		entry, ok := partners[call]
+		if !ok || !validPartnerIPCall(call) {
 			http.NotFound(w, r)
 			return
 		}
 		path := partnerInboundIPPath(root, call)
+		sendMail := r.Method == http.MethodPut && r.URL.Query().Get("send-mail") == "true"
+		var job partnerMail
+		var smtp *contactMailer
 		var err error
 		if r.Method == http.MethodDelete {
 			err = os.Remove(path)
@@ -583,6 +597,26 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				http.Error(w, "Serve un account CC Cluster locale e sbloccato.", http.StatusConflict)
 				return
 			}
+			var pending partnerMail
+			if data, readErr := os.ReadFile(filepath.Join(filepath.Dir(path), call+".mail.json")); readErr == nil {
+				_ = json.Unmarshal(data, &pending)
+			}
+			if entry.Provisioning == "In attesa di Mojo" || pending.SwitchFromIP && pending.Password != "" {
+				http.Error(w, "Attendi l’esito della configurazione in corso prima di cambiare modalità.", http.StatusConflict)
+				return
+			}
+			if sendMail {
+				smtp = mailer()
+				if smtp == nil {
+					http.Error(w, "Configura SMTP prima di inviare le istruzioni al partner.", http.StatusConflict)
+					return
+				}
+				job, err = preparePartnerMail(root, entry)
+				if err != nil {
+					http.Error(w, "Per l’email servono l’indirizzo del referente e l’host pubblico del nodo.", http.StatusBadRequest)
+					return
+				}
+			}
 			if err = os.MkdirAll(filepath.Dir(path), 0700); err == nil {
 				err = writePrivateJSON(path, ip.String())
 			}
@@ -590,6 +624,15 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		if err != nil {
 			http.Error(w, "Impossibile aggiornare l’accesso per IP.", http.StatusServiceUnavailable)
 			return
+		}
+		lock.Unlock()
+		locked = false
+		if sendMail {
+			content := mailIPInstructions(job)
+			if err := archivePartnerDelivery(root, call, "ip-instructions", job.Recipient, "", content, smtp.sendContent); err != nil {
+				http.Error(w, "Accesso per IP salvato. L’invio dell’email non è confermato: controlla SMTP e riprova.", http.StatusBadGateway)
+				return
+			}
 		}
 		w.WriteHeader(http.StatusNoContent)
 	}

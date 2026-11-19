@@ -23,6 +23,7 @@ func validLang(lang string) bool { return lang == "" || normalizeLang(lang) == l
 // mailStrings raccoglie tutti i testi delle email per una lingua. I segnaposto
 // {call}, {node}, {host}, {port} e {name} vengono sostituiti prima dell'invio.
 type mailStrings struct {
+	IPTitle, IPIntro                                              string
 	Hello, Footer, AutoNote                                       string
 	DetailsTitle, DetailsIntro                                    string
 	InstrSubject, InstrTitle, InstrIntro                          string
@@ -40,6 +41,7 @@ type mailStrings struct {
 
 var mailTexts = map[string]mailStrings{
 	"it": {
+		IPTitle: "Collega {call} a {node} senza password", IPIntro: "Usa il tuo indicativo completo. L’accesso è autorizzato dall’IP pubblico concordato e non richiede una password.",
 		DetailsTitle: "Dati del nodo {node}", DetailsIntro: "Ti invio i dati pubblici del mio nodo. L’accesso in ingresso va concordato a parte: rispondi a questa email per confermare le impostazioni del collegamento.",
 		Hello: "Ciao {name},", AutoNote: "Messaggio automatico di DXRegia. Per qualsiasi dubbio rispondi a questa email o scrivi al sysop del nodo {node}.",
 		Footer:       "DXRegia · cluster DX per radioamatori",
@@ -68,6 +70,7 @@ var mailTexts = map[string]mailStrings{
 		RecvNext: "Se la richiesta riguarda un collegamento tra nodi, riceverai i dati di accesso con una nuova email non appena sarà pronto.", YourData: "Riepilogo della richiesta",
 	},
 	"en": {
+		IPTitle: "Connect {call} to {node} without a password", IPIntro: "Use your full callsign. Access is restricted to the agreed public IP address and requires no password.",
 		DetailsTitle: "Node details for {node}", DetailsIntro: "Here are the public details for my node. Inbound access is arranged separately. Please reply to confirm the link settings.",
 		Hello: "Hello {name},", AutoNote: "Automatic message from DXRegia. If in doubt, reply to this email or write to the sysop of node {node}.",
 		Footer:       "DXRegia · DX cluster for radio amateurs",
@@ -96,6 +99,7 @@ var mailTexts = map[string]mailStrings{
 		RecvNext: "If your request is about a link between nodes, you will receive the access details in a new email as soon as it is ready.", YourData: "Summary of your request",
 	},
 	"es": {
+		IPTitle: "Conecta {call} a {node} sin contraseña", IPIntro: "Usa tu indicativo completo. El acceso se limita a la IP pública acordada y no requiere contraseña.",
 		DetailsTitle: "Datos del nodo {node}", DetailsIntro: "Estos son los datos públicos de mi nodo. El acceso entrante se acuerda por separado. Responde a este correo para confirmar los ajustes del enlace.",
 		Hello: "Hola {name},", AutoNote: "Mensaje automático de DXRegia. Si tienes dudas, responde a este correo o escribe al sysop del nodo {node}.",
 		Footer:       "DXRegia · clúster DX para radioaficionados",
@@ -124,6 +128,7 @@ var mailTexts = map[string]mailStrings{
 		RecvNext: "Si la solicitud es para un enlace entre nodos, recibirás los datos de acceso en un nuevo correo en cuanto estén listos.", YourData: "Resumen de tu solicitud",
 	},
 	"de": {
+		IPTitle: "{call} ohne Passwort mit {node} verbinden", IPIntro: "Verwende dein vollständiges Rufzeichen. Der Zugang ist auf die vereinbarte öffentliche IP-Adresse beschränkt und erfordert kein Passwort.",
 		DetailsTitle: "Knotendaten für {node}", DetailsIntro: "Hier sind die öffentlichen Daten meines Knotens. Der eingehende Zugang wird separat vereinbart. Bitte antworte auf diese E-Mail, um die Verbindungseinstellungen abzustimmen.",
 		Hello: "Hallo {name},", AutoNote: "Automatische Nachricht von DXRegia. Bei Fragen antworte auf diese E-Mail oder schreibe dem Sysop des Knotens {node}.",
 		Footer:       "DXRegia · DX-Cluster für Funkamateure",
@@ -152,6 +157,7 @@ var mailTexts = map[string]mailStrings{
 		RecvNext: "Betrifft die Anfrage eine Verbindung zwischen Knoten, erhältst du die Zugangsdaten in einer neuen E-Mail, sobald sie bereit sind.", YourData: "Zusammenfassung deiner Anfrage",
 	},
 	"fr": {
+		IPTitle: "Connecter {call} à {node} sans mot de passe", IPIntro: "Utilise ton indicatif complet. L’accès est limité à l’adresse IP publique convenue et ne nécessite aucun mot de passe.",
 		DetailsTitle: "Coordonnées du nœud {node}", DetailsIntro: "Voici les coordonnées publiques de mon nœud. L’accès entrant se règle séparément. Réponds à ce message pour confirmer les paramètres de liaison.",
 		Hello: "Bonjour {name},", AutoNote: "Message automatique de DXRegia. En cas de doute, réponds à cet e-mail ou écris au sysop du nœud {node}.",
 		Footer:       "DXRegia · cluster DX pour radioamateurs",
@@ -180,6 +186,7 @@ var mailTexts = map[string]mailStrings{
 		RecvNext: "Si la demande concerne une liaison entre nœuds, tu recevras les données d’accès dans un nouvel e-mail dès qu’elles seront prêtes.", YourData: "Récapitulatif de ta demande",
 	},
 	"pt": {
+		IPTitle: "Ligar {call} a {node} sem palavra-passe", IPIntro: "Usa o indicativo completo. O acesso é limitado ao endereço IP público acordado e dispensa a palavra-passe.",
 		DetailsTitle: "Dados do nó {node}", DetailsIntro: "Estes são os dados públicos do meu nó. O acesso de entrada é combinado à parte. Responde a este email para confirmar as definições da ligação.",
 		Hello: "Olá {name},", AutoNote: "Mensagem automática do DXRegia. Em caso de dúvida, responde a este e-mail ou escreve ao sysop do nó {node}.",
 		Footer:       "DXRegia · cluster DX para radioamadores",

@@ -27,6 +27,8 @@
   let autoReconnect = $state(false)
   let emailStatus = $state('')
   let inboundIP = $state('')
+  let inboundMode = $state<'password' | 'ip'>('password')
+  let ipMailStatus = $state<{ text: string; error: boolean }>()
   let publicMail = $state<{ call: string; state: 'sending' | 'accepted' | 'failed'; text: string }>()
   let localNode = $state('')
 
@@ -54,6 +56,8 @@
     emailStatus = ''
     selected = partner
     inboundIP = partner?.InboundIP ?? ''
+    inboundMode = inboundIP ? 'ip' : 'password'
+    ipMailStatus = undefined
     form = partner
       ? { Call: partner.Call, Name: partner.Name, Contact: partner.Contact, Email: partner.Email, Host: partner.Host, Port: partner.Port, Lang: partner.Lang ?? '', Person: partner.Person ?? '' }
       : empty()
@@ -124,12 +128,12 @@
 
   function finishPasswordReset() {
     if (passwordDialog.returnValue === 'confirm' && selected?.Call === passwordTarget) {
-      if (confirmation === 'password') void enable(false, true, false, true)
+      if (confirmation === 'password') void enable(false, true, false, true, Boolean(selected?.InboundIP))
       else void startInboundTest(confirmation === 'automatic')
     }
   }
 
-  async function enable(outgoingOnly = false, mail = false, unlock = false, resetCCInbound = false) {
+  async function enable(outgoingOnly = false, mail = false, unlock = false, resetCCInbound = false, switchFromIP = false) {
     const call = selected?.Call
     if (!call || enabling) return
     if (unlock && !confirm(tr('Sbloccare {} in Mojo e preparare il collegamento? Se il nodo ha già una password locale, potrà usarla per collegarsi.', call))) return
@@ -140,7 +144,7 @@
     try {
       const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/enable', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ SendMail: !outgoingOnly && mail, OutgoingOnly: outgoingOnly, Unlock: unlock, ResetCCInbound: resetCCInbound }),
+        body: JSON.stringify({ SendMail: !outgoingOnly && mail, OutgoingOnly: outgoingOnly, Unlock: unlock, ResetCCInbound: resetCCInbound, SwitchFromIP: switchFromIP }),
       })
       if (!response.ok) {
         error = (await response.text()).trim()
@@ -251,26 +255,33 @@
     }
   }
 
-  async function saveInboundIP(remove = false) {
+  async function saveInboundIP(sendMail = false) {
     const call = selected?.Call
     if (!call || enabling) return
     enabling = true
     error = message = ''
+    if (sendMail) ipMailStatus = { text: 'Invio delle istruzioni in corso…', error: false }
     try {
-      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/inbound-ip', {
-        method: remove ? 'DELETE' : 'PUT',
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/inbound-ip' + (sendMail ? '?send-mail=true' : ''), {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: remove ? undefined : JSON.stringify(inboundIP),
+        body: JSON.stringify(inboundIP),
       })
+      if (selected?.Call !== call) return
       if (!response.ok) {
-        error = (await response.text()).trim()
-        return
+        const text = (await response.text()).trim() || 'Impossibile aggiornare l’accesso per IP.'
+        if (sendMail) ipMailStatus = { text, error: true }
+        else error = text
+      } else if (sendMail) {
+        ipMailStatus = { text: 'Istruzioni senza password accettate da SMTP. Vedi Storico email partner.', error: false }
+      } else {
+        message = 'Accesso senza password abilitato per l’indirizzo IP del partner.'
       }
-      if (remove) inboundIP = ''
-      message = remove ? 'Accesso per IP rimosso.' : 'Accesso senza password abilitato per l’indirizzo IP del partner.'
       await refreshProvisioning()
     } catch {
-      error = 'Impossibile aggiornare l’accesso per IP.'
+      const text = 'Operazione non confermata. Controlla lo stato e lo Storico email partner.'
+      if (sendMail && selected?.Call === call) ipMailStatus = { text, error: true }
+      else error = text
     } finally {
       enabling = false
     }
@@ -561,17 +572,33 @@
                 <span class="muted">· Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</span>
               </p>
             {/if}
-            {#if selected.CanSetInboundIP || selected.InboundIP}
-              <form onsubmit={event => { event.preventDefault(); void saveInboundIP() }}>
-                <label>Accesso CC Cluster senza password · IP pubblico del partner
+            <label>Autenticazione in ingresso
+              <select bind:value={inboundMode} disabled={enabling || busy}>
+                <option value="password">Con password</option>
+                {#if selected.CanSetInboundIP || selected.InboundIP}
+                  <option value="ip">Senza password · IP autorizzato</option>
+                {/if}
+              </select>
+            </label>
+            {#if inboundMode === 'ip'}
+              <form onsubmit={event => {
+                event.preventDefault()
+                void saveInboundIP((event.submitter as HTMLButtonElement)?.value === 'send')
+              }}>
+                <label>IP pubblico del partner
                   <input bind:value={inboundIP} required maxlength="45" spellcheck="false" autocomplete="off" disabled={!selected.CanSetInboundIP || enabling} />
                 </label>
-                <p class="hint">Usa l’IP pubblico da cui il partner avvia la connessione. Il suo indicativo sarà accettato solo da quell’indirizzo.</p>
+                <p class="hint">Il partner potrà collegarsi con il suo indicativo soltanto da questo indirizzo.</p>
                 <div class="actions">
-                  <button type="submit" disabled={enabling || busy || !selected.CanSetInboundIP}>Salva accesso per IP</button>
-                  {#if selected.InboundIP}<button class="secondary" type="button" disabled={enabling || busy} onclick={() => saveInboundIP(true)}>Rimuovi accesso per IP</button>{/if}
+                  {#if selected.Email}
+                    <button type="submit" value="send" disabled={enabling || busy || !selected.CanSetInboundIP}>Salva e invia senza password</button>
+                  {/if}
+                  <button class="secondary" type="submit" value="save" disabled={enabling || busy || !selected.CanSetInboundIP}>Salva senza inviare</button>
                 </div>
               </form>
+              {#if ipMailStatus}
+                <p class="mail-notice" data-tone={ipMailStatus.error ? 'red' : enabling ? 'amber' : 'green'} role="status">{ipMailStatus.text}</p>
+              {/if}
             {/if}
             {#if selected.InboundAutoNext}
               <p class="muted">Prova automatica attiva.
@@ -613,19 +640,19 @@
               <div class="actions"><button class="secondary" type="button" onclick={revealPassword}>Mostra la password del partner</button></div>
             {/if}
             <div class="actions">
-              {#if selected.CanResetCCInbound && selected.Email && !inboundByIP}
+              {#if inboundMode === 'password' && (selected.CanResetCCInbound || inboundByIP) && selected.Email}
                 <button type="button" disabled={enabling || busy} onclick={() => openPartnerConfirmation('password')}
-                  title="Sostituisce la password locale del partner e la invia dopo l’abilitazione.">Imposta nuova password e invia l’email</button>
-              {:else if selected.Provisioning !== 'Abilitato in Mojo' && selected.Email && !inboundByIP}
+                  title="Sostituisce la password locale del partner e la invia dopo l’abilitazione.">{inboundByIP ? 'Passa alla password e invia l’email' : 'Imposta nuova password e invia l’email'}</button>
+              {:else if inboundMode === 'password' && selected.Provisioning !== 'Abilitato in Mojo' && selected.Email && !inboundByIP}
                 <button type="button" disabled={!canEnableInbound || enabling || busy} onclick={() => enable(false, true)}>Abilita e invia l’email a {selected.Email}</button>
                 {#if canEnableInbound}
                   <button class="secondary" type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita senza email</button>
                 {/if}
-              {:else if canEnableInbound && !inboundByIP}
+              {:else if inboundMode === 'password' && canEnableInbound && !inboundByIP}
                 <button type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita l’accesso</button>
                 <span class="hint">Aggiungi l’email del referente in «Dati del nodo» per poter inviare le istruzioni.</span>
               {/if}
-              {#if selected.Provisioning === 'Abilitato in Mojo' && !inboundByIP}
+              {#if inboundMode === 'password' && selected.Provisioning === 'Abilitato in Mojo' && !inboundByIP}
                 <button type="button" disabled={enabling || busy || !selected.CanResend} onclick={resend}>Reinvia le istruzioni via email</button>
                 {#if !selected.CanResend}<span class="hint">Per reinviare servono l’email del referente e una password conservata da questa versione in poi.</span>{/if}
               {/if}
@@ -731,6 +758,7 @@
   <h2 id="partner-password-title">{confirmation === 'password' ? 'Nuova password Telnet' : confirmation === 'automatic' ? 'Prova automatica in ingresso' : 'Prova in ingresso'}</h2>
   <p id="partner-password-description">{#if confirmation === 'password'}
       {tr('La password Telnet di {} verrà sostituita. Il partner riceverà quella nuova via email.', passwordTarget)}
+      {#if selected?.InboundIP}L’accesso per IP verrà rimosso dopo la configurazione della password.{/if}
     {:else if confirmation === 'automatic'}
       Finché il partner è scollegato in ingresso, ogni 30 minuti DXRegia sospende l’uscita per 5 minuti. La modalità resta attiva anche a portale chiuso e dopo un riavvio.
     {:else}

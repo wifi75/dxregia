@@ -4,7 +4,7 @@
 
   type Message = { ID: string; At: string; Call: string; Recipient: string; Kind: string; Subject: string; Text: string; Status: string }
 
-  const kinds: Record<string, string> = { 'node-details': 'Dati pubblici del nodo', instructions: 'Istruzioni', confirmed: 'Conferma collegamento', pending: 'Avviso di mancato collegamento' }
+  const kinds: Record<string, string> = { 'node-details': 'Dati pubblici del nodo', 'ip-instructions': 'Istruzioni senza password', instructions: 'Istruzioni', confirmed: 'Conferma collegamento', pending: 'Avviso di mancato collegamento' }
   const statuses: Record<string, string> = { accepted: 'Accettata da SMTP', failed: 'Invio non riuscito', unknown: 'Esito non registrato' }
   const date = $derived(new Intl.DateTimeFormat(lang(), { dateStyle: 'short', timeStyle: 'medium', timeZone: 'UTC' }))
 
