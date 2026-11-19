@@ -395,6 +395,11 @@
               <span class="led" data-tone={connectionTone(selected.Connection)} aria-hidden="true"></span>
               {selected.Connection || 'Stato in attesa'}
             </p>
+            {#if selected.Connection === 'Collegamento in corso' && selected.Direction === 'Uscita'}
+              <p class="hint">In attesa della risposta del nodo remoto. Se l’attesa continua, chiedi al referente di verificare che il tuo indicativo completo, SSID incluso, sia configurato come nodo partner e che la richiesta di password corrisponda.</p>
+            {:else if selected.Connection === 'Collegamento non confermato'}
+              <p class="hint">La sessione tra i nodi non è stata confermata. Cerca l’indicativo nel Log DXSpider per vedere a quale fase si è fermato il tentativo.</p>
+            {/if}
             {#if selected.Reconnect}
               <p class="muted">Riconnessione automatica: {selected.Reconnect}.
                 {#if selected.LastConnectAttempt}Ultimo tentativo {new Date(selected.LastConnectAttempt).toLocaleString('it-IT', { timeZone: 'UTC' })} UTC.{/if}
@@ -424,7 +429,7 @@
                   {/if}
                   <span class="hint">Mojo ha un blocco locale per questo indicativo. Può essere stato impostato dal sysop o applicato quando Mojo ha scoperto il nodo in rete.</span>
                 {:else if selected.Connection !== 'Attivo' && outgoingReady}
-                  <button disabled={enabling || busy}>Connetti ora</button>
+                  <button disabled={enabling || busy || selected.Connection === "In coda" || selected.Connection === "Collegamento in corso"}>Connetti ora</button>
                 {:else if selected.Connection !== 'Attivo'}
                   <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
                     onclick={() => enable(true)}>Prepara il collegamento</button>

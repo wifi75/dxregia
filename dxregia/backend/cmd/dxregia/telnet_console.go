@@ -19,6 +19,7 @@ func registerTelnetConsole(mux *http.ServeMux, auth *sysopAuth, target func() st
 	if auth == nil {
 		return
 	}
+	registerLiveTelnetConsole(mux, auth, target)
 	busy := make(chan struct{}, 1)
 	mux.HandleFunc("POST /api/console", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
@@ -87,26 +88,8 @@ func registerTelnetConsole(mux *http.ServeMux, auth *sysopAuth, target func() st
 
 func queryTelnet(conn io.ReadWriter, call, command, password string) (string, error) {
 	reader := bufio.NewReader(conn)
-	if _, err := readConsolePrompt(reader, "login:"); err != nil {
+	if err := loginConsole(conn, reader, call, password); err != nil {
 		return "", err
-	}
-	if _, err := fmt.Fprintf(conn, "%s\r\n", call); err != nil {
-		return "", err
-	}
-	welcome, err := readConsolePrompt(reader, "dxspider >", "password:")
-	if err != nil {
-		return "", err
-	}
-	if strings.HasSuffix(welcome, "password:") {
-		if password == "" || len(password) > 72 || strings.ContainsAny(password, "\r\n\x00") {
-			return "", errors.New("Telnet credentials required")
-		}
-		if _, err := fmt.Fprintf(conn, "%s\r\n", password); err != nil {
-			return "", err
-		}
-		if _, err := readConsolePrompt(reader, "dxspider >"); err != nil {
-			return "", err
-		}
 	}
 	if _, err := fmt.Fprintf(conn, "%s\r\n", command); err != nil {
 		return "", err
@@ -118,6 +101,31 @@ func queryTelnet(conn io.ReadWriter, call, command, password string) (string, er
 	return strings.TrimSpace(output), err
 }
 
+func loginConsole(conn io.Writer, reader *bufio.Reader, call, password string) error {
+	if _, err := readConsolePrompt(reader, "login:"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(conn, "%s\r\n", call); err != nil {
+		return err
+	}
+	welcome, err := readConsolePrompt(reader, "dxspider >", "password:")
+	if err != nil {
+		return err
+	}
+	if strings.HasSuffix(strings.ToLower(welcome), "password:") {
+		if password == "" || len(password) > 72 || strings.ContainsAny(password, "\r\n\x00") {
+			return errors.New("Telnet credentials required")
+		}
+		if _, err := fmt.Fprintf(conn, "%s\r\n", password); err != nil {
+			return err
+		}
+		if _, err := readConsolePrompt(reader, "dxspider >"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func readConsolePrompt(reader *bufio.Reader, markers ...string) (string, error) {
 	var output strings.Builder
 	for output.Len() < 64<<10 {
@@ -127,7 +135,7 @@ func readConsolePrompt(reader *bufio.Reader, markers ...string) (string, error) 
 		}
 		output.WriteByte(ch)
 		for _, marker := range markers {
-			if strings.HasSuffix(output.String(), marker) {
+			if output.Len() >= len(marker) && strings.EqualFold(output.String()[output.Len()-len(marker):], marker) {
 				return output.String(), nil
 			}
 		}

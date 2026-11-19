@@ -44,7 +44,7 @@ var mailTexts = map[string]mailStrings{
 		InstrSubject: "DXRegia · le istruzioni per collegare {call} al nodo {node}",
 		InstrTitle:   "Il tuo nodo {call} è stato abilitato",
 		InstrIntro:   "Abbiamo preparato l’accesso del tuo nodo al cluster {node}. Qui sotto trovi tutti i dati e i passi da seguire per completare il collegamento.",
-		DataTitle:    "I dati per collegarti", LNode: "Nodo a cui collegarti", LHost: "Indirizzo (host)", LPort: "Porta Telnet", LCall: "Indicativo da usare al login", LPass: "Password dedicata", LProfile: "Profilo del collegamento", VProf: "Nodo DXSpider (peering)",
+		DataTitle:    "I dati per collegarti", LNode: "Nodo a cui collegarti", LHost: "Indirizzo (host)", LPort: "Porta Telnet", LCall: "Indicativo da usare al login", LPass: "Password dedicata", LProfile: "Profilo del collegamento", VProf: "Nodo DXRegia (compatibile DXSpider)",
 		StepsTitle: "Cosa fare, passo per passo",
 		Steps: [4]string{
 			"Sul tuo nodo imposta il collegamento verso {host}, porta {port}, come nodo di tipo DXSpider.",
@@ -71,7 +71,7 @@ var mailTexts = map[string]mailStrings{
 		InstrSubject: "DXRegia · instructions to connect {call} to node {node}",
 		InstrTitle:   "Your node {call} has been enabled",
 		InstrIntro:   "We have prepared your node’s access to the {node} cluster. Below you will find all the details and the steps to complete the link.",
-		DataTitle:    "Your connection details", LNode: "Node to connect to", LHost: "Address (host)", LPort: "Telnet port", LCall: "Callsign to use at login", LPass: "Dedicated password", LProfile: "Link profile", VProf: "DXSpider node (peering)",
+		DataTitle:    "Your connection details", LNode: "Node to connect to", LHost: "Address (host)", LPort: "Telnet port", LCall: "Callsign to use at login", LPass: "Dedicated password", LProfile: "Link profile", VProf: "DXRegia node (DXSpider-compatible)",
 		StepsTitle: "What to do, step by step",
 		Steps: [4]string{
 			"On your node, set up a link to {host}, port {port}, as a DXSpider-type node.",
@@ -98,7 +98,7 @@ var mailTexts = map[string]mailStrings{
 		InstrSubject: "DXRegia · instrucciones para conectar {call} al nodo {node}",
 		InstrTitle:   "Tu nodo {call} ha sido habilitado",
 		InstrIntro:   "Hemos preparado el acceso de tu nodo al clúster {node}. Abajo encontrarás todos los datos y los pasos para completar el enlace.",
-		DataTitle:    "Tus datos de conexión", LNode: "Nodo al que conectarte", LHost: "Dirección (host)", LPort: "Puerto Telnet", LCall: "Indicativo para el login", LPass: "Contraseña dedicada", LProfile: "Perfil del enlace", VProf: "Nodo DXSpider (peering)",
+		DataTitle:    "Tus datos de conexión", LNode: "Nodo al que conectarte", LHost: "Dirección (host)", LPort: "Puerto Telnet", LCall: "Indicativo para el login", LPass: "Contraseña dedicada", LProfile: "Perfil del enlace", VProf: "Nodo DXRegia (compatible con DXSpider)",
 		StepsTitle: "Qué hacer, paso a paso",
 		Steps: [4]string{
 			"En tu nodo configura el enlace hacia {host}, puerto {port}, como nodo de tipo DXSpider.",
@@ -125,7 +125,7 @@ var mailTexts = map[string]mailStrings{
 		InstrSubject: "DXRegia · Anleitung zum Verbinden von {call} mit dem Knoten {node}",
 		InstrTitle:   "Dein Knoten {call} wurde freigeschaltet",
 		InstrIntro:   "Wir haben den Zugang deines Knotens zum Cluster {node} vorbereitet. Unten findest du alle Daten und die Schritte, um die Verbindung herzustellen.",
-		DataTitle:    "Deine Verbindungsdaten", LNode: "Knoten, mit dem du dich verbindest", LHost: "Adresse (Host)", LPort: "Telnet-Port", LCall: "Rufzeichen für den Login", LPass: "Eigenes Passwort", LProfile: "Verbindungsprofil", VProf: "DXSpider-Knoten (Peering)",
+		DataTitle:    "Deine Verbindungsdaten", LNode: "Knoten, mit dem du dich verbindest", LHost: "Adresse (Host)", LPort: "Telnet-Port", LCall: "Rufzeichen für den Login", LPass: "Eigenes Passwort", LProfile: "Verbindungsprofil", VProf: "DXRegia-Knoten (DXSpider-kompatibel)",
 		StepsTitle: "Was zu tun ist, Schritt für Schritt",
 		Steps: [4]string{
 			"Richte auf deinem Knoten die Verbindung zu {host}, Port {port}, als Knoten vom Typ DXSpider ein.",
@@ -152,7 +152,7 @@ var mailTexts = map[string]mailStrings{
 		InstrSubject: "DXRegia · instructions pour connecter {call} au nœud {node}",
 		InstrTitle:   "Ton nœud {call} a été activé",
 		InstrIntro:   "Nous avons préparé l’accès de ton nœud au cluster {node}. Tu trouveras ci-dessous toutes les données et les étapes pour terminer la liaison.",
-		DataTitle:    "Tes données de connexion", LNode: "Nœud auquel te connecter", LHost: "Adresse (hôte)", LPort: "Port Telnet", LCall: "Indicatif à utiliser à la connexion", LPass: "Mot de passe dédié", LProfile: "Profil de la liaison", VProf: "Nœud DXSpider (peering)",
+		DataTitle:    "Tes données de connexion", LNode: "Nœud auquel te connecter", LHost: "Adresse (hôte)", LPort: "Port Telnet", LCall: "Indicatif à utiliser à la connexion", LPass: "Mot de passe dédié", LProfile: "Profil de la liaison", VProf: "Nœud DXRegia (compatible DXSpider)",
 		StepsTitle: "Que faire, étape par étape",
 		Steps: [4]string{
 			"Sur ton nœud, configure la liaison vers {host}, port {port}, comme nœud de type DXSpider.",
@@ -179,7 +179,7 @@ var mailTexts = map[string]mailStrings{
 		InstrSubject: "DXRegia · instruções para ligar {call} ao nó {node}",
 		InstrTitle:   "O teu nó {call} foi ativado",
 		InstrIntro:   "Preparámos o acesso do teu nó ao cluster {node}. Abaixo encontras todos os dados e os passos para concluir a ligação.",
-		DataTitle:    "Os teus dados de ligação", LNode: "Nó ao qual te ligas", LHost: "Endereço (host)", LPort: "Porta Telnet", LCall: "Indicativo a usar no login", LPass: "Palavra-passe dedicada", LProfile: "Perfil da ligação", VProf: "Nó DXSpider (peering)",
+		DataTitle:    "Os teus dados de ligação", LNode: "Nó ao qual te ligas", LHost: "Endereço (host)", LPort: "Porta Telnet", LCall: "Indicativo a usar no login", LPass: "Palavra-passe dedicada", LProfile: "Perfil da ligação", VProf: "Nó DXRegia (compatível com DXSpider)",
 		StepsTitle: "O que fazer, passo a passo",
 		Steps: [4]string{
 			"No teu nó, configura a ligação a {host}, porta {port}, como nó do tipo DXSpider.",
