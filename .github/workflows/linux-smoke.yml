@@ -3,9 +3,14 @@ name: Linux installation smoke test
 on:
   push:
     branches: [main, dxregia-linux-validation]
+    paths-ignore: ['docs/**', '**/*.md', '.github/ISSUE_TEMPLATE/**']
   pull_request:
-    paths: ['dxregia/**', 'engine/**', '.github/workflows/linux-smoke.yml']
+    paths-ignore: ['docs/**', '**/*.md', '.github/ISSUE_TEMPLATE/**']
   workflow_dispatch:
+
+concurrency:
+  group: linux-smoke-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
