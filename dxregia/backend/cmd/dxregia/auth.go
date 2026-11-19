@@ -86,7 +86,7 @@ func registerAuth(mux *http.ServeMux, root, bootstrapFile string) (*sysopAuth, e
 			return nil, err
 		}
 		key, err := totpEncoding.DecodeString(auth.factor.Key)
-		if (err != nil || len(key) != 20) && !(auth.factor.Key == "" && auth.factor.ResetPending) {
+		if auth.factor.Key != "" && (err != nil || len(key) != 20) {
 			return nil, errors.New("invalid sysop TOTP key")
 		}
 	} else if !os.IsNotExist(err) {
@@ -95,6 +95,7 @@ func registerAuth(mux *http.ServeMux, root, bootstrapFile string) (*sysopAuth, e
 	auth.restoreWebSession()
 	auth.registerWebPasswordChange(mux)
 	auth.registerSessionDuration(mux)
+	auth.registerFactorSettings(mux)
 	mux.HandleFunc("GET /api/auth", auth.route("status"))
 	mux.HandleFunc("POST /api/auth/login", auth.route("login"))
 	mux.HandleFunc("POST /api/auth/password", auth.route("password"))
@@ -214,10 +215,17 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 			}
 			a.session, a.expires = sessionHash(token), time.Now().Add(20*time.Minute)
 			a.factorOK, a.pendingKey = false, ""
+			if !a.temporary && !a.factorEnabled() {
+				a.factorOK = true
+				a.expires = time.Now().Add(time.Duration(a.sessionHours()) * time.Hour)
+				if err := a.persistWebSession(a.expires); err != nil {
+					log.Printf("Save sysop session: %v", err)
+				}
+			}
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
 				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
 		case "totp", "recovery":
-			if !a.signedIn(r) || a.temporary || a.factorOK {
+			if !a.signedIn(r) || a.temporary || a.factorOK || !a.factorEnabled() {
 				http.Error(w, "Accesso con password richiesto.", http.StatusUnauthorized)
 				return
 			}

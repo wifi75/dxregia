@@ -113,3 +113,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Rendere cliccabile tutto il banner Aurora su smartphone.
 - [x] Applicare Sala operativa, mostrare gli esiti email preesistenti e spiegare Hop e filtri nel pannello.
 - [x] Installazione nativa nuova accessibile dalla LAN, con URL e credenziali iniziali documentati.
+- [x] Rendere il 2FA facoltativo e disattivato per nuove installazioni; spostare Commento di altri 10 px su desktop.

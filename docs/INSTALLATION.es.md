@@ -50,7 +50,7 @@ ssh -L 8080:127.0.0.1:8080 USER@SERVER
 
 1. Abre `/admin`. Entra con el usuario `sysop` y la contraseña temporal que muestra el instalador.
 2. DXRegia pide una contraseña nueva (al menos 12 caracteres). La temporal deja de funcionar.
-3. Activa el acceso en dos pasos: escanea el código QR con una app de autenticación (o escribe la clave a mano) e introduce el código de 6 dígitos. **Guarda los códigos de recuperación** en un lugar seguro: sirven para asociar una app nueva si pierdes el teléfono.
+3. El 2FA es opcional y está desactivado por defecto. Actívalo en **Gestión → Contraseña**, confirma la contraseña web, escanea el código QR y guarda los códigos de recuperación.
 
 Puedes recuperar la contraseña temporal en el servidor antes de cambiarla por primera vez:
 

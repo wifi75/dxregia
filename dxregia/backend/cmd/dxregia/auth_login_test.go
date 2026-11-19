@@ -36,6 +36,15 @@ func TestSysopLoginNeedsUserAndPassword(t *testing.T) {
 		request.Header.Set("Content-Type", "application/json")
 		response := httptest.NewRecorder()
 		auth.route("login")(response, request)
+		if response.Code == http.StatusOK {
+			if strings.Contains(response.Body.String(), "mustVerify") {
+				t.Fatal("2FA was required with no second factor configured")
+			}
+			request.AddCookie(response.Result().Cookies()[0])
+			if !auth.allowed(request) {
+				t.Fatal("password-only login did not grant access with 2FA disabled")
+			}
+		}
 		return response.Code
 	}
 	for name, body := range map[string]string{

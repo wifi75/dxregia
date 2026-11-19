@@ -50,7 +50,7 @@ ssh -L 8080:127.0.0.1:8080 USER@SERVER
 
 1. Abra `/admin`. Entre com o utilizador `sysop` e a palavra-passe temporária mostrada pelo instalador.
 2. O DXRegia pede uma palavra-passe nova (pelo menos 12 caracteres). A temporária deixa de funcionar.
-3. Ative o acesso em dois passos: digitalize o código QR com uma aplicação de autenticação (ou escreva a chave à mão) e introduza o código de 6 dígitos. **Guarde os códigos de recuperação** num sítio seguro: servem para associar uma aplicação nova se perder o telemóvel.
+3. O 2FA é opcional e vem desativado. Ative-o em **Gestão → Palavra-passe**, confirme a palavra-passe web, digitalize o QR e guarde os códigos de recuperação.
 
 Pode consultar a palavra-passe temporária no servidor antes da primeira alteração:
 

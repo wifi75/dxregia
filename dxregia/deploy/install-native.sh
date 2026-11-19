@@ -119,7 +119,7 @@ for attempt in $(seq 1 30); do
             printf 'Password temporanea sysop: '
             as_root cat "$state/sysop-initial"
             printf '\n'
-            printf 'Al primo accesso cambia la password e configura la verifica in due passaggi.\n'
+            printf 'Al primo accesso cambia la password. Puoi attivare il 2FA in Gestione > Password.\n'
         fi
         exit 0
     fi

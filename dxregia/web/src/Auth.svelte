@@ -383,7 +383,7 @@
             {/if}
           </div>
         </div>
-        {#if session.mustChange}<p>Usa almeno 12 caratteri. Dopo il cambio imposterai il secondo fattore.</p>{/if}
+        {#if session.mustChange}<p>Usa almeno 12 caratteri.</p>{/if}
         {#if error}<p role="alert">{error}</p>{/if}
         <button disabled={busy}>{session.mustChange ? 'Salva password' : session.mustVerify ? 'Verifica codice' : 'Accedi'}</button>
       </form>

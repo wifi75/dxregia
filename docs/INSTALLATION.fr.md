@@ -50,7 +50,7 @@ ssh -L 8080:127.0.0.1:8080 USER@SERVER
 
 1. Ouvrez `/admin`. Connectez-vous avec l'utilisateur `sysop` et le mot de passe temporaire affiché par l'installateur.
 2. DXRegia demande un nouveau mot de passe (au moins 12 caractères). Le temporaire cesse de fonctionner.
-3. Activez la connexion à deux facteurs : scannez le code QR avec une application d'authentification (ou saisissez la clé à la main) et entrez le code à 6 chiffres. **Conservez les codes de récupération** en lieu sûr : ils permettent d'associer une nouvelle application si vous perdez le téléphone.
+3. Le 2FA est facultatif et désactivé par défaut. Activez-le dans **Gestion → Mot de passe**, confirmez le mot de passe web, scannez le QR et conservez les codes de récupération.
 
 Si nécessaire, lisez le mot de passe temporaire sur le serveur avant son premier changement :
 

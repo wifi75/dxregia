@@ -30,7 +30,7 @@ func (a *sysopAuth) sessionCredentials() string {
 }
 
 func (a *sysopAuth) restoreWebSession() {
-	if a.temporary || a.factor.Key == "" || a.factor.ResetPending {
+	if a.temporary || a.factor.ResetPending {
 		return
 	}
 	data, err := os.ReadFile(a.webSessionPath())

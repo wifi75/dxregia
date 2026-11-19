@@ -42,8 +42,8 @@ func registerTelnetPassword(mux *http.ServeMux, auth *sysopAuth, root string) {
 				http.Error(w, "Formato non valido.", http.StatusUnsupportedMediaType)
 				return
 			}
-			var change struct{ Password, Code string }
-			decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256))
+			var change struct{ Password, Code, CurrentPassword string }
+			decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024))
 			if decoder.Decode(&change) != nil || decoder.Decode(new(any)) != io.EOF || !validTelnetPassword(change.Password) {
 				http.Error(w, "Usa da 12 a 72 caratteri ASCII stampabili, senza spazi.", http.StatusBadRequest)
 				return
@@ -59,7 +59,7 @@ func registerTelnetPassword(mux *http.ServeMux, auth *sysopAuth, root string) {
 			}
 			auth.mu.Lock()
 			defer auth.mu.Unlock()
-			if !auth.confirmPasswordChange(w, r, change.Code) {
+			if !auth.confirmPasswordChange(w, r, change.Code, change.CurrentPassword) {
 				return
 			}
 			if err := os.Remove(result); err != nil && !os.IsNotExist(err) {
@@ -116,7 +116,7 @@ func (a *sysopAuth) registerWebPasswordChange(mux *http.ServeMux) {
 			http.Error(w, "Formato non valido.", http.StatusUnsupportedMediaType)
 			return
 		}
-		var change struct{ Password, Code string }
+		var change struct{ Password, Code, CurrentPassword string }
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024))
 		decoder.DisallowUnknownFields()
 		if decoder.Decode(&change) != nil || decoder.Decode(new(any)) != io.EOF ||
@@ -126,7 +126,7 @@ func (a *sysopAuth) registerWebPasswordChange(mux *http.ServeMux) {
 		}
 		a.mu.Lock()
 		defer a.mu.Unlock()
-		if !a.confirmPasswordChange(w, r, change.Code) {
+		if !a.confirmPasswordChange(w, r, change.Code, change.CurrentPassword) {
 			return
 		}
 		if err := a.removeWebSession(); err != nil {
@@ -145,7 +145,7 @@ func (a *sysopAuth) registerWebPasswordChange(mux *http.ServeMux) {
 }
 
 // The caller holds a.mu until the authorized change has been applied.
-func (a *sysopAuth) confirmPasswordChange(w http.ResponseWriter, r *http.Request, code string) bool {
+func (a *sysopAuth) confirmPasswordChange(w http.ResponseWriter, r *http.Request, code, currentPassword string) bool {
 	if !a.signedIn(r) || a.temporary || !a.factorOK {
 		http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
 		return false
@@ -154,6 +154,14 @@ func (a *sysopAuth) confirmPasswordChange(w http.ResponseWriter, r *http.Request
 	if now.Before(a.nextFactor) {
 		http.Error(w, "Attendi prima di riprovare.", http.StatusTooManyRequests)
 		return false
+	}
+	if !a.factorEnabled() {
+		if len(currentPassword) > 72 || bcrypt.CompareHashAndPassword(a.hash, []byte(currentPassword)) != nil {
+			a.nextFactor = now.Add(time.Second)
+			http.Error(w, "Password web attuale non valida.", http.StatusForbidden)
+			return false
+		}
+		return true
 	}
 	verified, accepted, reused := a.factor.verify(code, now)
 	if !accepted {

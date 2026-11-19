@@ -38,7 +38,7 @@ sh dxregia/deploy/install-native.sh
 ```
 
 1. Abre la dirección LAN que muestra el instalador, por ejemplo `http://SERVIDOR:8080/admin`. Una instalación nativa nueva escucha en todas las interfaces IPv4.
-2. Entra con el usuario `sysop` y la contraseña temporal que muestra el instalador, elige una contraseña nueva y activa el acceso en dos pasos con una app de autenticación. Guarda los códigos de recuperación.
+2. Entra como `sysop` con la contraseña temporal del instalador y elige una nueva contraseña. El 2FA es opcional y está desactivado por defecto. Actívalo en **Gestión → Contraseña**, confirma la contraseña web, escanea el código QR y guarda los códigos de recuperación.
 3. Completa el asistente de primera configuración: indicativo del nodo, indicativo del sysop, locator y puerto Telnet. Al terminar, la página de spots está en `/spots` y Telnet responde en el puerto 7300.
 
 ¿Prefieres Docker? Ejecuta en su lugar `sh dxregia/deploy/install-local.sh`.

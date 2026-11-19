@@ -319,7 +319,7 @@
   th:nth-child(4) { width: 220px; } th:nth-child(5) { width: 210px; } th:nth-child(7) { width: 96px; }
   @media (min-width: 701px) {
     th:nth-child(4) { width: 200px; }
-    th:nth-child(5) { width: 220px; }
+    th:nth-child(5) { width: 210px; }
     th:nth-child(4), td:nth-child(4) { padding-left: calc(clamp(10px, 1.15vw, 20px) + 20px); }
     th:nth-child(5), td:nth-child(5) { padding-left: calc(clamp(10px, 1.15vw, 20px) + 3px); }
     th:nth-child(6), td:nth-child(6) { padding-left: calc(clamp(10px, 1.15vw, 20px) - 2px); }

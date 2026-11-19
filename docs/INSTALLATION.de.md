@@ -50,7 +50,7 @@ ssh -L 8080:127.0.0.1:8080 USER@SERVER
 
 1. Öffne `/admin`. Melde dich mit dem Benutzer `sysop` und dem vom Installer angezeigten vorläufigen Passwort an.
 2. DXRegia verlangt ein neues Passwort (mindestens 12 Zeichen). Das vorläufige funktioniert dann nicht mehr.
-3. Richte die Zwei-Faktor-Anmeldung ein: scanne den QR-Code mit einer Authenticator-App (oder tippe den Schlüssel ein) und gib den 6-stelligen Code ein. **Bewahre die Wiederherstellungscodes** sicher auf: Mit ihnen koppelst du eine neue App, falls das Telefon verloren geht.
+3. Zwei-Faktor-Anmeldung ist optional und standardmäßig aus. Unter **Verwaltung → Passwort** aktivieren, Web-Passwort bestätigen, QR-Code scannen und Wiederherstellungscodes sichern.
 
 Das temporäre Passwort kannst du vor der ersten Änderung auf dem Server lesen:
 

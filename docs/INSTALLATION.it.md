@@ -50,7 +50,7 @@ ssh -L 8080:127.0.0.1:8080 USER@SERVER
 
 1. Apri `/admin`. Accedi con l'utente `sysop` e la password temporanea stampata dall'installatore.
 2. DXRegia chiede una nuova password (almeno 12 caratteri). Quella temporanea smette di funzionare.
-3. Attiva l'accesso a due fattori: inquadra il codice QR con un'app di autenticazione (o scrivi la chiave a mano) e inserisci il codice a 6 cifre. **Conserva i codici di recupero** in un posto sicuro: servono per associare una nuova app se perdi il telefono.
+3. Il 2FA è facoltativo e disattivato di default. Per attivarlo vai in **Gestione → Password → Verifica in due passaggi**, conferma la password web, scansiona il QR e salva i codici di recupero.
 
 Se hai perso la password temporanea, puoi leggerla sul server prima del primo cambio:
 
