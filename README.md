@@ -16,7 +16,7 @@ DXRegia makes it easy to install, run and share a DX Cluster node. It keeps DXSp
 - **Live spots page** — public and in real time. Filter by band, mode and callsign (several at once), see DXCC flags, and get a yellow highlight and a soft chirp for every new spot. Works on phone, tablet and desktop, in light or dark theme.
 - **Smarter spots** — the mode is inferred from the frequency when the comment does not say it, and announced DX operations (NG3K ADXO) appear next to the callsign.
 - **Six languages** — Italian, English, Spanish, German, French and Portuguese; any other language falls back to English.
-- **Admin panel at `/admin`** — guided first setup, sign-in with user, password and two-factor code, a live dashboard with status LEDs and an analytics center.
+- **Admin panel at `/admin`** — guided first setup, sign-in with a password and optional two-factor authentication, a live dashboard with status LEDs and an analytics center.
 - **Node settings in the panel** — message of the day, scheduled commands, startup script, block lists (words, callsigns, IP addresses), hop counts, filters and Telnet options, each with a tooltip. The panel itself speaks the six languages and shows who connected to the node.
 - **Registration to send spots** — visitors register on the portal (callsign, email, password) and confirm by email; only registered users can send spots over Telnet. Optional, switched on in the panel.
 - **Install as an app** — the portal installs on a phone's home screen and still opens without a connection.
@@ -27,21 +27,22 @@ DXRegia makes it easy to install, run and share a DX Cluster node. It keeps DXSp
 - **Safe to run** — offline backups with verification, one-command updates with automatic rollback, and visitor statistics without cookies or stored addresses.
 - **Easy to install** — one script on Debian or Ubuntu (systemd, amd64 or arm64), or Docker.
 
+- Save and compare spot views, explore DXCC and callsign history, and set local radio alerts that run while the portal is open.
+
 ## Quick start
 
-On Debian or Ubuntu with systemd. You need Git, Go 1.22+, Node.js 22.12+ with npm, curl and sudo.
+On Debian or Ubuntu with systemd, install the prebuilt package for amd64 or arm64. You need curl and sudo, or a root shell.
 
 ```sh
-git clone https://github.com/wifi75/dxregia.git
-cd dxregia
-sh dxregia/deploy/install-native.sh
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.5.0
 ```
 
 1. Open the LAN address printed by the installer, for example `http://SERVER:8080/admin`. A fresh native installation listens on all IPv4 interfaces.
 2. Sign in as `sysop` with the temporary password shown by the installer and choose a new password. Two-factor authentication is optional and off by default. To turn it on, go to **Management → Password → Two-step verification**, confirm your web password, scan the QR code and save the recovery codes.
 3. Fill in the first-setup wizard: node callsign, sysop callsign, locator and Telnet port. When it finishes, the spots page is at `/spots` and Telnet answers on port 7300.
 
-Prefer Docker? Run `sh dxregia/deploy/install-local.sh` instead.
+The guide also covers Docker and installation from source.
 
 The step-by-step guide covers ports, mail, partner nodes, updates, backups and troubleshooting: [**Installation and configuration guide**](docs/INSTALLATION.md).
 
@@ -62,7 +63,7 @@ _The technical documents below are written in Italian._
 
 ## Status
 
-DXRegia is in active development (version 0.4.0). Installation, first sign-in, Telnet, backup and restart are tested on Ubuntu 24.04 (amd64 and arm64). Still open: a Proxmox LXC test, delivery with more mail providers and a signed release package. Bug reports and ideas are welcome in [GitHub Issues](https://github.com/wifi75/dxregia/issues).
+DXRegia is in active development (version 0.5.0). Installation, first sign-in, Telnet, backup and restart are tested on Ubuntu 24.04 (amd64 and arm64). Still open: a Proxmox LXC test, delivery with more mail providers and a signed release package. Bug reports and ideas are welcome in [GitHub Issues](https://github.com/wifi75/dxregia/issues).
 
 ## Credits and licence
 

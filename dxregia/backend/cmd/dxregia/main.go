@@ -96,6 +96,7 @@ func main() {
 	registerPresence(mux, *setupRoot, auth)
 	registerSMTP(mux, *setupRoot, auth)
 	registerNodeFiles(mux, *setupRoot, auth)
+	go refreshIssueCountries(service, *setupRoot)
 	registerNodeLists(mux, *setupRoot, auth)
 	registerConnections(mux, *setupRoot, auth)
 	registerPartnerMailHistory(mux, *setupRoot, auth)

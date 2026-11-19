@@ -16,7 +16,7 @@ DXRegia macht es einfach, einen DX-Cluster-Knoten zu installieren, zu betreiben 
 - **Live-Spot-Seite** — öffentlich und in Echtzeit. Filter nach Band, Betriebsart und Rufzeichen (auch mehrere zugleich), DXCC-Flaggen, gelbe Hervorhebung und ein sanfter Signalton bei jedem neuen Spot. Läuft auf Smartphone, Tablet und Computer, im hellen oder dunklen Design.
 - **Klügere Spots** — die Betriebsart wird aus der Frequenz abgeleitet, wenn der Kommentar sie nicht nennt, und angekündigte DX-Operationen (NG3K ADXO) erscheinen neben dem Rufzeichen.
 - **Sechs Sprachen** — Italienisch, Englisch, Spanisch, Deutsch, Französisch und Portugiesisch; jede andere Sprache fällt auf Englisch zurück.
-- **Admin-Bereich unter `/admin`** — geführte Ersteinrichtung, Anmeldung mit Benutzer, Passwort und Zwei-Faktor-Code, Live-Dashboard mit Status-LEDs und ein Analytics-Center.
+- **Admin-Bereich unter `/admin`** — geführte Ersteinrichtung, Anmeldung mit Passwort und optionaler Zwei-Faktor-Authentifizierung, Live-Dashboard mit Status-LEDs und ein Analytics-Center.
 - **Knoteneinstellungen im Panel** — Nachricht des Tages, geplante Befehle, Startskript, Sperrlisten (Wörter, Rufzeichen, IP-Adressen), Hops, Filter und Telnet-Optionen, jeweils mit Tooltip. Das Panel spricht die sechs Sprachen und zeigt, wer sich mit dem Knoten verbunden hat.
 - **Registrierung zum Senden von Spots** — Besucher registrieren sich im Portal (Rufzeichen, E-Mail, Passwort) und bestätigen per E-Mail; nur Registrierte können per Telnet Spots senden. Optional, im Panel einzuschalten.
 - **Als App installierbar** — das Portal lässt sich auf dem Startbildschirm des Smartphones installieren und öffnet sich auch ohne Verbindung.
@@ -27,21 +27,22 @@ DXRegia macht es einfach, einen DX-Cluster-Knoten zu installieren, zu betreiben 
 - **Sicher im Betrieb** — Offline-Backups mit Prüfung, Updates mit einem Befehl und automatischem Rollback, Besucherstatistik ohne Cookies und ohne gespeicherte Adressen.
 - **Einfach zu installieren** — ein Skript auf Debian oder Ubuntu (systemd, amd64 oder arm64) oder Docker.
 
+- Speichere und vergleiche Spot-Ansichten, nutze das DXCC-Verzeichnis und den Rufzeichenverlauf und richte Alarme bei geöffnetem Portal ein.
+
 ## Schnellstart
 
-Auf Debian oder Ubuntu mit systemd. Du brauchst Git, Go 1.22+, Node.js 22.12+ mit npm, curl und sudo.
+Installiere unter Debian oder Ubuntu mit systemd das vorgefertigte Paket für amd64 oder arm64. Du brauchst curl und sudo oder eine Root-Shell.
 
 ```sh
-git clone https://github.com/wifi75/dxregia.git
-cd dxregia
-sh dxregia/deploy/install-native.sh
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.5.0
 ```
 
 1. Öffne die vom Installationsskript angezeigte LAN-Adresse, zum Beispiel `http://SERVER:8080/admin`. Eine neue native Installation lauscht auf allen IPv4-Schnittstellen.
 2. Melde dich als `sysop` mit dem angezeigten temporären Passwort an und wähle ein neues Passwort. Zwei-Faktor-Anmeldung ist optional und standardmäßig aus. Unter **Verwaltung → Passwort** aktivieren, Web-Passwort bestätigen, QR-Code scannen und Wiederherstellungscodes sichern.
 3. Fülle den Einrichtungsassistenten aus: Rufzeichen des Knotens, Rufzeichen des Sysops, Locator und Telnet-Port. Danach liegt die Spot-Seite unter `/spots` und Telnet antwortet auf Port 7300.
 
-Lieber Docker? Führe stattdessen `sh dxregia/deploy/install-local.sh` aus.
+Die Anleitung beschreibt auch Docker und die Installation aus dem Quelltext.
 
 Die Schritt-für-Schritt-Anleitung behandelt Ports, E-Mail, Partnerknoten, Updates, Backups und Fehlersuche: [**Anleitung zu Installation und Konfiguration**](docs/INSTALLATION.de.md).
 
@@ -62,7 +63,7 @@ _Die folgenden technischen Dokumente sind auf Italienisch verfasst._
 
 ## Stand
 
-DXRegia befindet sich in aktiver Entwicklung (Version 0.4.0). Installation, erste Anmeldung, Telnet, Backup und Neustart sind auf Ubuntu 24.04 (amd64 und arm64) getestet. Offen sind noch: ein Test auf Proxmox-LXC, E-Mail-Zustellung bei weiteren Anbietern und ein signiertes Release-Paket. Fehlermeldungen und Ideen sind in den [GitHub Issues](https://github.com/wifi75/dxregia/issues) willkommen.
+DXRegia befindet sich in aktiver Entwicklung (Version 0.5.0). Installation, erste Anmeldung, Telnet, Backup und Neustart sind auf Ubuntu 24.04 (amd64 und arm64) getestet. Offen sind noch: ein Test auf Proxmox-LXC, E-Mail-Zustellung bei weiteren Anbietern und ein signiertes Release-Paket. Fehlermeldungen und Ideen sind in den [GitHub Issues](https://github.com/wifi75/dxregia/issues) willkommen.
 
 ## Herkunft und Lizenz
 

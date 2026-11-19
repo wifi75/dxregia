@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Preparare DXRegia 0.5.0 con guide in sei lingue, pacchetti nativi, grafici disco/RAM, ricerca unica, navigazione stabile e localizzazione del banner Telnet.
+
 - [x] Integrare le proposte 21–30. Regole per gli spot e registro locale, riepilogo, ore di silenzio, scadenze e consenso per le notifiche. Flussi verificati su Edge con feed e consegna di sistema simulati.
 
 - [x] Integrare nel portale le proposte 1–20 dopo le anteprime. Verificati catalogo e metadati DXCC, storico, recupero da archivio, CSV e interazioni del portale su Edge con dati simulati.

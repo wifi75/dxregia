@@ -16,7 +16,7 @@ O DXRegia torna simples instalar, gerir e partilhar um nó DX Cluster. Mantém o
 - **Página de spots em direto** — pública e em tempo real. Filtros por banda, modo e indicativo (vários em simultâneo), bandeiras DXCC, realce amarelo e um breve som por cada spot novo. Funciona em telemóvel, tablet e computador, com tema claro ou escuro.
 - **Spots mais inteligentes** — o modo é deduzido da frequência quando o comentário não o indica, e as operações DX anunciadas (NG3K ADXO) aparecem junto ao indicativo.
 - **Seis idiomas** — italiano, inglês, espanhol, alemão, francês e português; qualquer outro idioma usa inglês.
-- **Painel de administração em `/admin`** — configuração guiada, acesso com utilizador, palavra-passe e código de dois fatores, painel em direto com LED de estado e centro de análise.
+- **Painel de administração em `/admin`** — configuração guiada, acesso com palavra-passe e autenticação de dois fatores opcional, painel em direto com LED de estado e centro de análise.
 - **Definições do nó no painel** — mensagem do dia, comandos agendados, script de arranque, listas de bloqueio (palavras, indicativos, endereços IP), saltos, filtros e opções de Telnet, cada uma com um tooltip. O painel fala as seis línguas e mostra quem se ligou ao nó.
 - **Registo para enviar spots** — os visitantes registam-se no portal (indicativo, email, palavra-passe) e confirmam por email; só os registados podem enviar spots por Telnet. Opcional, ativa-se no painel.
 - **Instalável como app** — o portal instala-se no ecrã principal do telemóvel e abre mesmo sem ligação.
@@ -27,21 +27,22 @@ O DXRegia torna simples instalar, gerir e partilhar um nó DX Cluster. Mantém o
 - **Seguro de operar** — cópias de segurança offline com verificação, atualizações com um só comando e reversão automática, estatísticas de visitas sem cookies nem endereços guardados.
 - **Fácil de instalar** — um só script em Debian ou Ubuntu (systemd, amd64 ou arm64), ou Docker.
 
+- Guarde e compare vistas, consulte o catálogo DXCC e o histórico por indicativo e configure alertas que funcionam enquanto o portal estiver aberto.
+
 ## Início rápido
 
-Em Debian ou Ubuntu com systemd. Precisa de Git, Go 1.22+, Node.js 22.12+ com npm, curl e sudo.
+No Debian ou Ubuntu com systemd, instale o pacote pré-compilado para amd64 ou arm64. É preciso curl e sudo ou uma sessão root.
 
 ```sh
-git clone https://github.com/wifi75/dxregia.git
-cd dxregia
-sh dxregia/deploy/install-native.sh
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.5.0
 ```
 
 1. Abra o endereço LAN apresentado pelo instalador, por exemplo `http://SERVIDOR:8080/admin`. Uma nova instalação nativa escuta em todas as interfaces IPv4.
 2. Entre como `sysop` com a palavra-passe temporária apresentada e escolha uma nova palavra-passe. O 2FA é opcional e vem desativado. Ative-o em **Gestão → Palavra-passe**, confirme a palavra-passe web, digitalize o QR e guarde os códigos de recuperação.
 3. Preencha o assistente de primeira configuração: indicativo do nó, indicativo do sysop, locator e porta Telnet. No fim, a página de spots fica em `/spots` e o Telnet responde na porta 7300.
 
-Prefere Docker? Execute antes `sh dxregia/deploy/install-local.sh`.
+O guia também descreve Docker e a instalação a partir do código-fonte.
 
 O guia passo a passo explica portas, correio, nós parceiros, atualizações, cópias de segurança e resolução de problemas: [**Guia de instalação e configuração**](docs/INSTALLATION.pt.md).
 
@@ -62,7 +63,7 @@ _Os documentos técnicos abaixo estão escritos em italiano._
 
 ## Estado
 
-O DXRegia está em desenvolvimento ativo (versão 0.4.0). A instalação, o primeiro acesso, o Telnet, a cópia de segurança e o reinício estão testados em Ubuntu 24.04 (amd64 e arm64). Falta ainda: um teste em Proxmox LXC, a entrega de correio com mais fornecedores e um pacote de versão assinado. Relatos e ideias são bem-vindos nas [GitHub Issues](https://github.com/wifi75/dxregia/issues).
+O DXRegia está em desenvolvimento ativo (versão 0.5.0). A instalação, o primeiro acesso, o Telnet, a cópia de segurança e o reinício estão testados em Ubuntu 24.04 (amd64 e arm64). Falta ainda: um teste em Proxmox LXC, a entrega de correio com mais fornecedores e um pacote de versão assinado. Relatos e ideias são bem-vindos nas [GitHub Issues](https://github.com/wifi75/dxregia/issues).
 
 ## Origem e licença
 

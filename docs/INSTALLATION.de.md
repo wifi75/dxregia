@@ -4,8 +4,6 @@
 
 [← Zurück zur Projektseite](../README.de.md)
 
-> Das Admin-Panel ist derzeit auf Italienisch. Wo diese Anleitung ein Menü oder eine Schaltfläche nennt, steht die Bezeichnung auf dem Bildschirm in Klammern.
-
 ## 1. Was du brauchst
 
 - Einen Linux-Server oder -PC mit systemd: Debian oder Ubuntu (getestet auf Ubuntu 24.04, amd64 und arm64). Eine virtuelle Maschine oder ein unprivilegierter LXC-Container geht ebenfalls.
@@ -14,7 +12,16 @@
 
 ## 2. Installation
 
-**Native Installation aus dem Quelltext (empfohlen).** Führe diese Befehle auf dem Server aus:
+**Vorgefertigtes Paket.**
+
+```sh
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.5.0
+```
+
+Das Skript prüft die SHA-256-Prüfsumme, installiert die Laufzeitabhängigkeiten und startet den Dienst. Es zeigt die Adresse des Panels und ein temporäres Passwort für die erste Anmeldung an.
+
+**Native Installation aus dem Quelltext.** Führe diese Befehle auf dem Server aus:
 
 ```sh
 git clone https://github.com/wifi75/dxregia.git
@@ -145,3 +152,9 @@ Das Engine-Log findest du auch unter Knoten → DXSpider-Log (Log DXSpider).
 - [Referenz des Linux-Installers](../dxregia/deploy/README.md) (Italienisch)
 - [Sysop-Betrieb](OPERATIONS.md) (Italienisch)
 - [Änderungsprotokoll](../CHANGELOG.md) (Englisch)
+
+## DXRegia 0.5.0
+
+Das öffentliche Menü enthält Live-Spots, Suche und DXCC sowie Funkalarme. Der Admin-Status zeigt Diagramme für Speicherplatz und RAM. Das Telnet-Banner verwendet die Übersetzung für das Verbindungsland oder im lokalen Netz die Sprache des Knotens.
+
+[DXRegia 0.5.0](https://github.com/wifi75/dxregia/releases/tag/v0.5.0)

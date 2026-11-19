@@ -4,8 +4,6 @@
 
 [← Voltar à página do projeto](../README.pt.md)
 
-> O painel de administração está por agora em italiano. Quando este guia nomeia um menu ou um botão, o texto mostrado no ecrã vem entre parênteses.
-
 ## 1. O que precisa
 
 - Um servidor ou PC Linux com systemd: Debian ou Ubuntu (testado em Ubuntu 24.04, amd64 e arm64). Uma máquina virtual ou um contentor LXC sem privilégios também serve.
@@ -14,7 +12,16 @@
 
 ## 2. Instalação
 
-**Instalação nativa a partir do código (recomendada).** Execute estes comandos no servidor:
+**Pacote pré-compilado.**
+
+```sh
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.5.0
+```
+
+O script verifica a soma SHA-256, instala as dependências e inicia o serviço. Mostra o endereço do painel e uma palavra-passe temporária para o primeiro acesso.
+
+**Instalação nativa a partir do código.** Execute estes comandos no servidor:
 
 ```sh
 git clone https://github.com/wifi75/dxregia.git
@@ -145,3 +152,9 @@ O registo do motor também está em Nó → Registo DXSpider (Log DXSpider).
 - [Referência do instalador Linux](../dxregia/deploy/README.md) (em italiano)
 - [Operações do sysop](OPERATIONS.md) (em italiano)
 - [Registo de alterações](../CHANGELOG.md) (em inglês)
+
+## DXRegia 0.5.0
+
+O menu público reúne spots em direto, pesquisa DXCC e alertas de rádio. O estado do nó mostra gráficos de disco e RAM. A mensagem Telnet usa a tradução do país da ligação ou o idioma do nó na rede local.
+
+[DXRegia 0.5.0](https://github.com/wifi75/dxregia/releases/tag/v0.5.0)

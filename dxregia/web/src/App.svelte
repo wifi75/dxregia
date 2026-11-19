@@ -18,6 +18,19 @@
   const registerPage = window.location.pathname === '/registrazione'
   const confirmPage = window.location.pathname === '/registrazione/conferma'
   const statsPage = window.location.pathname === '/statistiche'
+  type SpotView = 'feed' | 'research' | 'alerts'
+  function viewFromURL(): SpotView {
+    const view = new URLSearchParams(location.search).get('view')
+    return view === 'research' || view === 'alerts' ? view : 'feed'
+  }
+  let spotView = $state(viewFromURL())
+  function openSpotView(event: MouseEvent, next: SpotView) {
+    if (!publicPortal || toolPage || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    if (spotView === next) return
+    history.pushState(null, '', next === 'feed' ? '/spots' : '/spots?view=' + next)
+    spotView = next
+  }
   const toolPage = contactPage || registerPage || confirmPage || statsPage
   let registrationOpen = $state(false)
   if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
@@ -26,6 +39,7 @@
   // Il pannello sysop è solo su /admin; ogni altra pagina è il portale pubblico.
   const publicPortal = !(window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'))
   if (publicPortal) trackPortalPresence()
+  const portalTitle = $derived(spotView === 'research' ? t('spotResearch') : spotView === 'alerts' ? t('radioAlerts') : t('spotsTitle'))
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
   let status = $state<Status>()
@@ -59,23 +73,28 @@
   $effect(() => { adminTranslator?.setLanguage(lang()) })
 
   $effect(() => {
-    document.title = 'DXRegia – ' + (!publicPortal ? translate('Amministrazione', lang() as never) : contactPage ? t('cTitle') : registerPage ? t('regTitle') : confirmPage ? t('confTitle') : statsPage ? t('navStats') : t('spotsTitle'))
+    document.title = 'DXRegia – ' + (!publicPortal ? translate('Amministrazione', lang() as never) : contactPage ? t('cTitle') : registerPage ? t('regTitle') : confirmPage ? t('confTitle') : statsPage ? t('navStats') : portalTitle)
   })
 </script>
 
-<svelte:window onclick={() => { langOpen = false }} onkeydown={event => { if (event.key === 'Escape') langOpen = false }} />
+<svelte:window onclick={() => { langOpen = false }} onpopstate={() => { spotView = viewFromURL() }} onkeydown={event => { if (event.key === 'Escape') langOpen = false }} />
 
 <header>
   <div class="brandline">
     <a class="brand" href="/spots"><img class="brand-logo" src={currentTheme() === 'dark' ? '/brand/dxregia-logo-dark.svg' : '/brand/dxregia-logo.svg'} alt="DXRegia" width="112" height="34"></a>
-    {#if publicPortal && !toolPage}
+    {#if publicPortal}
       <span class="sep" aria-hidden="true">–</span>
-      <h1 id="spots-title" class="page">{t('spotsTitle')}</h1>
+      {#if toolPage}<span class="page">{t('spotsTitle')}</span>
+      {:else}<h1 id="spots-title" class="page">{t('spotsTitle')}</h1>{/if}
     {/if}
   </div>
   <div class="tools">
   <nav aria-label="Portale">
-    <a href="/spots" aria-current={publicPortal && !toolPage ? 'page' : undefined}>{publicPortal ? t('navSpots') : 'Spot in diretta'}</a>
+    <a href="/spots" aria-current={publicPortal && !toolPage && spotView === 'feed' ? 'page' : undefined} onclick={event => openSpotView(event, 'feed')}>{publicPortal ? t('navSpots') : 'Spot in diretta'}</a>
+    {#if publicPortal}
+      <a href="/spots?view=research" aria-current={!toolPage && spotView === 'research' ? 'page' : undefined} onclick={event => openSpotView(event, 'research')}>{t('spotResearch')}</a>
+      <a href="/spots?view=alerts" aria-current={!toolPage && spotView === 'alerts' ? 'page' : undefined} onclick={event => openSpotView(event, 'alerts')}>{t('radioAlerts')}</a>
+    {/if}
     {#if publicPortal}<a class="stats-link" href="/statistiche" aria-current={statsPage ? 'page' : undefined}>{t('navStats')}</a>{/if}
     <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>{publicPortal ? t('navContact') : 'Contatti'}</a>
     {#if publicPortal && registrationOpen}<a href="/registrazione" aria-current={registerPage || confirmPage ? 'page' : undefined}>{t('navRegister')}</a>{/if}
@@ -136,7 +155,7 @@
 {:else if statsPage}
   <ClusterStats />
 {:else if publicPortal}
-  <Spots />
+  <Spots activePage={spotView} />
 {:else}
 <main>
   {#snippet nodeStatus()}
@@ -148,7 +167,7 @@
 
 <style>
   :global(*) { box-sizing: border-box; }
-  :global(html) { color-scheme: light; }
+  :global(html) { color-scheme: light; scrollbar-gutter: stable; }
   :global(body) {
     margin: 0;
     min-width: 280px;
@@ -176,12 +195,15 @@
   header .brand { display: inline-flex; gap: 9px; align-items: center; padding: 0; font-size: 1.25rem; font-weight: 800; line-height: 1; color: #143a60; }
   .brand-logo { display: block; height: 34px; width: auto; }
   header { justify-content: space-between; align-items: center; flex-wrap: wrap; }
-  header nav { display: flex; flex-wrap: wrap; gap: .35rem; }
+  header nav { display: flex; flex-wrap: wrap; gap: .35rem; min-width: 0; }
+  header nav a { white-space: nowrap; }
+  header .tool, header .lang { flex: none; }
+  header button:hover:not(:disabled), header button:active:not(:disabled) { transform: none; }
   :global(html.auth-card-view) .brandline { visibility: hidden; }
   .brandline { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .sep { color: #8aa3b5; font-size: 1.25rem; line-height: 1; }
   .page { margin: 0; font-size: 1.25rem; font-weight: 650; line-height: 1; color: #2a516f; white-space: nowrap; }
-  .tools { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
+  .tools { display: flex; align-items: center; gap: .5rem; margin-left: auto; min-width: 0; }
   @media (max-width: 640px) {
     header { gap: 4px; padding: 6px 12px; }
     header .brand { font-size: 1.1rem; }

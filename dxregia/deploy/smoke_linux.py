@@ -275,7 +275,7 @@ def peer_link(primary):
         assert remote("/api/setup", config) == (200, {"started": True, "port": peer_port})
 
         # DNS names stay valid even when Docker assigns a different IP on restart.
-        local_call, peer_call = "Q1QQQ-2", "Q3QQQ-2"
+        local_call, peer_call = "I1QQQ-2", "Q3QQQ-2"
         assert remote("/api/partners", {"Call": local_call, "Host": CONTAINER, "Port": TELNET_PORT})[0] == 200
         assert request(primary, "/api/partners", {"Call": peer_call, "Host": peer, "Port": peer_port})[0] == 200
         status, incoming = remote(f"/api/partners/{local_call}/enable", {})
@@ -329,7 +329,7 @@ def main():
         privileged("cat", "/var/lib/dxregia/sysop-initial")
         if NATIVE else docker("exec", CONTAINER, "cat", "/data/sysop-initial")
     )
-    config = {"node": "Q1QQQ-2", "sysop": "Q1QQQ", "locator": "JN55AA", "port": TELNET_PORT}
+    config = {"node": "I1QQQ-2", "sysop": "I1QQQ", "locator": "JN55AA", "port": TELNET_PORT}
     assert request(client, "/api/setup", config)[0] == 401
     status, login = request(client, "/api/auth/login", {"User": "sysop", "Password": virgin})
     assert status == 200 and login["mustChange"]
@@ -346,12 +346,18 @@ def main():
     assert request(client, "/api/setup", config) == (200, {"started": True, "port": TELNET_PORT})
     portal_traffic(client)
     telnet_presence(client)
+    assert request(client, "/api/motd", {"Text": "English smoke banner", "Language": "en"}, method="PUT") == (204, None)
+    assert request(client, "/api/motd", {"Text": "Italiano smoke banner", "Language": "it"}, method="PUT") == (204, None)
+    with socket.create_connection((HOST, TELNET_PORT), timeout=5) as conn:
+        assert b"Italiano smoke banner" in read_until(conn, b"login:")
     public = urllib.request.build_opener()
     assert request(public, "/api/node-health")[0] == 401
     assert request(public, "/stato")[0] == 404
     status, diagnostics = request(client, "/api/node-health")
     assert status == 200 and diagnostics["DXRegiaPID"] > 0 and diagnostics["DXSpiderPID"] > 0
     assert diagnostics["DiskAvailable"] and 0 < diagnostics["FreeBytes"] <= diagnostics["TotalBytes"]
+    assert diagnostics["MemoryAvailable"] and 0 < diagnostics["MemoryFreeBytes"] <= diagnostics["MemoryTotalBytes"]
+    assert diagnostics["Resources"] and diagnostics["Resources"][-1]["MemoryTotal"] == diagnostics["MemoryTotalBytes"]
     if NATIVE:
         # The loopback Telnet check alone also passes with a loopback-only listener.
         listeners = subprocess.check_output(["ss", "-H4ltn", f"sport = :{TELNET_PORT}"], text=True)
@@ -419,10 +425,10 @@ def main():
                      lambda: request(client, "/api/telnet-password")[1]["status"] == "applied")
             with socket.create_connection((HOST, TELNET_PORT), timeout=5) as conn:
                 read_until(conn, b"login:")
-                conn.sendall(b"Q1QQQ\r\n")
+                conn.sendall(b"I1QQQ\r\n")
                 read_until(conn, b"password:")
                 conn.sendall(telnet_password.encode() + b"\r\n")
-                assert b"Q1QQQ" in read_until(conn, b"dxspider >")
+                assert b"I1QQQ" in read_until(conn, b"dxspider >")
                 conn.sendall(b"bye\r\n")
     print("Linux installer, setup with TOTP, Telnet, backup upload and persistent restart passed")
     if not NATIVE:

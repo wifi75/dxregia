@@ -2,7 +2,14 @@
 
 ## Installazione da release GitHub
 
-Quando saranno pubblicati i pacchetti della prima release, lo script `install-release.sh` scaricherà il pacchetto della macchina, verificherà il checksum e avvierà l'installatore nativo. Senza argomenti usa l'ultima release. Per fissare la versione, esegui ad esempio `sh dxregia/deploy/install-release.sh v1.0.0`. Se la release non contiene ancora i pacchetti, usa l'installazione da sorgente o un archivio di prova della CI.
+Lo script scarica il pacchetto nativo amd64 o arm64, ne verifica lo SHA-256 e avvia l’installatore. Senza argomenti usa l’ultima release pubblicata. Per installare la versione 0.5.0, scarica lo script dal tag e avvialo così.
+
+```sh
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.5.0
+```
+
+[Pacchetti e checksum di DXRegia 0.5.0](https://github.com/wifi75/dxregia/releases/tag/v0.5.0)
 
 ## Pacchetto nativo precompilato
 
@@ -21,7 +28,7 @@ tar -xzf dxregia-linux-amd64.tar.gz
 sh dxregia-linux-amd64/dxregia/deploy/install-native.sh
 ~~~
 
-L'installatore usa direttamente il binario incluso e installa le dipendenze Perl. Il server non richiede Go, Node.js o Docker. Gli archivi della release saranno pubblicati dopo il collaudo.
+L'installatore usa direttamente il binario incluso e installa le dipendenze Perl. Il server non richiede Go, Node.js o Docker.
 
 ## Installazione nativa da sorgente
 

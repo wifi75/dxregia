@@ -69,7 +69,7 @@
 <section class="glass-panel" aria-labelledby="motd-title">
   <h1 id="motd-title">Messaggio del giorno</h1>
   <form onsubmit={saveMotd}>
-    <p>Il banner predefinito appare prima di <code>login:</code>. Puoi preparare e salvare anche le traduzioni. La selezione automatica tramite IP non è ancora disponibile.</p>
+    <p>Il banner appare prima di <code>login:</code>. Il nodo usa il Paese dell’IP pubblico o la lingua dell’indicativo del nodo per gli accessi dalla rete locale. Se non trova una traduzione, mostra l’inglese.</p>
     <label>Lingua del banner
       <span class="language-picker">
         <img src={'/flags/' + flag + '.svg'} width="24" height="17" alt="" />

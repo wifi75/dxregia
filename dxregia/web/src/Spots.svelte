@@ -6,9 +6,9 @@
   import { soundOn, chirp, unlockAudio } from './sound.svelte'
 
   import SpotResearch from './SpotResearch.svelte'
-  import { alertStorageKey, bandFor, bands, localDay, commentMatcher, corroboratedSpots, groupOf, modeInfo, exportSpotCSV, spotKey, type Spot } from './spotTools'
+  import { alertStorageKey, bandFor, bands, localDay, migrateSpotSearch, spotMatcher, corroboratedSpots, groupOf, modeInfo, exportSpotCSV, spotKey, type Spot } from './spotTools'
 
-  type SavedFilter = { name: string; bands: string[]; modes: string[]; noFt8: boolean; query: string; comment: string; confirmed: boolean; expires?: string }
+  type SavedFilter = { name: string; bands: string[]; modes: string[]; noFt8: boolean; query: string; comment?: string; confirmed: boolean; expires?: string }
   const filterKey = 'dxregia-spot-filters'
   let savedFilters = $state<SavedFilter[]>([])
   let selectedFilter = $state('')
@@ -16,10 +16,14 @@
   let saveExpiry = $state('')
   let showSave = $state(false)
   let saveError = $state(false)
-  let activePage = $state<'feed' | 'research' | 'alerts'>(new URLSearchParams(location.search).get('view') === 'alerts' ? 'alerts' : 'feed')
+  let { activePage }: { activePage: 'feed' | 'research' | 'alerts' } = $props()
   let researchOpened = $state(false)
   let RadioAlerts = $state<typeof import('./RadioAlerts.svelte').default>()
   let alertsFailed = $state(false)
+  $effect(() => {
+    if (activePage === 'research') researchOpened = true
+    if (activePage === 'alerts') void loadAlerts()
+  })
 
   async function loadAlerts() {
     if (RadioAlerts) return
@@ -29,7 +33,6 @@
   let view = $state<'table' | 'compact' | 'band' | 'compare'>('table')
   let bandA = $state('20 m')
   let bandB = $state('15 m')
-  let commentQuery = $state('')
   let onlyConfirmed = $state(false)
   let highlight = $state(true)
   let paused = $state(false)
@@ -44,7 +47,7 @@
   let entityDay = ''
   let shown = $derived(paused || reviewing ? frozen : spots)
   const confirmedKeys = $derived(corroboratedSpots(shown))
-  const matchesComment = $derived(commentMatcher(commentQuery))
+  const matchesSearch = $derived(spotMatcher(query))
   const limitPending = 1000
 
   function persistFilters(next: SavedFilter[]) {
@@ -58,7 +61,7 @@
     const name = saveName.trim()
     if (!name || (saveExpiry && saveExpiry < localDay(new Date()))) return
     const next = savedFilters.filter(filter => filter.name !== name).slice(-19)
-    next.push({ name, bands: [...bandSel], modes: [...modeSel], noFt8, query, comment: commentQuery, confirmed: onlyConfirmed, expires: saveExpiry })
+    next.push({ name, bands: [...bandSel], modes: [...modeSel], noFt8, query, confirmed: onlyConfirmed, expires: saveExpiry })
     if (persistFilters(next)) { selectedFilter = name; showSave = false; saveName = ''; saveExpiry = '' }
   }
   function restoreFilter(name: string) {
@@ -66,7 +69,7 @@
     const filter = savedFilters.find(filter => filter.name === name)
     if (!filter || (filter.expires && filter.expires < localDay(new Date()))) return
     bandSel = [...filter.bands]; modeSel = [...filter.modes]; noFt8 = filter.noFt8
-    query = filter.query; commentQuery = filter.comment; onlyConfirmed = filter.confirmed
+    query = migrateSpotSearch(filter.query, filter.comment ?? ''); onlyConfirmed = filter.confirmed
   }
   async function togglePause() {
     if (!paused) {
@@ -177,8 +180,7 @@
     (!bandSel.length || bandSel.includes(bandFor(spot.Frequency))) &&
     (!modeSel.length || modeSel.includes(groupOf(modeInfo(spot).mode))) &&
     (!noFt8 || modeInfo(spot).mode !== 'FT8') &&
-    (!onlyConfirmed || confirmedKeys.has(spotKey(spot))) && matchesComment(spot.Comment) &&
-    (!query.trim() || [spot.Call, spot.Spotter, spot.Comment].some(value => value.toLowerCase().includes(query.trim().toLowerCase())))
+    (!onlyConfirmed || confirmedKeys.has(spotKey(spot))) && matchesSearch(spot)
   ))
 
   const comparisonBands = $derived(view === 'compare' ? [...new Set([bandA, bandB])] : view === 'band' ? [bandA] : [])
@@ -267,7 +269,7 @@
     try {
       const stored: unknown = JSON.parse(localStorage.getItem(filterKey) || '[]')
       if (Array.isArray(stored)) savedFilters = stored.slice(-20).filter(item => item && typeof item.name === 'string' &&
-        Array.isArray(item.bands) && Array.isArray(item.modes) && typeof item.query === 'string' && typeof item.comment === 'string')
+        Array.isArray(item.bands) && Array.isArray(item.modes) && typeof item.query === 'string')
     } catch { /* storage may be unavailable */ }
     const unlock = () => unlockAudio()
     window.addEventListener('pointerdown', unlock, { once: true })
@@ -289,11 +291,6 @@
 
 <main aria-labelledby="spots-title">
   <Sponsor />
-  <nav class="spot-tabs" aria-label={t('spotViews')}>
-    <button class="chip" type="button" aria-pressed={activePage === 'feed'} onclick={() => activePage = 'feed'}>{t('navSpots')}</button>
-    <button class="chip" type="button" aria-pressed={activePage === 'research'} onclick={() => { researchOpened = true; activePage = 'research' }}>{t('spotResearch')}</button>
-    <button class="chip" type="button" aria-pressed={activePage === 'alerts'} onclick={() => { activePage = 'alerts'; void loadAlerts() }}>{t('radioAlerts')}</button>
-  </nav>
   <div hidden={activePage !== 'alerts'}>
     {#if RadioAlerts}<RadioAlerts {spots} {available} />
     {:else}<p role="status">{alertsFailed ? t('archiveDown') : t('loading')}</p>{/if}
@@ -347,7 +344,7 @@
     </div>
     <div class="search-row">
       <span class="search">
-        <input type="search" bind:value={query} aria-label={t('searchLabel')} placeholder={t('searchShort')} title={t('searchPlaceholder')} />
+        <input type="search" bind:value={query} aria-label={t('searchLabel')} placeholder={t('searchShort')} title={t('spotSearchSyntax')} maxlength="300" />
         {#if query}<button class="clear" type="button" aria-label={t('clear')} title={t('clear')} onclick={() => query = ''}>×</button>{/if}
       </span>
       <button class="funnel" type="button" aria-label={t('filters')} title={t('filters')} onclick={showResults}>
@@ -392,9 +389,6 @@
     {#if saveError}<p role="status">{t('spotStorageUnavailable')}</p>{/if}
   </div>
   <div class="feed-controls glass-panel">
-    <label class="comment-search">{t('spotCommentSearch')}
-      <input type="search" bind:value={commentQuery} maxlength="200" placeholder={'FT8 -CQ OR "strong signal"'} />
-    </label>
     <label class="check" title={t('spotConfirmedHint')}><input type="checkbox" bind:checked={onlyConfirmed} /> {t('spotOnlyConfirmed')}</label>
     <label class="check"><input type="checkbox" bind:checked={highlight} /> {t('spotMarkNew')}</label>
   </div>
@@ -488,15 +482,12 @@
 </main>
 
 <style>
-  .spot-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
-  .spot-tabs button { min-height: 34px; font-size: .86rem; }
   .feed-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 8px 10px; margin-bottom: 8px; }
   .feed-controls label { display: grid; gap: 3px; font-size: .8rem; font-weight: 650; min-width: 0; }
   .feed-controls select, .feed-controls input:not([type=checkbox]), .feed-controls button { min-height: 34px; min-width: 0; }
   .feed-controls input:not([type=checkbox]) { width: 100%; }
   .feed-controls .check { display: flex; align-items: center; gap: 5px; min-height: 34px; }
   .check input { width: auto; min-height: 0; }
-  .comment-search { flex: 1 1 200px; }
   .save-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; flex-basis: 100%; }
   .band-heading { font-size: 1rem; margin: 8px 12px; }
   .comparison { display: grid; }
@@ -521,7 +512,7 @@
   .chip { display: inline-flex; align-items: center; gap: .3rem; min-height: 26px; padding: 0 .5rem; border-radius: 999px; font-size: .78rem; --button-face: #fff; --button-edge: #a4bccb; --button-ink: #274760; box-shadow: none; }
   .chip[aria-pressed=true] { --button-face: #175c82; --button-edge: #0c3a56; --button-ink: #fff; }
   .band-color { width: 7px; height: 7px; border-radius: 2px; box-shadow: inset 0 0 0 1px #223c4c30; }
-  .search { position: relative; flex: 0 0 15ch; min-width: 0; }
+  .search { position: relative; flex: 1 1 17ch; min-width: 0; }
   .search input { width: 100%; min-height: 28px; padding: 3px 26px 3px 9px; font-size: .85rem; }
   .clear { position: absolute; right: 2px; top: 2px; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; font-size: 1.1rem; line-height: 1; --button-face: transparent; --button-edge: transparent; --button-ink: #4c6374; box-shadow: none; }
   .desk { min-width: 0; }

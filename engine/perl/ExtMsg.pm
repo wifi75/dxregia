@@ -269,6 +269,47 @@ sub to_connected
 	$conn->_send_file(localdata("connected")) unless $conn->{outgoing};
 }
 
+# DXRegia, 2026-11-19: use the saved issue translation before the login prompt.
+sub dxregia_issue
+{
+	my ($conn) = @_;
+	my $host = $conn->peerhost;
+	my $v4 = Socket::inet_pton(Socket::AF_INET(), $host);
+	$host =~ s/%[A-Za-z0-9_.-]+$//;
+	my $ip = $v4 ? (("\0" x 10) . "\xff\xff" . $v4) : Socket::inet_pton(Socket::AF_INET6(), $host);
+	my $lang;
+	my $local = $v4
+		? $host =~ /\A(?:10[.]|127[.]|169[.]254[.]|192[.]168[.]|172[.](?:1[6-9]|2[0-9]|3[01])[.])/
+		: defined($ip) && ($ip eq (("\0" x 15) . "\1") || (ord(substr($ip, 0, 1)) & 254) == 252 ||
+			substr(unpack('H*', $ip), 0, 3) =~ /\Afe[89ab]\z/);
+	if ($local) {
+		my %language = (85 => 'it', 32 => 'de', 129 => 'de', 42 => 'fr', 34 => 'es', 23 => 'pt', 142 => 'pt');
+		my ($dxcc) = Prefix::cty_data($main::mycall);
+		$lang = $language{$dxcc};
+	} elsif (defined $ip && open(my $file, '<:raw', "$main::local_data/dxregia-issue-countries.bin")) {
+		my @stat = stat($file);
+		my ($low, $high) = (0, int(($stat[7] // 0) / 34) - 1);
+		while ($low <= $high) {
+			my $middle = int(($low + $high) / 2);
+			last unless seek($file, $middle * 34, 0) && (read($file, my $record, 34) // 0) == 34;
+			if ($ip lt substr($record, 0, 16)) {
+				$high = $middle - 1;
+			} elsif ($ip gt substr($record, 16, 16)) {
+				$low = $middle + 1;
+			} else {
+				$lang = substr($record, 32, 2);
+				last;
+			}
+		}
+		close $file;
+	}
+	if (defined($lang) && $lang =~ /\A(?:it|de|fr|es|pt)\z/) {
+		my $translated = localdata("issue.$lang");
+		return $translated if -f $translated;
+	}
+	return localdata("issue");
+}
+
 sub new_client {
 	
 	my $server_conn = shift;
@@ -276,7 +317,7 @@ sub new_client {
 	my $conn = $server_conn->SUPER::new_client($client);
 	# send login prompt
 	$conn->{state} = 'WL';
-	$conn->_send_file(localdata("issue"));
+	$conn->_send_file($conn->dxregia_issue);
 	$conn->send_raw("login: ");
 	$conn->_dotimeout(60);
 #	$conn->{echo} = 1;

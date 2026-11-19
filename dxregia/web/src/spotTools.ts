@@ -13,21 +13,43 @@ export const bands = [
 export const bandFor = (frequency: number) => bands.find(([, low, high]) => frequency >= low && frequency <= high)?.[0] ?? ''
 export const spotKey = (spot: Spot) => [spot.At, spot.Call, spot.Frequency, spot.Spotter, spot.Comment].join('|')
 
-export function commentMatcher(query: string) {
-  const alternatives: { word: string; exclude: boolean }[][] = [[]]
-  for (const match of query.toLowerCase().matchAll(/(-)?(?:"([^"]+)"|([^"\s]+))/g)) {
-    const [, excluded, phrase, word] = match
-    if (!excluded && word === 'or' && alternatives.at(-1)!.length) {
-      alternatives.push([])
+type SearchField = 'dx' | 'de' | 'comment'
+type SearchTerm = { word: string; exclude: boolean; field?: SearchField }
+
+function searchGroups(query: string, defaultField?: SearchField) {
+  const groups: SearchTerm[][] = [[]]
+  for (const match of query.matchAll(/(-)?(?:(dx|de|comment|commento):)?(?:"([^"]+)"|([^"\s]+))/gi)) {
+    const [, exclude, field, phrase, token] = match
+    if (!exclude && !field && token?.toUpperCase() === 'OR' && groups.at(-1)!.length) {
+      groups.push([])
     } else {
-      alternatives.at(-1)!.push({ word: phrase ?? word, exclude: Boolean(excluded) })
+      const normalized = field?.toLowerCase().replace('commento', 'comment') as SearchField | undefined
+      groups.at(-1)!.push({ word: phrase ?? token, exclude: Boolean(exclude), field: normalized ?? defaultField })
     }
   }
-  const groups = alternatives.filter(group => group.length)
-  return (text: string) => {
-    const value = text.toLowerCase()
-    return !groups.length || groups.some(group => group.every(term => value.includes(term.word) !== term.exclude))
+  return groups.filter(group => group.length)
+}
+
+export function spotMatcher(query: string) {
+  const groups = searchGroups(query)
+  return (spot: Spot) => {
+    if (!groups.length) return true
+    const values = { dx: spot.Call.toLowerCase(), de: spot.Spotter.toLowerCase(), comment: spot.Comment.toLowerCase() }
+    const all = Object.values(values)
+    return groups.some(group => group.every(term => {
+      const field = term.field ? [values[term.field]] : all
+      return field.some(value => value.includes(term.word.toLowerCase())) !== term.exclude
+    }))
   }
+}
+
+export function migrateSpotSearch(query: string, comment: string) {
+  if (!comment.trim()) return query
+  const plain = query.trim().replaceAll('"', '')
+  return searchGroups(comment, 'comment').map(group => [
+    ...(plain ? ['"' + plain + '"'] : []),
+    ...group.map(term => (term.exclude ? '-' : '') + term.field + ':"' + term.word + '"'),
+  ].join(' ')).join(' OR ')
 }
 
 export function corroboratedSpots(rows: Spot[]) {

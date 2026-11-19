@@ -4,7 +4,10 @@
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
   type Channel = { Call: string; Kind: string; State: string; Since: number; Outbound?: boolean }
   type Snapshot = { At: number; Channels: Channel[] | null }
+  type ResourcePoint = { At: number; DiskUsed: number; DiskTotal: number; MemoryUsed: number; MemoryTotal: number }
   type NodeHealth = {
+    MemoryFreeBytes: number; MemoryTotalBytes: number; MemoryAvailable: boolean; Resources?: ResourcePoint[]
+
     LogBytes: number; FreeBytes: number; TotalBytes: number; GrowthBytes: number
     GrowthIntervalSeconds: number; DiskAvailable: boolean; LogsAvailable: boolean
     DXRegiaPID: number; DXSpiderPID: number; LatestSpotAt: number; RetentionDays: number
@@ -27,6 +30,15 @@
   function size(bytes: number) {
     const unit = Math.abs(bytes) >= 1024 ** 3 ? 3 : Math.abs(bytes) >= 1024 ** 2 ? 2 : Math.abs(bytes) >= 1024 ? 1 : 0
     return number.format(bytes / 1024 ** unit) + ' ' + ['B', 'KiB', 'MiB', 'GiB'][unit]
+  }
+  const diskHistory = $derived((nodeHealth?.Resources ?? []).filter(point => point.DiskTotal > 0))
+  const memoryHistory = $derived((nodeHealth?.Resources ?? []).filter(point => point.MemoryTotal > 0))
+  const percent = (used: number, total: number) => total > 0 ? Math.min(100, Math.max(0, used / total * 100)) : 0
+  function series(history: ResourcePoint[], kind: 'Disk' | 'Memory') {
+    const start = history[0]?.At ?? 0
+    const elapsed = Math.max(1, (history.at(-1)?.At ?? start) - start)
+    return history.map(point => ((point.At - start) / elapsed * 480).toFixed(1) + ',' +
+      (64 - percent(point[kind + 'Used' as 'DiskUsed' | 'MemoryUsed'], point[kind + 'Total' as 'DiskTotal' | 'MemoryTotal']) * .60).toFixed(1)).join(' ')
   }
   const since = (at: number, current: number) => at > 0 && at <= current / 1000
     ? Math.floor(current / 1000 - at) + ' s' : '—'
@@ -213,12 +225,39 @@
   </div>
 </div>
 
+<section class="server-resources" aria-label="Risorse del server">
+  {#snippet resource(title: string, free: number, total: number, history: ResourcePoint[], kind: 'Disk' | 'Memory')}
+    <article class="glass-panel box resource">
+      <h2>{title}</h2>
+      {#if total > 0}
+        {@const used = Math.max(0, total - free)}
+        <div class="usage-head"><strong>{number.format(percent(used, total))}%</strong><span>{size(used)} / {size(total)}</span></div>
+        <meter aria-label={title} min="0" max={total} value={used}></meter>
+        <p>{size(free)} <span>disponibili</span></p>
+        {#if history.length > 1}
+          <svg viewBox="0 0 480 68" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 4H480 M0 34H480 M0 64H480" class="guides" />
+            <polyline points={series(history, kind)} vector-effect="non-scaling-stroke" />
+          </svg>
+          <div class="usage-range"><time datetime={new Date(history[0].At * 1000).toISOString()}>{time.format(new Date(history[0].At * 1000))}</time>
+            <time datetime={new Date(history.at(-1)!.At * 1000).toISOString()}>{time.format(new Date(history.at(-1)!.At * 1000))}</time></div>
+        {:else}
+          <small>Il grafico si aggiorna ogni 30 secondi.</small>
+        {/if}
+      {:else}
+        <p>Misura non disponibile.</p>
+      {/if}
+    </article>
+  {/snippet}
+  {@render resource('Disco · volume dati', nodeHealth?.FreeBytes ?? 0, nodeHealth?.DiskAvailable ? nodeHealth.TotalBytes : 0, diskHistory, 'Disk')}
+  {@render resource('Memoria RAM', nodeHealth?.MemoryFreeBytes ?? 0, nodeHealth?.MemoryAvailable ? nodeHealth.MemoryTotalBytes : 0, memoryHistory, 'Memory')}
+</section>
+
 <article class="glass-panel box diagnostics">
   <h2>Diagnostica del nodo</h2>
   <dl>
     <div><dt>Ritardo aggiornamento sessioni</dt><dd>{fresh && presenceDelay !== undefined ? presenceDelay + ' s' : '—'}</dd></div>
     <div><dt>Ultimo spot</dt><dd>{since(nodeHealth?.LatestSpotAt ?? 0, now)}</dd></div>
-    <div><dt>Spazio libero sul volume dati</dt><dd>{nodeHealth?.DiskAvailable ? size(nodeHealth.FreeBytes) + ' / ' + size(nodeHealth.TotalBytes) : '—'}</dd></div>
     <div><dt>Log e storico email</dt><dd>
       {nodeHealth?.LogsAvailable ? size(nodeHealth.LogBytes) : '—'}
       {#if nodeHealth?.GrowthIntervalSeconds}
@@ -232,6 +271,15 @@
 </article>
 
 <style>
+  .server-resources { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 14px; margin-top: 14px; }
+  .usage-head, .usage-range { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .usage-head strong { font-size: 1.45rem; font-variant-numeric: tabular-nums; }
+  .resource p { margin: .35rem 0 .6rem; }
+  meter { display: block; width: 100%; height: .65rem; accent-color: #227392; }
+  .resource svg { display: block; width: 100%; height: 68px; color: #227392; }
+  .resource svg > * { stroke: currentColor; fill: none; stroke-width: 2; }
+  .resource svg .guides { opacity: .24; stroke-width: 1; }
+  .usage-range, .resource small { font-size: .8rem; }
   .diagnostics { margin-top: 14px; }
   .diagnostics dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 14px; margin: 12px 0 0; }
   .diagnostics dt { color: #485b6d; font-size: .86rem; }

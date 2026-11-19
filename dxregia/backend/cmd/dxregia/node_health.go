@@ -18,7 +18,15 @@ import (
 
 var managedEnginePID atomic.Int64
 
+type resourcePoint struct {
+	At                                           int64
+	DiskUsed, DiskTotal, MemoryUsed, MemoryTotal uint64
+}
+
 type storageSample struct {
+	MemoryFreeBytes, MemoryTotalBytes uint64
+	MemoryAvailable                   bool
+
 	At                              time.Time
 	LogBytes, FreeBytes, TotalBytes uint64
 	GrowthBytes                     int64
@@ -86,6 +94,7 @@ func registerNodeHealth(ctx context.Context, mux *http.ServeMux, root string, au
 	if root != "" && auth != nil {
 		var mu sync.Mutex
 		var storage storageSample
+		var resources []resourcePoint
 		retention, _ := strconv.Atoi(os.Getenv("DXREGIA_EVENT_RETENTION_DAYS"))
 		if retention < 1 || retention > 3650 {
 			retention = 0
@@ -105,13 +114,27 @@ func registerNodeHealth(ctx context.Context, mux *http.ServeMux, root string, au
 				}
 				bytes, ok := scanEventStorage(root, now, days)
 				free, total, diskOK := diskSpace(root)
+				memFree, memTotal, memOK := serverMemory()
+				point := resourcePoint{At: now.Unix()}
+				if diskOK && free <= total {
+					point.DiskUsed, point.DiskTotal = total-free, total
+				}
+				if memOK {
+					point.MemoryUsed, point.MemoryTotal = memTotal-memFree, memTotal
+				}
 				mu.Lock()
-				next := storageSample{At: now, LogBytes: bytes, FreeBytes: free, TotalBytes: total, DiskAvailable: diskOK, LogsAvailable: ok}
+				next := storageSample{At: now, LogBytes: bytes, FreeBytes: free, TotalBytes: total, DiskAvailable: diskOK, LogsAvailable: ok,
+					MemoryFreeBytes: memFree, MemoryTotalBytes: memTotal, MemoryAvailable: memOK}
 				if !storage.At.IsZero() && storage.LogsAvailable && ok {
 					next.GrowthBytes = int64(bytes) - int64(storage.LogBytes)
 					next.GrowthIntervalSeconds = int64(now.Sub(storage.At).Seconds())
 				}
 				storage = next
+				if len(resources) == 120 {
+					copy(resources, resources[1:])
+					resources = resources[:119]
+				}
+				resources = append(resources, point)
 				mu.Unlock()
 				select {
 				case <-ctx.Done():
@@ -128,16 +151,19 @@ func registerNodeHealth(ctx context.Context, mux *http.ServeMux, root string, au
 			}
 			mu.Lock()
 			sample := storage
+			history := append([]resourcePoint(nil), resources...)
 			mu.Unlock()
 			data := struct {
 				storageSample
 				DXRegiaPID                int
 				DXSpiderPID, LatestSpotAt int64
 				RetentionDays             int
+				Resources                 []resourcePoint
 			}{
 				storageSample: sample, DXRegiaPID: os.Getpid(), DXSpiderPID: managedEnginePID.Load(),
 				LatestSpotAt:  spots().LatestAt,
 				RetentionDays: retention,
+				Resources:     history,
 			}
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(data)

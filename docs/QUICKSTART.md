@@ -48,16 +48,15 @@
 
 Usa un’immagine a 64 bit con systemd. Raspberry Pi OS Lite a 64 bit, disponibile tramite Raspberry Pi Imager, è un’opzione per Pi 4 e Pi 5. Verifica sul dispositivo con uname -m, che deve restituire aarch64. La CI verifica Ubuntu ARM64. Il collaudo su un Raspberry Pi fisico è una verifica distinta. [Documentazione ufficiale di Raspberry Pi](https://www.raspberrypi.com/documentation/computers/os.html)
 
-1. Collegati al Pi via SSH o terminale locale. Verifica Git, Go 1.22+, Node.js 22.12+ con npm, curl e sudo. I pacchetti nativi ARM64, quando disponibili, dispensano dall’installare Go e Node.js sul Pi.
-2. Dal terminale esegui i comandi seguenti.
+1. Collegati al Pi via SSH o terminale locale. Verifica di avere curl e sudo o una shell root.
+2. Scarica e avvia l’installatore della release ARM64. Lo script sceglie automaticamente il pacchetto.
 
-~~~sh
-git clone https://github.com/wifi75/dxregia.git
-cd dxregia
-sh dxregia/deploy/install-native.sh
-~~~
+```sh
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.5.0
+```
 
-3. Apri da un PC della LAN l’indirizzo stampato, completa il wizard e prova Telnet sulla porta configurata. Attiva la pubblicazione su Internet tramite firewall e router solo se serve al tuo nodo. Per aggiornamenti e backup usa la [guida dell’installatore Linux](../dxregia/deploy/README.md).
+3. Apri da un PC della LAN l’indirizzo stampato, completa il wizard e prova Telnet sulla porta configurata. Per aggiornamenti e backup usa la [guida dell’installatore Linux](../dxregia/deploy/README.md).
 
 ## Migrazione da DXSpider
 

@@ -4,6 +4,8 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-19
+
 ### Added
 
 - Browser-local radio alert rules, opted-in system notifications, quiet hours, grouped reports, daily summaries and saved filter expiry.
@@ -16,6 +18,23 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 - Passwordless inbound access for CC Cluster peers by public IP or DNS hostname.
 - Partner onboarding emails after local setup and a separate confirmation when an inbound session becomes active.
 - Inbound session overview in the dashboard and a dedicated filter in the partner list.
+
+- Public DX Cluster statistics, partner email history with redacted credentials, SMTP preferences and partner alerts.
+- Persistent Telnet web console with command history, separate spot output and command suggestions.
+- Prebuilt Linux installation packages and SHA-256 checksums for amd64 and arm64.
+- Admin disk and RAM graphs with up to one hour of in-memory samples.
+
+### Changed
+
+- Consolidated the public navigation and spot search into the main header and the existing search field.
+- Two-factor authentication is optional and verified web sessions persist across service restarts.
+- Native first setup has LAN access, and radio registration sets the local cluster as Home Node.
+
+### Fixed
+
+- Saved Telnet banner translations are selected before login. Public IPs use the country database, local access uses the node’s callsign, and English is the fallback.
+- The portal header stays in place when switching between spots, DXCC search and radio alerts.
+- Updated the Linux checks for optional 2FA and persistent web sessions. Documentation-only changes skip those jobs.
 
 ## [0.4.0] - 2026-11-18
 

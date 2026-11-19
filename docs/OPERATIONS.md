@@ -86,3 +86,8 @@ Per impostare la conservazione sulla versione nativa, aggiungi le variabili desi
 La conservazione lascia fuori l’archivio spot, il database utenti, le configurazioni, le email ancora in coda e il file di avvio attivo. Prima di abilitare la cancellazione, salva le copie dei periodi che vuoi conservare.
 
 Il flusso live amministrativo usa ID con epoca e sequenza. Alla riconnessione con Last-Event-ID, invia subito un aggiornamento se il client è indietro e la dashboard rilegge la fotografia corrente. Il feed pubblico usa un ETag e risponde 304 quando la fotografia è identica. Le sequenze ripartono a ogni processo e la ripresa restituisce lo stato disponibile al momento della richiesta.
+
+
+**Grafici del server.** La dashboard mostra occupazione e spazio disponibile del volume dati, memoria RAM disponibile e utilizzo nel tempo. Su Linux la RAM si legge dalle metriche visibili al servizio. Il grafico conserva fino a un’ora e riparte al riavvio.
+
+**Lingue del banner Telnet.** Salva le traduzioni in **Messaggio e pianificazione**. Per un IP pubblico, il nodo usa il Paese rilevato da DB-IP quando il database è disponibile. Per un IP locale, usa la lingua associata all’indicativo del nodo. Se manca la traduzione disponibile, usa il testo inglese.

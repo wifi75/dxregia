@@ -27,21 +27,22 @@ DXRegia facilite l'installation, la gestion et le partage d'un nœud DX Cluster.
 - **Sûr à exploiter** — sauvegardes hors ligne avec vérification, mises à jour en une commande avec retour arrière automatique, statistiques de visites sans cookies ni adresses conservées.
 - **Facile à installer** — un seul script sur Debian ou Ubuntu (systemd, amd64 ou arm64), ou Docker.
 
+- Enregistrez et comparez les vues, consultez le catalogue DXCC et l’historique des indicatifs et configurez des alertes actives lorsque le portail est ouvert.
+
 ## Démarrage rapide
 
-Sur Debian ou Ubuntu avec systemd. Il faut Git, Go 1.22+, Node.js 22.12+ avec npm, curl et sudo.
+Sous Debian ou Ubuntu avec systemd, installez le paquet précompilé pour amd64 ou arm64. Il faut curl et sudo ou une session root.
 
 ```sh
-git clone https://github.com/wifi75/dxregia.git
-cd dxregia
-sh dxregia/deploy/install-native.sh
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.5.0
 ```
 
 1. Ouvrez l’adresse LAN affichée par le programme d’installation, par exemple `http://SERVEUR:8080/admin`. Une nouvelle installation native écoute sur toutes les interfaces IPv4.
 2. Connectez-vous comme `sysop` avec le mot de passe temporaire affiché et choisissez un nouveau mot de passe. Le 2FA est facultatif et désactivé par défaut. Activez-le dans **Gestion → Mot de passe**, confirmez le mot de passe web, scannez le QR et conservez les codes de récupération.
 3. Remplissez l'assistant de première configuration : indicatif du nœud, indicatif du sysop, locator et port Telnet. Ensuite, la page des spots est sur `/spots` et Telnet répond sur le port 7300.
 
-Vous préférez Docker ? Lancez plutôt `sh dxregia/deploy/install-local.sh`.
+Le guide décrit aussi Docker et l’installation depuis les sources.
 
 Le guide pas à pas couvre les ports, la messagerie, les nœuds partenaires, les mises à jour, les sauvegardes et le dépannage : [**Guide d'installation et de configuration**](docs/INSTALLATION.fr.md).
 
@@ -62,7 +63,7 @@ _Les documents techniques ci-dessous sont rédigés en italien._
 
 ## État
 
-DXRegia est en développement actif (version 0.4.0). L'installation, la première connexion, Telnet, la sauvegarde et le redémarrage sont testés sur Ubuntu 24.04 (amd64 et arm64). Restent à faire : un test sur Proxmox LXC, la remise du courrier avec d'autres fournisseurs et un paquet de version signé. Les rapports et idées sont les bienvenus dans les [GitHub Issues](https://github.com/wifi75/dxregia/issues).
+DXRegia est en développement actif (version 0.5.0). L'installation, la première connexion, Telnet, la sauvegarde et le redémarrage sont testés sur Ubuntu 24.04 (amd64 et arm64). Restent à faire : un test sur Proxmox LXC, la remise du courrier avec d'autres fournisseurs et un paquet de version signé. Les rapports et idées sont les bienvenus dans les [GitHub Issues](https://github.com/wifi75/dxregia/issues).
 
 ## Origine et licence
 
