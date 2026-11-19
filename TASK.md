@@ -25,7 +25,10 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 - [x] Verificare il riavvio gestito con la porta Telnet e la banca utenti persistenti su Windows.
 - [x] Proporre la porta Telnet configurata e rifiutare una porta occupata prima di salvare.
 - [ ] Realizzare il wizard di primo avvio e la gestione di un nodo partner interamente dal browser, dalla macchina appena installata al listener Telnet operativo, senza modifica manuale di file.
-- [ ] Verificare accesso al terminale classico via Telnet da un client esterno e da un logger. Integrare console sysop web con cronologia e aiuto, utenti e spot in diretta.
+- [ ] Collaudare il terminale Telnet classico da un client esterno e da un logger. Sul nodo installato, verificare anche la console sysop web con una sessione DXSpider reale.
+- [x] Proposta 31 — Console Telnet web con sessione persistente, cronologia e scorrimento.
+- [x] Proposta 32 — Riquadri separati per risposte ai comandi e spot in diretta.
+- [x] Proposta 33 — Completamento dei comandi supportati con Tab, spiegazione degli argomenti ed esempi.
 - [x] Collaudare installazione da sorgente su Linux, backup offline, login Telnet e riavvio con volume persistente.
 - [ ] Distribuire OCI amd64/arm64 e realizzare lo [script di installazione Linux](dxregia/deploy/README.md) con URL del pannello, password temporanea e cambio obbligatorio al primo accesso. Verificare avvio, riavvio e riesecuzione su Linux.
 - [ ] Chiarire l'applicabilità di COPYING e LICENSE e censire le dipendenze prima della prima distribuzione.
