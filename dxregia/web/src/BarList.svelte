@@ -11,7 +11,7 @@
   <ul class="list">
     {#each items as item (item.name)}
       <li>
-        <span class="name">{#if item.flag}<img src={'/flags/' + item.flag + '.svg'} alt="" width="22" height="16" loading="lazy" />{/if}{item.name}</span>
+        <span class="name">{#if item.flag}<img src={'/flags/' + item.flag + '.svg'} alt="" width="22" height="16" loading="lazy" />{/if}<span class="label">{item.name}</span></span>
         <span class="track"><i style:width={(item.count / max) * 100 + '%'} style:background={item.color ?? '#2f78b3'}></i></span>
         <span class="num">{format.format(item.count)}</span>
         <span class="pct">{sum ? Math.round((item.count / sum) * 100) : 0}%</span>
@@ -24,8 +24,9 @@
 
 <style>
   .list { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
-  li { display: grid; grid-template-columns: minmax(90px, 1.1fr) minmax(60px, 2fr) auto 38px; align-items: center; gap: 10px; font-size: .9rem; }
-  .name { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1c3447; font-weight: 600; }
+  li { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(24px, 1fr) max-content minmax(30px, max-content); align-items: center; gap: 10px; font-size: .9rem; }
+  .name { display: flex; align-items: center; gap: 8px; min-width: 0; color: #1c3447; font-weight: 600; }
+  .label { min-width: 0; overflow-wrap: anywhere; line-height: 1.25; }
   .name img { border: 1px solid #15263826; border-radius: 2px; object-fit: cover; flex: 0 0 auto; }
   .track { height: 11px; border-radius: 6px; background: #dbe7f0; overflow: hidden; }
   .track i { display: block; height: 100%; border-radius: 6px; transition: width .5s ease; }
