@@ -6,6 +6,10 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ### Added
 
+- Node diagnostics for session refresh delay, disk space, log growth and managed process IDs.
+- Latest spot age, web arrival timing and conditional spot snapshots, plus resumable live dashboard updates.
+- Opt-in public status at /stato and configurable retention for event archives.
+- Operator and ham quick-start guides, multilingual peering examples, migration and Raspberry Pi notes, and issue templates.
 - Passwordless inbound access for CC Cluster peers by public IP or DNS hostname.
 - Partner onboarding emails after local setup and a separate confirmation when an inbound session becomes active.
 - Inbound session overview in the dashboard and a dedicated filter in the partner list.

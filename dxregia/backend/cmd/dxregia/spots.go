@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -26,34 +27,91 @@ type publicSpot struct {
 	Entity    string `json:",omitempty"`
 }
 
-func registerSpots(mux *http.ServeMux, root string) {
+type spotSnapshot struct {
+	Available        bool
+	Spots            []publicSpot
+	Sequence         uint64
+	LatestAt         int64
+	ArchiveUpdatedAt int64
+}
+
+func spotArchivePaths(root string, now time.Time) [2]string {
+	var paths [2]string
+	for day := range paths {
+		date := now.UTC().AddDate(0, 0, -day)
+		paths[day] = filepath.Join(root, "local_data", "spots", fmt.Sprintf("%04d", date.Year()), fmt.Sprintf("%03d.dat", date.YearDay()))
+	}
+	return paths
+}
+
+func fileSignature(paths ...string) string {
+	var signature strings.Builder
+	for _, path := range paths {
+		signature.WriteString(path)
+		if info, err := os.Stat(path); err == nil {
+			fmt.Fprintf(&signature, ":%d:%d;", info.ModTime().UnixNano(), info.Size())
+		} else {
+			signature.WriteString(":-;")
+		}
+	}
+	return signature.String()
+}
+
+func registerSpots(mux *http.ServeMux, root string) func() spotSnapshot {
 	entities := spotEntities(root)
-	mux.HandleFunc("GET /api/spots", func(w http.ResponseWriter, r *http.Request) {
-		var spots = make([]publicSpot, 0, 100)
-		available := false
-		if root != "" {
-			path := filepath.Join(root, "local_data", "spots")
-			if info, err := os.Stat(path); err == nil && info.IsDir() {
-				available = true
-				for day := 0; day < 2 && len(spots) < cap(spots); day++ {
-					date := time.Now().UTC().AddDate(0, 0, -day)
-					file := filepath.Join(path, fmt.Sprintf("%04d", date.Year()), fmt.Sprintf("%03d.dat", date.YearDay()))
-					rows, err := recentSpots(file, cap(spots)-len(spots))
-					if err != nil && !os.IsNotExist(err) {
-						available = false
-						break
-					}
-					spots = append(spots, rows...)
+	var mu sync.Mutex
+	var signature string
+	var cached spotSnapshot
+	epoch := time.Now().UnixNano()
+	snapshot := func() spotSnapshot {
+		mu.Lock()
+		defer mu.Unlock()
+		paths := spotArchivePaths(root, time.Now())
+		path := filepath.Join(root, "local_data", "spots")
+		nextSignature := fileSignature(path, paths[0], paths[1])
+		if nextSignature == signature {
+			return cached
+		}
+		next := spotSnapshot{Spots: make([]publicSpot, 0, 100), Sequence: cached.Sequence + 1}
+		if info, err := os.Stat(path); root != "" && err == nil && info.IsDir() {
+			next.Available = true
+			for _, file := range paths {
+				if len(next.Spots) >= 100 {
+					break
 				}
+				rows, err := recentSpots(file, 100-len(next.Spots))
+				if err != nil && !os.IsNotExist(err) {
+					next.Available = false
+					break
+				}
+				if len(rows) > 0 {
+					if info, err := os.Stat(file); err == nil {
+						next.ArchiveUpdatedAt = max(next.ArchiveUpdatedAt, info.ModTime().UnixMilli())
+					}
+				}
+				for i := range rows {
+					rows[i].Entity = entities[rows[i].DXCC]
+					next.LatestAt = max(next.LatestAt, rows[i].At)
+				}
+				next.Spots = append(next.Spots, rows...)
 			}
 		}
-		for i := range spots {
-			spots[i].Entity = entities[spots[i].DXCC]
+		signature, cached = nextSignature, next
+		return cached
+	}
+	mux.HandleFunc("GET /api/spots", func(w http.ResponseWriter, r *http.Request) {
+		spots := snapshot()
+		etag := fmt.Sprintf("\"%d-%d\"", epoch, spots.Sequence)
+		w.Header().Set("ETag", etag)
+		w.Header().Set("Cache-Control", "no-cache")
+		if r.Header.Get("If-None-Match") == etag {
+			w.WriteHeader(http.StatusNotModified)
+			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Cache-Control", "no-store")
-		json.NewEncoder(w).Encode(map[string]any{"Available": available, "Spots": spots})
+		json.NewEncoder(w).Encode(spots)
 	})
+	return snapshot
 }
 
 var prefixEntity = regexp.MustCompile(`^\s*[0-9]+\s*=>\s*bless\(\s*\{\s*name\s*=>\s*'([^']+)',\s*dxcc\s*=>\s*([0-9]+),`)

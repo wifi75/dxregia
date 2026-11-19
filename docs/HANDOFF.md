@@ -323,3 +323,10 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 ## Inventario licenze e distribuzione
 
 `docs/LICENSING.md` registra la base e le modifiche di DXSpider, distingue i due testi di licenza upstream, documenta i componenti presenti nelle build e le verifiche ancora aperte. Gli avvisi Go e web sono inclusi nel bundle distribuito. Restano da formalizzare la licenza DXRegia separata, i termini dei dati radio e l’inventario dell’immagine finale.
+
+
+## 2026-11-19 — Diagnostica e smoke test Linux
+
+- Le metriche del nodo sono disponibili nell’API autenticata /api/node-health e nel riquadro Diagnostica del nodo. La conservazione è disattivata in partenza e si abilita con DXREGIA_EVENT_RETENTION_DAYS. Impostare DXREGIA_PUBLIC_STATUS=on per pubblicare /stato. Vedi [Operazioni](OPERATIONS.md).
+- Il collaudo HTTP usa file sintetici, letture concorrenti del feed e 250 schede partner. Le prove esercitano il backend e la generazione della risposta. Il carico di 250 connessioni effettive tra nodi e l’installazione su Raspberry Pi fisico richiedono un ambiente dedicato.
+- Il workflow Linux salta le modifiche ai soli documenti, annulla i run superati sullo stesso riferimento e verifica esplicitamente 2FA opzionale e persistenza della sessione. Tutte e quattro le varianti sono passate nel [run di verifica](https://github.com/wifi75/dxregia/actions/runs/44531010488).

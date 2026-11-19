@@ -19,3 +19,7 @@ Chi vuole inviare spot si registra dal portale con nominativo, email e password 
 ## 2026-11-19 — Sessioni sysop e statistiche pubbliche
 
 DXRegia conserva la sessione già verificata nel database di stato locale del nodo come file privato con hash del cookie, impronta delle credenziali e scadenza. Il file resta fuori dai backup. Le statistiche degli spot sono pubbliche da mezzanotte UTC. Analytics del portale resta riservato al sysop.
+
+## 2026-11-19 — Conservazione degli eventi e stato pubblico facoltativi
+
+La conservazione automatica è esplicita e disattivata alla prima installazione. Agisce sui soli archivi riconosciuti dei log, del debug e dello storico email. La pagina /stato è disattivata in partenza ed espone solo lo stato osservato del motore e il timestamp dell’ultimo spot. La diagnostica di processi e disco rimane riservata al sysop.

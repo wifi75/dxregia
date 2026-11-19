@@ -222,26 +222,26 @@ Elenco ricostruito. I numeri 31–33 corrispondono alle proposte originali recup
 
 ## Prestazioni e affidabilità
 
-- [ ] **171.** Misura latenza dal nodo al portale
-- [ ] **172.** Metrica dei ritardi di aggiornamento delle sessioni
-- [ ] **173.** Indicatore dell’età dell’ultimo spot
-- [ ] **174.** Numeri di sequenza per riprendere il flusso
-- [ ] **175.** Test di carico con molti utenti web
-- [ ] **176.** Test di carico con molti partner
-- [ ] **177.** Verifica della crescita dei file di log
-- [ ] **178.** Limiti di archiviazione per eventi
-- [ ] **179.** Controllo dello spazio disco da pannello
-- [ ] **180.** Monitoraggio dei processi del nodo
+- [x] **171.** Misura latenza dal nodo al portale
+- [x] **172.** Metrica dei ritardi di aggiornamento delle sessioni
+- [x] **173.** Indicatore dell’età dell’ultimo spot
+- [x] **174.** Numeri di sequenza per riprendere il flusso
+- [x] **175.** Test di carico con molti utenti web
+- [x] **176.** Test di carico con molti partner
+- [x] **177.** Verifica della crescita dei file di log
+- [x] **178.** Limiti di archiviazione per eventi
+- [x] **179.** Controllo dello spazio disco da pannello
+- [x] **180.** Monitoraggio dei processi del nodo
 
 ## Documentazione e comunità
 
-- [ ] **181.** Guida rapida per sysop
-- [ ] **182.** Guida rapida per radioamatori
-- [ ] **183.** Esempi di peering in più lingue
-- [ ] **184.** Tabelle dei protocolli supportati
-- [ ] **185.** Glossario dei termini DX Cluster
-- [ ] **186.** Guida all’installazione su Raspberry Pi
-- [ ] **187.** Guida al passaggio da DXSpider
-- [ ] **188.** Pagina pubblica di stato opzionale
-- [ ] **189.** Istruzioni per riprodurre un bug con dati oscurati
-- [ ] **190.** Modello per proporre una funzionalità
+- [x] **181.** Guida rapida per sysop
+- [x] **182.** Guida rapida per radioamatori
+- [x] **183.** Esempi di peering in più lingue
+- [x] **184.** Tabelle dei protocolli supportati
+- [x] **185.** Glossario dei termini DX Cluster
+- [x] **186.** Guida all’installazione su Raspberry Pi
+- [x] **187.** Guida al passaggio da DXSpider
+- [x] **188.** Pagina pubblica di stato opzionale
+- [x] **189.** Istruzioni per riprodurre un bug con dati oscurati
+- [x] **190.** Modello per proporre una funzionalità

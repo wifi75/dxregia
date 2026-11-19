@@ -5,6 +5,17 @@
 export const adminLanguages = ['it', 'en', 'es', 'de', 'fr', 'pt'] as const
 
 export const adminRows: string[][] = [
+  // Diagnostica del nodo
+  ['Diagnostica del nodo', 'Node diagnostics', 'Diagnóstico del nodo', 'Knotendiagnose', 'Diagnostic du nœud', 'Diagnóstico do nó'],
+  ['Ritardo aggiornamento sessioni', 'Session refresh delay', 'Retraso de actualización de sesiones', 'Verzögerung beim Sitzungsupdate', 'Délai de mise à jour des sessions', 'Atraso na atualização das sessões'],
+  ['Spazio libero sul volume dati', 'Free space on the data volume', 'Espacio libre en el volumen de datos', 'Freier Speicher auf dem Datenvolume', 'Espace libre sur le volume de données', 'Espaço livre no volume de dados'],
+  ['Log e storico email', 'Logs and email history', 'Registros e historial de correo', 'Protokolle und E-Mail-Verlauf', 'Journaux et historique des e-mails', 'Registos e histórico de e-mail'],
+  ['Conservazione eventi: {} giorni', 'Event retention: {} days', 'Conservación de eventos: {} días', 'Ereignisaufbewahrung: {} Tage', 'Conservation des événements : {} jours', 'Retenção de eventos: {} dias'],
+  ['Processo DXRegia', 'DXRegia process', 'Proceso DXRegia', 'DXRegia-Prozess', 'Processus DXRegia', 'Processo DXRegia'],
+  ['Processo DXSpider', 'DXSpider process', 'Proceso DXSpider', 'DXSpider-Prozess', 'Processus DXSpider', 'Processo DXSpider'],
+  ['Dati attivi · PID non rilevato', 'Live data · PID unavailable', 'Datos activos · PID no detectado', 'Daten aktuell · PID nicht ermittelt', 'Données à jour · PID indisponible', 'Dados ativos · PID não detetado'],
+  ['Non rilevato', 'Not detected', 'No detectado', 'Nicht erkannt', 'Non détecté', 'Não detetado'],
+  ['Ultimo spot', 'Latest spot', 'Último spot', 'Letzter Spot', 'Dernier spot', 'Último spot'],
   // Accesso e menu
   ['Amministrazione', 'Administration', 'Administración', 'Verwaltung', 'Administration', 'Administração'],
   ['Amministrazione DXRegia', 'DXRegia administration', 'Administración de DXRegia', 'DXRegia-Verwaltung', 'Administration DXRegia', 'Administração do DXRegia'],

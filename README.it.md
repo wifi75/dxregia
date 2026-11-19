@@ -49,6 +49,8 @@ La guida passo passo spiega porte, posta, nodi partner, aggiornamenti, backup e 
 
 _I documenti tecnici qui sotto sono scritti in italiano._
 
+- [Guida rapida, protocolli, Raspberry Pi e migrazione](docs/QUICKSTART.md)
+- [Esempi di peering in sei lingue](docs/PEERING.md)
 - [docs/OPERATIONS.md](docs/OPERATIONS.md) — Operazioni del sysop: nodi partner, log, backup
 - [docs/INTERFACES.md](docs/INTERFACES.md) — Pagina pubblica, pannello admin, Telnet e marchio
 - [dxregia/deploy/README.md](dxregia/deploy/README.md) — Riferimento dell'installatore Linux

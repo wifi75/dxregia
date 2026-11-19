@@ -106,7 +106,8 @@ func main() {
 	registerMojoLog(mux, auth, *setupRoot)
 	registerTelnetPassword(mux, auth, *setupRoot)
 	registerTelnetOptions(mux, auth, *setupRoot)
-	registerSpots(mux, *setupRoot)
+	spots := registerSpots(mux, *setupRoot)
+	registerNodeHealth(service, mux, *setupRoot, auth, spots)
 	registerADXO(service, mux, *setupRoot)
 	registerEngineVersion(mux, *setupRoot)
 	if err := registerContacts(service, mux, *setupRoot, auth); err != nil {

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
@@ -14,6 +14,20 @@ import (
 func registerLive(mux *http.ServeMux, root string, auth *sysopAuth) {
 	if auth == nil || root == "" {
 		return
+	}
+	var mu sync.Mutex
+	var previous string
+	var sequence uint64
+	epoch := time.Now().UnixNano()
+	currentID := func() string {
+		mu.Lock()
+		defer mu.Unlock()
+		signature := liveSignature(root)
+		if signature != previous {
+			previous = signature
+			sequence++
+		}
+		return fmt.Sprintf("%d-%d", epoch, sequence)
 	}
 	mux.HandleFunc("GET /api/live", func(w http.ResponseWriter, r *http.Request) {
 		if !auth.allowed(r) {
@@ -39,10 +53,14 @@ func registerLive(mux *http.ServeMux, root string, auth *sysopAuth) {
 			flusher.Flush()
 			return true
 		}
-		if !send("retry: 3000\nevent: tick\ndata: hello\n\n") {
+		last := currentID()
+		if r.Header.Get("Last-Event-ID") == last {
+			if !send("retry: 3000\n: current\n\n") {
+				return
+			}
+		} else if !send("retry: 3000\nid: %s\nevent: tick\ndata: hello\n\n", last) {
 			return
 		}
-		last := liveSignature(root)
 		poll := time.NewTicker(time.Second)
 		defer poll.Stop()
 		beat := time.NewTicker(15 * time.Second)
@@ -52,9 +70,12 @@ func registerLive(mux *http.ServeMux, root string, auth *sysopAuth) {
 			case <-r.Context().Done():
 				return
 			case <-poll.C:
-				if current := liveSignature(root); current != last {
+				if !auth.allowed(r) {
+					return
+				}
+				if current := currentID(); current != last {
 					last = current
-					if !send("event: tick\ndata: change\n\n") {
+					if !send("id: %s\nevent: tick\ndata: change\n\n", current) {
 						return
 					}
 				}
@@ -70,18 +91,6 @@ func registerLive(mux *http.ServeMux, root string, auth *sysopAuth) {
 // liveSignature riassume lo stato osservabile: cambia quando Mojo scrive una nuova fotografia
 // o quando arriva uno spot nei file di oggi e di ieri.
 func liveSignature(root string) string {
-	files := []string{filepath.Join(root, "local_data", "dxregia-presence.json")}
-	for day := 0; day < 2; day++ {
-		date := time.Now().UTC().AddDate(0, 0, -day)
-		files = append(files, filepath.Join(root, "local_data", "spots", fmt.Sprintf("%04d", date.Year()), fmt.Sprintf("%03d.dat", date.YearDay())))
-	}
-	signature := ""
-	for _, file := range files {
-		if info, err := os.Stat(file); err == nil {
-			signature += fmt.Sprintf("%d:%d;", info.ModTime().UnixNano(), info.Size())
-		} else {
-			signature += "-;"
-		}
-	}
-	return signature
+	paths := spotArchivePaths(root, time.Now())
+	return fileSignature(filepath.Join(root, "local_data", "dxregia-presence.json"), paths[0], paths[1])
 }
