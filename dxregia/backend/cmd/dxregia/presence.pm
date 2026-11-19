@@ -349,6 +349,7 @@ sub provision_partners {
         print $ack $result or next;
         close($ack) or next;
         rename("$target.tmp", $target) or next;
+        DXDebug::dbg("DXRegia partner $call $result") if DXDebug::isdbg('connect');
         unlink "$dir/$file";
     }
 }
@@ -420,6 +421,7 @@ sub connect_partners {
         print $ack $result or next;
         close($ack) or next;
         rename("$target.tmp", $target) or next;
+        DXDebug::dbg("DXRegia partner $call $result") if DXDebug::isdbg('connect');
         unlink "$dir/$file";
     }
 }

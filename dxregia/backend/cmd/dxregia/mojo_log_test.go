@@ -35,3 +35,18 @@ func TestMojoTimeoutDirection(t *testing.T) {
 		}
 	}
 }
+
+func TestMojoLogShowsPeerAndStage(t *testing.T) {
+	parse := mojoDebugParser("1794995200^(connect) ExtMsg accept 7:192.0.2.1 from 2001:db8::1:42100")
+	legacy, ok := parse("1794995260^(connect) connect 7: timed out after 60 seconds incoming")
+	if !ok || legacy.Host != "2001:db8::1" || legacy.Session != "7" || legacy.Call != "" {
+		t.Fatalf("unexpected historical event: %+v", legacy)
+	}
+	stage, ok := parse("1794995310^(connect) DXRegia session 8 outgoing DA0BCC-7 dx.da0bcc.de password-sent 0")
+	if !ok || stage.Call != "DA0BCC-7" || stage.Host != "dx.da0bcc.de" || stage.Direction != "Uscita" {
+		t.Fatalf("unexpected stage: %+v", stage)
+	}
+	if _, ok := parse("1794995310^(connect) DXRegia partner DA0BCC-7 secret"); ok {
+		t.Fatal("unexpected payload exposed in partner log")
+	}
+}

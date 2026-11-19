@@ -192,6 +192,7 @@ sub dequeue
 					$conn->{usedpasswd} = 1;
 					$conn->to_connected($conn->{call}, 'A', $sort);
 				} else {
+					$conn->_dxregia_log('password-rejected');
 					$conn->send_now("Sorry");
 					$conn->disconnect;
 				}
@@ -364,6 +365,8 @@ sub _dochat
 			}
 			if ($line =~ /\Q$expect/i) {
 				if (length $send) {
+					$conn->_dxregia_log('login-sent') if $expect eq 'login';
+					$conn->_dxregia_log('password-sent') if $expect eq 'password:';
 					# DXRegia, 2026-11-18: omit outgoing login passwords from connection debug logs.
 					dbg("connect $conn->{cnum}: got: \"$expect\" sending: \"$send\"") if isdbg('connect') && $expect !~ /assword/i;
 					$conn->send_later("D$conn->{call}|$send");
@@ -381,14 +384,23 @@ sub _dochat
 sub _timedout
 {
 	my $conn = shift;
-	# DXRegia, 2026-11-18: distinguish incomplete incoming logins from outgoing partner handshakes.
-	if (isdbg('connect')) {
-		my $call = $conn->{call} // '';
-		my $context = $conn->{outgoing} ? 'outgoing' : 'incoming';
-		$context .= " $call" if $conn->{outgoing} && $call =~ /\A[A-Z0-9-]{1,12}\z/;
-		dbg("connect $conn->{cnum}: timed out after $conn->{timeval} seconds $context");
-	}
+	my $stage = $conn->{outgoing} ? 'remote-prompt-timeout' : $conn->{state} eq 'WP' ? 'password-timeout' : 'login-timeout';
+	$conn->_dxregia_log($stage, $conn->{timeval});
 	$conn->disconnect;
+}
+
+# DXRegia, 2026-11-19: log stages and validated metadata, without protocol payloads or credentials.
+sub _dxregia_log
+{
+	my ($conn, $event, $seconds) = @_;
+	return unless isdbg('connect');
+	my $call = $conn->{call} // '';
+	$call = '-' unless $call =~ /\A[A-Z0-9]+(?:[-\/][A-Z0-9]+)*\z/ && length($call) <= 16;
+	my $host = $conn->{peerhost} // '';
+	$host = '-' unless $host =~ /\A[A-Za-z0-9.:\-]{1,253}\z/;
+	my $direction = $conn->{outgoing} ? 'outgoing' : 'incoming';
+	$seconds ||= 0;
+	dbg("DXRegia session $conn->{cnum} $direction $call $host $event $seconds");
 }
 
 # handle callsign and connection type firtling
@@ -402,6 +414,7 @@ sub _doclient
 	$conn->{csort} = $f[1] if $f[1];
 	$conn->{state} = 'C';
 	eval {$conn->{peerhost} = $conn->{sock}->handle->peerhost} unless $conn->ax25;
+	$conn->_dxregia_log('protocol-start');
 	&{$conn->{rproc}}($conn, "O$call|$conn->{csort}");
 	delete $conn->{cmd};
 	$conn->{timeout}->del if $conn->{timeout};
