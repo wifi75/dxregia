@@ -70,6 +70,9 @@ func reconnectPartners(root string, partners map[string]partner, snapshot presen
 		return
 	}
 	for call, entry := range partners {
+		if _, locked := snapshot.LockedPartners[call]; locked {
+			continue
+		}
 		if !entry.partnerDetails.validate() || call != entry.Call {
 			continue
 		}

@@ -6,7 +6,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -340,14 +340,14 @@
         <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
         <tbody>
           {#each partners.toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
-            {@const state = statusError ? 'Stato non aggiornato' : partner.Connection || 'Stato in attesa'}
+            {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in Mojo' : partner.Connection || 'Stato in attesa'}
             <tr class:current={selected?.Call === partner.Call}>
               <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
               <td>{partner.Name || '—'}</td>
               <td>{partner.Contact || '—'}</td>
               <td>
                 <span class="observed-state">
-                  <span class="led" data-tone={statusError ? 'neutral' : connectionTone(partner.Connection)}
+                  <span class="led" data-tone={statusError ? 'neutral' : partner.Locked ? 'red' : connectionTone(partner.Connection)}
                     title={state} aria-hidden="true"></span>
                   {state}
                 </span>
@@ -364,9 +364,9 @@
   {/if}
 
   {#if editing}
-    {@const inbound = inboundInfo(selected?.Provisioning)}
+    {@const inbound = inboundInfo(selected?.Locked ? 'Nodo bloccato in Mojo' : selected?.Provisioning)}
     {@const incoming = incomingInfo(selected)}
-    {@const lockedInMojo = selected?.Provisioning === 'Nodo bloccato in Mojo'}
+    {@const lockedInMojo = Boolean(selected?.Locked)}
     {@const canEnableInbound = selected && !lockedInMojo && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '') && !selected.Provisioning?.includes('verificare')}
     {@const outgoingReady = selected?.Provisioning === 'Abilitato in Mojo' || selected?.Provisioning === 'Pronto in uscita'}
     <div class="detail">
@@ -418,11 +418,13 @@
                 void updateReconnect(input.checked).finally(() => { input.checked = autoReconnect })
               }} disabled={enabling || busy || checkingStatus || loadingCredential} /> Riprova da solo se il collegamento cade</label>
               <div class="actions">
-                {#if outgoingReady}
+                {#if lockedInMojo}
+                  {#if selected.CanUnlock}
+                    <button class="unlock-node" type="button" disabled={enabling || busy} onclick={() => enable(true, false, true)}>Sblocca questo nodo</button>
+                  {/if}
+                  <span class="hint">Mojo ha un blocco locale per questo indicativo. Può essere stato impostato dal sysop o applicato quando Mojo ha scoperto il nodo in rete.</span>
+                {:else if outgoingReady}
                   <button disabled={enabling || busy}>Connetti ora</button>
-                {:else if lockedInMojo}
-                  <button type="button" disabled={enabling || busy} onclick={() => enable(true, false, true)}>Sblocca questo nodo</button>
-                  <span class="hint">Mojo blocca questo indicativo. Sbloccalo se riconosci il nodo partner.</span>
                 {:else}
                   <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
                     onclick={() => enable(true)}>Prepara il collegamento</button>
@@ -558,6 +560,7 @@
 </section>
 
 <style>
+  .unlock-node { background: #a91e24; border-color: #84191e; color: #fff; }
   section { margin-top: 20px; padding: 16px; }
   .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
   h2 { margin: 0; font-size: 1.15rem; }

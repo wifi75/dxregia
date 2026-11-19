@@ -29,6 +29,7 @@ type presence struct {
 	SysopPassword  bool
 	At             int64
 	Channels       []presenceChannel
+	LockedPartners map[string]bool
 }
 
 func registerPresence(mux *http.ServeMux, root string, auth *sysopAuth) {
@@ -88,7 +89,13 @@ func installPresenceHook(local string) error {
 			digest != "14374f12a07abb07c3af3b9ac54c9fa5e9accf24b0ef2e912b40994c70dd86ec" &&
 			digest != "a234b8ce766c47ee29ee6cb9fa1a41f3acae025bcb520fe783f5f43bc613a376" &&
 			digest != "d8007215f42e9c61fa9063c7b8c41c05326ac83d43bee8574fe6d055c805d1dc" &&
-			digest != "ee1e395e8d9c98d980ff6b01dab2ed6ada1991a6a6151490ec0aa9adfec04d52" {
+			digest != "ee1e395e8d9c98d980ff6b01dab2ed6ada1991a6a6151490ec0aa9adfec04d52" &&
+			digest != "523f61f148d3d4210cc9a258c10d8efb226032e9bc3c927368aa74eddf043317" &&
+			digest != "fda8d876285054626cc9d158ce578a8960b40d7acf0e756a4ac27ebc1723ce03" &&
+			digest != "351646b619d61ce070ca4ebb71ba737b84618874879d90d77c219c23f305449b" &&
+			digest != "c19aaae1a4ea32dc5cc6b2a015edd8c5c21e1072e75c5d92cd37ed54ae361fcf" &&
+			digest != "47bc1d585e7eac4ac9e38c0810d6bb6ad1df3946cb5631c0e9665e72dfbe3742" &&
+			digest != "ea8a41f4bbb18d4c1753e84f56966445721bcd49a4932fc2edaf75ea1f6c99d8" {
 			return nil
 		}
 		return upgradePresenceHook(local, path)

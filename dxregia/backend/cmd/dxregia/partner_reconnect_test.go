@@ -40,6 +40,10 @@ func TestReconnectQueuesOnlyDueMatchingPartner(t *testing.T) {
 	reconnectPartners(root, partners, snapshot, later)
 	absent()
 	snapshot.Channels = nil
+	snapshot.LockedPartners = map[string]bool{entry.Call: true}
+	reconnectPartners(root, partners, snapshot, later)
+	absent()
+	delete(snapshot.LockedPartners, entry.Call)
 	reconnectPartners(root, partners, snapshot, later)
 	data, err := os.ReadFile(path)
 	if err != nil || string(data) != "node.example.org\n7373\ntestPassword" {

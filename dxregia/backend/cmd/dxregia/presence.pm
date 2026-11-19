@@ -40,9 +40,26 @@ sub process {
     my $target = "$main::local_data/dxregia-presence.json";
     my $tmp = "$target.tmp";
     open(my $file, '>:raw', $tmp) or die "DXRegia snapshot: $!";
-    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, SysopPassword => JSON::true, Telnet => telnet_options(), Channels => \@channels }) or die "DXRegia snapshot: $!";
+    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, SysopPassword => JSON::true, Telnet => telnet_options(), Channels => \@channels, LockedPartners => locked_partners() }) or die "DXRegia snapshot: $!";
     close($file) or die "DXRegia snapshot: $!";
     rename($tmp, $target) or die "DXRegia snapshot: $!";
+}
+
+sub locked_partners {
+    my %locked;
+    open(my $directory, '<:raw', "$main::root/.dxregia-partners.json") or return \%locked;
+    my $data = do { local $/; <$directory> };
+    close($directory);
+    my $partners = eval { JSON::decode_json($data) };
+    return \%locked unless ref($partners) eq 'HASH';
+    for my $call (keys %$partners) {
+        next unless $call =~ /\A[A-Z0-9]+(?:-[0-9]+)?\z/ && length($call) <= 12;
+        next if $call eq $main::mycall || $call eq $main::myalias;
+        my $user = DXUser::get_current($call);
+        next unless $user && $user->lockout;
+        $locked{$call} = ($user->sort eq 'S' && ($user->priv || 0) <= 1) ? JSON::true : JSON::false;
+    }
+    return \%locked;
 }
 
 my $applied_telnet = '';

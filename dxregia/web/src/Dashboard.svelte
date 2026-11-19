@@ -10,7 +10,7 @@
   let { status, failed, refresh }: { status?: Status; failed: boolean; refresh: () => void } = $props()
 
   let snapshot = $state<Snapshot>()
-  let directory = $state<Record<string, { Name: string }>>({})
+  let directory = $state<Record<string, { Name: string; Locked?: boolean }>>({})
   let spots = $state<Spot[]>([])
   let spotsAvailable = $state(true)
   let views = $state<number>()
@@ -39,6 +39,7 @@
   let nodes = $derived(channels.filter(channel => channel.Kind === 'node'))
   let sessions = $derived(channels.filter(channel => channel.Kind === 'telnet' || channel.Kind === 'web'))
   let partnerCalls = $derived(Object.keys(directory).sort())
+  let lockedCalls = $derived(partnerCalls.filter(call => directory[call].Locked))
   let connected = $derived(partnerCalls.filter(call => nodes.some(node => node.Call === call && node.State === 'normal')))
   let lastHour = $derived(spots.filter(spot => now / 1000 - spot.At < 3600))
   let lastSpot = $derived(spots[0])
@@ -179,6 +180,9 @@
   <article class="glass-panel box partners">
     <header class="box-head"><h2>Nodi partner</h2><span class="count">{[...new Set([...partnerCalls, ...nodes.map(node => node.Call)])].length}</span></header>
     <p class="sub">Altri cluster collegati al tuo come partner.</p>
+    {#if lockedCalls.length}
+      <p class="blocked" role="status">Nodi bloccati in Mojo · {lockedCalls.join(', ')}. <a href="#partner">Apri Nodi partner</a></p>
+    {/if}
     {#if partnerCalls.length || nodes.length}
       <ul class="rows">
         {#each [...new Set([...partnerCalls, ...nodes.map(node => node.Call)])] as call (call)}
@@ -189,7 +193,7 @@
             <strong>{call}</strong>
             <span class="muted">{directory[call]?.Name || ''}</span>
             {#if node}<span class="tag" title="Chi ha avviato il collegamento">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{/if}
-            <span class="state">{!node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo dalle ' + time.format(new Date(node.Since * 1000)) : 'Sessione aperta'}</span>
+            <span class="state">{directory[call]?.Locked ? 'Nodo bloccato in Mojo' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo dalle ' + time.format(new Date(node.Since * 1000)) : 'Sessione aperta'}</span>
           </li>
         {/each}
       </ul>
@@ -253,6 +257,7 @@
 </div>
 
 <style>
+  .blocked, .blocked a { color: #9d2027; font-weight: 700; }
   .heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
   h1 { margin: 0; font-size: 1.65rem; line-height: 1.2; }
   .health { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; margin-top: 8px; }

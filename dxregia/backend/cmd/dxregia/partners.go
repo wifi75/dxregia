@@ -28,6 +28,8 @@ type partnerStatus struct {
 	LastConnectAttempt *time.Time `json:",omitempty"`
 	RetryEligibleAt    *time.Time `json:",omitempty"`
 	CanResend          bool       `json:",omitempty"`
+	Locked             bool       `json:",omitempty"`
+	CanUnlock          bool       `json:",omitempty"`
 	Direction          string     `json:",omitempty"`
 }
 
@@ -141,6 +143,11 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			for call, entry := range partners {
 				entry.Connection = currentConnection(root, call, snapshot)
 				status := partnerStatus{partner: entry}
+				status.CanUnlock, status.Locked = snapshot.LockedPartners[call]
+				if snapshot.LockedPartners == nil && entry.Provisioning == lockedPartnerStatus {
+					status.Locked, status.CanUnlock = true, true
+				}
+				status.CanUnlock = status.CanUnlock && entry.Provisioning != "In attesa di Mojo"
 				for _, channel := range snapshot.Channels {
 					if channel.Call == call && channel.Kind == "node" {
 						status.Direction = "Ingresso"
@@ -304,16 +311,25 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Nodo non trovato.", http.StatusNotFound)
 			return
 		}
-		if options.Unlock && (!options.OutgoingOnly || options.SendMail || entry.Provisioning != lockedPartnerStatus) {
+		snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
+		unlockable, locked := snapshot.LockedPartners[call]
+		if snapshot.LockedPartners == nil && entry.Provisioning == lockedPartnerStatus {
+			unlockable, locked = true, true
+		}
+		if options.Unlock && (!options.OutgoingOnly || options.SendMail || !unlockable) {
 			http.Error(w, "Lo sblocco richiede un nodo partner bloccato e una richiesta di preparazione in uscita.", http.StatusConflict)
 			return
 		}
-		if entry.Provisioning == "In attesa di Mojo" || entry.Provisioning == "Abilitato in Mojo" {
+		if locked && !options.Unlock {
+			http.Error(w, lockedPartnerStatus, http.StatusConflict)
+			return
+		}
+		if entry.Provisioning == "In attesa di Mojo" || (!options.Unlock && entry.Provisioning == "Abilitato in Mojo") {
 			w.WriteHeader(http.StatusAccepted)
 			return
 		}
 		if options.OutgoingOnly {
-			if entry.Provisioning == "Pronto in uscita" {
+			if !options.Unlock && entry.Provisioning == "Pronto in uscita" {
 				w.WriteHeader(http.StatusAccepted)
 				return
 			}
@@ -480,6 +496,10 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
 		if !snapshot.PartnerConnect {
 			http.Error(w, "Mojo deve essere attivo con l’hook DXRegia aggiornato.", http.StatusServiceUnavailable)
+			return
+		}
+		if _, locked := snapshot.LockedPartners[call]; locked {
+			http.Error(w, lockedPartnerStatus, http.StatusConflict)
 			return
 		}
 		if !canConnectPartner(entry.Provisioning) {

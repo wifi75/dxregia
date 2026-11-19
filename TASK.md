@@ -99,3 +99,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Sbloccare dal pannello un singolo nodo partner confermato come bloccato da Mojo.
 - [x] Mostrare il paese degli IP pubblici negli accessi e distinguere il controllo Telnet locale dal recapito pubblico.
 - [x] Mostrare fasi, direzione, sessione e IP quando deducibili nel log DXSpider, con ricerca e filtro degli accessi anonimi.
+- [x] Avvisare in dashboard se un partner e bloccato in Mojo e offrire lo sblocco con un pulsante rosso.
