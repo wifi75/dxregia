@@ -6,7 +6,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; CanSetInboundIP?: boolean; InboundIP?: string; InboundTestUntil?: string; InboundAutoNext?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; IPMailStatus?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; CanSetInboundIP?: boolean; InboundIP?: string; InboundTestUntil?: string; InboundAutoNext?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -313,7 +313,7 @@
   function mailTone(status?: string, retryAt?: string) {
     if (retryAt || status?.startsWith('In attesa') || status?.includes('accodate')) return 'amber'
     if (status?.includes('non riuscit') || status?.includes('non inviate')) return 'red'
-    if (status?.startsWith('Istruzioni inviate') || status?.startsWith('Conferma inviata') || status?.includes('avviso inviato')) return 'green'
+    if ((status?.startsWith('Istruzioni inviate') || status?.startsWith('Istruzioni senza password inviate')) || status?.startsWith('Conferma inviata') || status?.includes('avviso inviato')) return 'green'
     return 'neutral'
   }
 
@@ -607,8 +607,10 @@
                   <button class="secondary" type="submit" value="save" disabled={enabling || busy || !selected.CanSetInboundIP}>Salva senza inviare</button>
                 </div>
               </form>
-              {#if ipMailStatus}
-                <p class="mail-notice" data-tone={ipMailStatus.error ? 'red' : enabling ? 'amber' : 'green'} role="status">{ipMailStatus.text}</p>
+              {#if ipMailStatus?.error || (ipMailStatus && enabling) || selected.IPMailStatus || ipMailStatus}
+                <p class="mail-notice" data-tone={ipMailStatus?.error ? 'red' : enabling ? 'amber' : mailTone(selected.IPMailStatus ?? 'Istruzioni inviate')} role="status">
+                  {ipMailStatus && (ipMailStatus.error || enabling) ? ipMailStatus.text : selected.IPMailStatus || ipMailStatus?.text}
+                </p>
               {/if}
             {/if}
             {#if selected.InboundAutoNext}

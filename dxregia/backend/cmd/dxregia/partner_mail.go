@@ -17,6 +17,7 @@ type partnerMail struct {
 	Status                                     string
 	Lang, Contact                              string
 	PendingSent                                bool
+	InboundSource                              string
 	SwitchFromIP                               bool
 	QueuedAt, RetryAt                          time.Time
 	Attempts                                   int
@@ -97,8 +98,20 @@ func retryPartnerMail(job *partnerMail, err error, failed string, now time.Time)
 }
 
 func advancePartnerMail(dir string, send func(string, string, mailContent) error, snapshot presence, job *partnerMail) bool {
+	if job.InboundSource != "" {
+		if job.WatchUntil.IsZero() {
+			return false
+		}
+		var source string
+		data, err := os.ReadFile(filepath.Join(dir, job.Call+".inbound-ip"))
+		if err != nil || json.Unmarshal(data, &source) != nil || source != job.InboundSource {
+			job.WatchUntil, job.RetryAt = time.Time{}, time.Time{}
+			job.Status = "Verifica annullata: accesso in ingresso modificato."
+			return true
+		}
+	}
 	// Switching to IP authorization retires any previous password email workflow.
-	if !job.SwitchFromIP && validPartnerIPCall(job.Call) && (job.Password != "" || !job.WatchUntil.IsZero()) {
+	if job.InboundSource == "" && !job.SwitchFromIP && validPartnerIPCall(job.Call) && (job.Password != "" || !job.WatchUntil.IsZero()) {
 		if _, err := os.Stat(filepath.Join(dir, job.Call+".inbound-ip")); err == nil {
 			job.Password = ""
 			job.Attempts = 0
@@ -178,7 +191,7 @@ func advancePartnerMail(dir string, send func(string, string, mailContent) error
 		job.VerifyAfter, job.WatchUntil = time.Time{}, time.Time{}
 		return true
 	}
-	if !job.PendingSent && !job.VerifyAfter.IsZero() && time.Now().After(job.VerifyAfter) {
+	if job.InboundSource == "" && !job.PendingSent && !job.VerifyAfter.IsZero() && time.Now().After(job.VerifyAfter) {
 		if err := send("pending", job.Recipient, mailLinkPending(job.Lang, *job, job.Contact)); err != nil {
 			if retryPartnerMail(job, err, "Invio avviso non riuscito", now) {
 				return true
@@ -195,4 +208,8 @@ func advancePartnerMail(dir string, send func(string, string, mailContent) error
 
 func (m *contactMailer) sendContent(to string, content mailContent) error {
 	return m.send(to, buildMessage(m.from, to, "", content))
+}
+
+func partnerIPMailPath(dir, call string) string {
+	return filepath.Join(dir, call+".ip-followup.mail.json")
 }

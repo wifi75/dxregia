@@ -80,7 +80,7 @@
       <details>
         <summary>{request.Call} · {request.Kind === 'partner' ? 'Peering' : 'Messaggio'} · {date.format(new Date(request.ReceivedAt))}</summary>
         <p>{request.Contact || 'Referente non indicato'} · <a href={'mailto:' + request.Email}>{request.Email}</a></p>
-        {#if request.Auto}<p class="auto-tag">Configurato automaticamente: il partner ha ricevuto le istruzioni.</p>{/if}
+        {#if request.Auto}<p class="auto-tag">Richiesta accodata per la configurazione automatica. Controlla l’esito in Nodi partner e nello Storico email partner.</p>{/if}
         <p>Paese: {country(request.Country)} · Rispondi in: <strong>{languageNames[request.Lang ?? ''] ?? 'English'}</strong></p>
         {#if request.Kind === 'partner'}<p>{request.Name} · host {request.Host} · porta {request.Port}</p>{/if}
         {#if request.Message}<p class="message">{request.Message}</p>{/if}

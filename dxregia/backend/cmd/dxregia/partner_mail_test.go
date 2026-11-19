@@ -171,3 +171,32 @@ func TestIPInstructionsOmitCredentials(t *testing.T) {
 		}
 	}
 }
+
+func TestPasswordlessPartnerMailConfirmsOnlyInbound(t *testing.T) {
+	dir := t.TempDir()
+	job := partnerMail{Call: "N4ZKF-1", InboundSource: "dx.example.org", WatchUntil: time.Now().Add(time.Hour)}
+	if err := writePrivateJSON(filepath.Join(dir, job.Call+".inbound-ip"), job.InboundSource); err != nil {
+		t.Fatal(err)
+	}
+	calls := 0
+	send := func(kind, _ string, _ mailContent) error {
+		if kind != "confirmed" {
+			t.Fatalf("unexpected email kind: %q", kind)
+		}
+		calls++
+		return nil
+	}
+	snapshot := presence{At: time.Now().Unix(), Channels: []presenceChannel{
+		{Call: job.Call, Kind: "node", State: "normal", Outbound: true},
+	}}
+	if advancePartnerMail(dir, send, snapshot, &job) || calls != 0 {
+		t.Fatal("outbound session cannot confirm inbound access")
+	}
+	snapshot.Channels[0].Outbound = false
+	if !advancePartnerMail(dir, send, snapshot, &job) || calls != 1 || !job.WatchUntil.IsZero() {
+		t.Fatal("expected an inbound confirmation and completed watch")
+	}
+	if advancePartnerMail(dir, send, snapshot, &job) || calls != 1 {
+		t.Fatal("sent the confirmation again")
+	}
+}

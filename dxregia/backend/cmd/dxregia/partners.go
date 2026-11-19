@@ -32,6 +32,7 @@ type partnerStatus struct {
 	InboundTestUntil     *time.Time `json:",omitempty"`
 	InboundAutoNext      *time.Time `json:",omitempty"`
 	MailRetryAt          *time.Time `json:",omitempty"`
+	IPMailStatus         string     `json:",omitempty"`
 	OutgoingReady        bool
 	CanResetCCInbound    bool
 	CanSetInboundIP      bool   `json:",omitempty"`
@@ -100,7 +101,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 	mailer := func() *contactMailer { return currentMailer(root) }
 	{
 		go func() {
-			ticker := time.NewTicker(30 * time.Second)
+			ticker := time.NewTicker(5 * time.Second)
 			defer ticker.Stop()
 			for {
 				select {
@@ -205,6 +206,14 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 					status.MailStatus = job.Status
 					if !job.RetryAt.IsZero() {
 						status.MailRetryAt = &job.RetryAt
+					}
+				}
+				if status.InboundIP != "" {
+					var ipJob partnerMail
+					dir := filepath.Join(root, "local_data", "dxregia-partners")
+					if data, err := os.ReadFile(partnerIPMailPath(dir, call)); err == nil &&
+						json.Unmarshal(data, &ipJob) == nil && ipJob.InboundSource == status.InboundIP {
+						status.IPMailStatus = ipJob.Status
 					}
 				}
 				view[call] = status
@@ -574,6 +583,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		sendMail := r.Method == http.MethodPut && r.URL.Query().Get("send-mail") == "true"
 		var job partnerMail
 		var smtp *contactMailer
+		var source string
 		var err error
 		if r.Method == http.MethodDelete {
 			err = os.Remove(path)
@@ -631,7 +641,8 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 					address = ip.Unmap().String()
 				}
 				if err == nil {
-					err = writePrivateJSON(path, address)
+					source = address
+					err = writePrivateJSON(path, source)
 				}
 			}
 		}
@@ -645,6 +656,20 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			content := mailIPInstructions(job)
 			if err := archivePartnerDelivery(root, call, "ip-instructions", job.Recipient, "", content, smtp.sendContent); err != nil {
 				http.Error(w, "Accesso per IP salvato. L’invio dell’email non è confermato: controlla SMTP e riprova.", http.StatusBadGateway)
+				return
+			}
+			lock.Lock()
+			_, exists := partners[call]
+			if exists && partnerInboundIP(root, call) == source {
+				job.InboundSource = source
+				job.WatchUntil = time.Now().Add(7 * 24 * time.Hour)
+				job.Status = "Istruzioni senza password inviate. In attesa del collegamento."
+				jobPath := partnerIPMailPath(filepath.Dir(path), call)
+				err = writePartnerMail(jobPath, job)
+			}
+			lock.Unlock()
+			if err != nil {
+				http.Error(w, "Email accettata da SMTP. Impossibile programmare la conferma del collegamento.", http.StatusServiceUnavailable)
 				return
 			}
 		}
