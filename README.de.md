@@ -11,6 +11,22 @@
 
 DXRegia macht es einfach, einen DX-Cluster-Knoten zu installieren, zu betreiben und zu teilen. Es behält DXSpider Mojo als Netzwerk-Engine (klassischer Telnet-Zugang, Befehle und Knotenverbindungen) und ergänzt eine moderne Web-Oberfläche und eine öffentliche Seite mit Live-Spots.
 
+## Öffentliches Portal und Verwaltung
+
+Screenshots aus DXRegia mit Beispieldaten. Ein Klick vergrößert das jeweilige Bild.
+
+### Live-Spots · öffentliches Portal
+
+Unter `/spots` verfolgen Funkamateure DX-Spots in Echtzeit, filtern nach Band oder Betriebsart und erkennen DXCC-Gebiete an ihren Flaggen.
+
+[![Live-Spots · öffentliches Portal](docs/screenshots/spots.png)](docs/screenshots/spots.png)
+
+### Knotenstatus und Sitzungen · Sysop-Oberfläche
+
+Unter `/admin` sehen Sysops den Status von Telnet und Cluster, die Richtung der Partnerverbindungen, aktive Sitzungen und Diagramme zur Serverauslastung.
+
+[![Knotenstatus und Sitzungen · Sysop-Oberfläche](docs/screenshots/admin.png)](docs/screenshots/admin.png)
+
 ## Was es kann
 
 - **Live-Spot-Seite** — öffentlich und in Echtzeit. Filter nach Band, Betriebsart und Rufzeichen (auch mehrere zugleich), DXCC-Flaggen, gelbe Hervorhebung und ein sanfter Signalton bei jedem neuen Spot. Läuft auf Smartphone, Tablet und Computer, im hellen oder dunklen Design.

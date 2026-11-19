@@ -11,6 +11,22 @@
 
 DXRegia makes it easy to install, run and share a DX Cluster node. It keeps DXSpider Mojo as the network engine (classic Telnet access, commands and node-to-node links) and adds a modern web panel and a public live spots page.
 
+## See DXRegia in action
+
+Screenshots from DXRegia using sample data. Select an image to enlarge it.
+
+### Live spots · public portal
+
+At `/spots`, radio amateurs can follow live DX spots, filter by band or mode, and identify stations by their DXCC flags.
+
+[![Live spots · public portal](docs/screenshots/spots.png)](docs/screenshots/spots.png)
+
+### Node status and sessions · sysop panel
+
+At `/admin`, sysops can see Telnet and cluster status, partner link direction, active sessions, and server resource graphs.
+
+[![Node status and sessions · sysop panel](docs/screenshots/admin.png)](docs/screenshots/admin.png)
+
 ## What it does
 
 - **Live spots page** — public and in real time. Filter by band, mode and callsign (several at once), see DXCC flags, and get a yellow highlight and a soft chirp for every new spot. Works on phone, tablet and desktop, in light or dark theme.

@@ -11,6 +11,22 @@
 
 DXRegia facilite l'installation, la gestion et le partage d'un nœud DX Cluster. Il conserve DXSpider Mojo comme moteur réseau (accès Telnet classique, commandes et liaisons entre nœuds) et ajoute un panneau web moderne et une page publique avec les spots en direct.
 
+## Portail public et administration
+
+Captures de DXRegia avec des données de démonstration. Cliquez sur une image pour l’agrandir.
+
+### Spots en direct · portail public
+
+Sur `/spots`, les radioamateurs suivent les spots DX en temps réel, filtrent par bande ou mode et identifient les entités grâce aux drapeaux DXCC.
+
+[![Spots en direct · portail public](docs/screenshots/spots.png)](docs/screenshots/spots.png)
+
+### État du nœud et sessions · panneau sysop
+
+Sur `/admin`, les sysops consultent l’état de Telnet et du cluster, le sens des liaisons, les sessions actives et les graphiques des ressources du serveur.
+
+[![État du nœud et sessions · panneau sysop](docs/screenshots/admin.png)](docs/screenshots/admin.png)
+
 ## Ce qu'il fait
 
 - **Page de spots en direct** — publique et en temps réel. Filtres par bande, mode et indicatif (plusieurs à la fois), drapeaux DXCC, surbrillance jaune et un court signal sonore pour chaque nouveau spot. Fonctionne sur téléphone, tablette et ordinateur, en thème clair ou sombre.
