@@ -305,3 +305,7 @@ Versione 0.4.0 (tag v0.4.0, 2026-11-18): impostazioni di DXSpider nel pannello (
 - Dashboard: stato e ora della sessione partner sulla stessa riga, con separatore. Build verificata.
 - Messaggio e pianificazione: selettore con bandiera, banner predefinito in issue e traduzioni in issue.<lingua>. Il cambio di lingua al collegamento resta da implementare. Test Go e build web passati.
 - Il bollino Nuova app di Aurora oscilla brevemente con una pausa tra i cicli. Build Vite passata.
+
+## Registrazione e profilo Telnet
+
+Il modulo raccoglie nome, località (QTH) e locator (QRA). Alla conferma email Mojo salva il profilo e assegna il nominativo del nodo locale come Home Node. Le richieste in coda nel vecchio formato con il solo hash restano compatibili.

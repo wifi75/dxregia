@@ -117,3 +117,5 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Affiancare orario e stato dei partner nella dashboard.
 - [x] Modificare e salvare i banner Telnet per lingua in una sola pagina.
 - [x] Animare il bollino Aurora con supporto a movimento ridotto.
+
+- [x] Semplificare la registrazione pubblica e impostare automaticamente il nodo di riferimento per il primo accesso Telnet.

@@ -17,6 +17,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -70,7 +71,24 @@ func cleanPublicURL(raw string) (string, bool) {
 	return parsed.Scheme + "://" + parsed.Host, true
 }
 
+type registrationProfile struct {
+	Name, QTH, Locator string
+}
+
+func (p *registrationProfile) normalize() bool {
+	p.Name, p.QTH = strings.TrimSpace(p.Name), strings.TrimSpace(p.QTH)
+	p.Locator = strings.ToUpper(strings.TrimSpace(p.Locator))
+	if *p == (registrationProfile{}) {
+		return true // requests submitted by earlier versions lack profile fields
+	}
+	validText := func(value string) bool {
+		return len(value) > 0 && len(value) <= 100 && !strings.ContainsAny(value, "^|{}") && strings.IndexFunc(value, unicode.IsControl) < 0
+	}
+	return validText(p.Name) && validText(p.QTH) && locator.MatchString(p.Locator)
+}
+
 type registration struct {
+	registrationProfile
 	Call        string
 	Email       string
 	Lang        string
@@ -190,6 +208,7 @@ func registerUsers(mux *http.ServeMux, root string, auth *sysopAuth) {
 
 	mux.HandleFunc("POST /api/register", func(w http.ResponseWriter, r *http.Request) {
 		var input struct {
+			registrationProfile
 			Call, Email, Password, Lang, Website string
 		}
 		if !decode(w, r, &input) {
@@ -208,7 +227,7 @@ func registerUsers(mux *http.ServeMux, root string, auth *sysopAuth) {
 		call := strings.ToUpper(strings.TrimSpace(input.Call))
 		email := strings.TrimSpace(input.Email)
 		address, err := mail.ParseAddress(email)
-		if !userCall.MatchString(call) || len(call) > 10 || err != nil || address.Address != email || len(email) > 254 || !userPassword.MatchString(input.Password) {
+		if !userCall.MatchString(call) || len(call) > 10 || err != nil || address.Address != email || len(email) > 254 || !userPassword.MatchString(input.Password) || !input.registrationProfile.normalize() {
 			http.Error(w, "Controlla indicativo, email e password.", http.StatusBadRequest)
 			return
 		}
@@ -246,7 +265,7 @@ func registerUsers(mux *http.ServeMux, root string, auth *sysopAuth) {
 			http.Error(w, "Troppe richieste. Riprova più tardi.", http.StatusTooManyRequests)
 			return
 		}
-		item := registration{Call: call, Email: email, Lang: lang, Hash: string(hash), TokenHash: tokenDigest(token),
+		item := registration{registrationProfile: input.registrationProfile, Call: call, Email: email, Lang: lang, Hash: string(hash), TokenHash: tokenDigest(token),
 			RequestedAt: now, ExpiresAt: now.Add(registrationTTL), Status: regPending}
 		content := mailRegistrationConfirm(lang, call, nodeCallOf(root), settings.PublicURL+"/registrazione/conferma?token="+token)
 		if err := mailer.send(email, buildMessage(mailer.from, email, "", content)); err != nil {
@@ -295,7 +314,15 @@ func registerUsers(mux *http.ServeMux, root string, auth *sysopAuth) {
 		dir := registrationQueueDir(root)
 		if err := os.MkdirAll(dir, 0700); err == nil {
 			_ = os.Remove(filepath.Join(dir, found.Call+".result"))
-			err = os.WriteFile(filepath.Join(dir, found.Call+".register"), []byte(found.Hash), 0600)
+			path := filepath.Join(dir, found.Call+".register")
+			if found.registrationProfile == (registrationProfile{}) {
+				err = os.WriteFile(path, []byte(found.Hash), 0600)
+			} else {
+				err = writePrivateJSON(path, struct {
+					Hash string
+					registrationProfile
+				}{found.Hash, found.registrationProfile})
+			}
 			if err != nil {
 				lock.Unlock()
 				http.Error(w, "Registrazione non completata. Riprova.", http.StatusInternalServerError)

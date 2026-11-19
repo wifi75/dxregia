@@ -82,7 +82,7 @@ func TestRegistrationFlowEndToEnd(t *testing.T) {
 
 	// Richiesta valida: nessun utente finché non si conferma.
 	password := "Sup3rS3gret0!"
-	if response, _ := post("/api/register", map[string]string{"Call": "iu3wjq", "Email": "ham@example.org", "Password": password, "Lang": "de-AT"}); response.StatusCode != http.StatusAccepted {
+	if response, _ := post("/api/register", map[string]string{"Call": "iu3wjq", "Name": "Mario", "QTH": "Ponso", "Locator": "jn55te", "Email": "ham@example.org", "Password": password, "Lang": "de-AT"}); response.StatusCode != http.StatusAccepted {
 		t.Fatalf("register → %d", response.StatusCode)
 	}
 	if sentTo != "ham@example.org" {
@@ -105,9 +105,15 @@ func TestRegistrationFlowEndToEnd(t *testing.T) {
 	go func() {
 		queued := filepath.Join(registrationQueueDir(root), "IU3WJQ.register")
 		for i := 0; i < 100; i++ {
-			if hash, err := os.ReadFile(queued); err == nil {
+			if data, err := os.ReadFile(queued); err == nil {
 				result := "Richiesta non valida"
-				if bcrypt.CompareHashAndPassword(hash, []byte(password)) == nil {
+				var request struct {
+					Hash string
+					registrationProfile
+				}
+				if json.Unmarshal(data, &request) == nil &&
+					request.registrationProfile == (registrationProfile{Name: "Mario", QTH: "Ponso", Locator: "JN55TE"}) &&
+					bcrypt.CompareHashAndPassword([]byte(request.Hash), []byte(password)) == nil {
 					result = "Registrato"
 				}
 				_ = os.WriteFile(filepath.Join(registrationQueueDir(root), "IU3WJQ.result"), []byte(result), 0o600)
@@ -125,7 +131,7 @@ func TestRegistrationFlowEndToEnd(t *testing.T) {
 		t.Fatalf("confirm → %d %s", response.StatusCode, data)
 	}
 	if result := <-done; result != "Registrato" {
-		t.Fatalf("simulated Mojo saw %q: the queued hash must match the chosen password", result)
+		t.Fatalf("simulated Mojo saw %q: the queue must contain the normalized station profile and matching hash", result)
 	}
 
 	// Il link vale una sola volta, un link inventato non vale, e l'indicativo non si registra due volte.

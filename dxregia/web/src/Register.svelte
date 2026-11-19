@@ -2,6 +2,9 @@
   import { t, lang } from './i18n.svelte'
 
   let call = $state('')
+  let name = $state('')
+  let qth = $state('')
+  let locator = $state('')
   let email = $state('')
   let password = $state('')
   let repeat = $state('')
@@ -22,7 +25,7 @@
     try {
       const response = await fetch('/api/register', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ Call: call, Email: email, Password: password, Lang: lang(), Website: website }),
+        body: JSON.stringify({ Call: call, Name: name, QTH: qth, Locator: locator, Email: email, Password: password, Lang: lang(), Website: website }),
       })
       if (response.ok) {
         sent = true
@@ -49,6 +52,17 @@
       <label>{t('regCall')}
         <input bind:value={call} required maxlength="10" autocapitalize="characters" autocomplete="username" spellcheck="false" style:text-transform="uppercase" disabled={busy} />
       </label>
+      <label>{t('regName')}
+        <input bind:value={name} required maxlength="100" autocomplete="given-name" disabled={busy} />
+      </label>
+      <div class="location">
+        <label>{t('regQTH')}
+          <input bind:value={qth} required maxlength="100" autocomplete="address-level2" disabled={busy} />
+        </label>
+        <label>{t('regLocator')}
+          <input bind:value={locator} required maxlength="6" pattern="[A-Ra-r]{2}[0-9]{2}([A-Xa-x]{2})?" placeholder="JN55TE" autocapitalize="characters" spellcheck="false" style:text-transform="uppercase" disabled={busy} />
+        </label>
+      </div>
       <label>{t('regEmail')}
         <input type="email" bind:value={email} required maxlength="254" autocomplete="email" disabled={busy} />
         <small>{t('regNote')}</small>
@@ -76,6 +90,8 @@
   form, .done { display: grid; gap: 14px; padding: 18px 20px; }
   label { display: grid; gap: 4px; font-weight: 600; min-width: 0; }
   input { padding: 8px 10px; min-height: 42px; border: 1px solid #aab8c5; border-radius: 6px; font: inherit; font-weight: 450; min-width: 0; }
+  .location { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }
+  @media (max-width: 440px) { .location { grid-template-columns: 1fr; } }
   small { color: #5b6e80; font-weight: 400; }
   .error { margin: 0; color: #b3261e; font-weight: 600; }
   .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }

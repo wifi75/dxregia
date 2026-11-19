@@ -179,8 +179,20 @@ sub provision_users {
         } else {
             my $hash = '';
             if (open(my $request, '<:raw', "$dir/$file")) {
-                read($request, $hash, 80);
+                read($request, $hash, 2049);
                 close($request);
+            }
+            my $profile;
+            if ($hash =~ /\A\{/ && length($hash) <= 2048) {
+                $profile = eval { JSON::decode_json($hash) };
+                $hash = '';
+                if (ref($profile) eq 'HASH' &&
+                    !grep { !defined($_) || ref($_) || !length($_) || length($_) > 100 ||
+                            /[\p{Cc}^|{}]/ } @{$profile}{qw(Name QTH Locator)}) {
+                    if ($profile->{Locator} =~ /\A[A-R]{2}[0-9]{2}(?:[A-X]{2})?\z/) {
+                        $hash = $profile->{Hash} // '';
+                    }
+                }
             }
             if ($hash !~ /\A\$2a\$10\$[.\/A-Za-z0-9]{53}\z/ || !ExtMsg::supports_dxregia_bcrypt($hash)) {
                 $result = 'Richiesta non valida';
@@ -193,19 +205,27 @@ sub provision_users {
                     $result = 'Account Mojo esistente da verificare';
                 } elsif ($user && $user->passwd && $user->passwd ne $stored) {
                     $result = 'Indicativo gia registrato';
-                } elsif ($user) {
-                    $user->passwd($stored);
-                    $user->registered(1);
-                    $user->put;
-                    $channel->registered(1) if $channel;
-                    $result = 'Registrato';
                 } else {
-                    $user = DXUser->new($call);
-                    $user->sort('U');
-                    $user->priv(0);
+                    my $existing = $user;
+                    unless ($existing) {
+                        $user = DXUser->new($call);
+                        $user->sort('U');
+                        $user->priv(0);
+                    }
+                    if ($profile) {
+                        my $qra = $profile->{Locator};
+                        my ($lat, $long) = DXBearing::qratoll(length($qra) == 4 ? "${qra}LL" : $qra);
+                        $user->name($profile->{Name});
+                        $user->qth($profile->{QTH});
+                        $user->qra($qra);
+                        $user->lat($lat);
+                        $user->long($long);
+                        $user->homenode($main::mycall);
+                    }
                     $user->passwd($stored);
                     $user->registered(1);
-                    $user->close();
+                    $existing ? $user->put : $user->close();
+                    $channel->registered(1) if $channel;
                     $result = 'Registrato';
                 }
             }
