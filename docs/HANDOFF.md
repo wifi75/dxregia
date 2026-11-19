@@ -297,3 +297,4 @@ Versione 0.4.0 (tag v0.4.0, 2026-11-18): impostazioni di DXSpider nel pannello (
 - Gestione > Server di posta: linguette Email e SMTP. Impostazioni e stato degli avvisi in local_data. Il worker controlla i partner ogni 30 secondi quando Mojo invia lo snapshot e segnala una volta per interruzione, con ripristino opzionale.
 - Verificati test Go, incluso riavvio della sessione e notifiche simulate, e build Vite. Restano la prova SMTP reale e il collaudo visivo sul server.
 - Tabella spot desktop: DXCC 5 px a sinistra e testo di paesi e commenti al 94%. Build Vite passata.
+- Login sysop: campi della stessa larghezza e footer con versione da /api/engine, repository e autore. Build Vite passata.

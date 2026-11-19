@@ -115,6 +115,7 @@
   let password = $state('')
   let revealPassword = $state(false)
   let capsLock = $state(false)
+  let engineVersion = $state('')
   let user = $state('')
   let error = $state('')
   let busy = $state(false)
@@ -147,6 +148,11 @@
 
   onMount(async () => {
     readPage()
+    void fetch('/api/engine').then(async response => {
+      if (!response.ok) return
+      const info = await response.json()
+      if (info.Version) engineVersion = info.Version + (info.Build ? ` (build ${info.Build})` : '')
+    }).catch(() => {})
     try {
       const response = await fetch('/api/auth')
       if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
@@ -386,6 +392,11 @@
           {recovery ? 'Usa l’app autenticatore' : 'Usa un codice di recupero'}
         </button>
       {/if}
+      <footer class="login-footer">
+        {#if engineVersion}<span>DXSpider <strong>{engineVersion}</strong></span>{/if}
+        <a href="https://github.com/wifi75/dxregia" target="_blank" rel="noopener noreferrer" title="Progetto open source">DXRegia su GitHub</a>
+        <span>By IU3WJQ - Tiziano Cassone</span>
+      </footer>
     </section>
   {/if}
 {/if}
@@ -394,7 +405,9 @@
   .auth-card { max-width: 440px; margin: 40px auto; padding: clamp(22px, 5vw, 36px); text-align: center; }
   .auth-card h2 { margin: 6px 0 22px; font-size: 1.25rem; text-align: center; }
   .auth-card form { display: grid; gap: 18px; text-align: left; max-width: 340px; margin: 0 auto; }
-  .auth-card label { display: grid; gap: 8px; font-weight: 650; }
+  .auth-card label { display: grid; max-width: none; gap: 8px; font-weight: 650; }
+  .login-footer { display: flex; flex-wrap: wrap; justify-content: center; gap: .35rem .75rem; margin: 20px auto 0; padding-top: 12px; border-top: 1px solid #c4d6e3; color: #405b70; font-size: .78rem; }
+  .login-footer a { color: #174e79; }
   .auth-card input { width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; }
   .auth-card form button { justify-self: center; width: auto; min-width: 120px; min-height: 40px; padding: 0 28px; margin-top: 4px; }
   .password-field { display: grid; }
