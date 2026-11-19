@@ -66,3 +66,23 @@ DXSpider usa una sola sessione per lo stesso indicativo. **Prova ingresso ora** 
 ## Aggiornamenti: versioni precedenti
 
 `update-native.sh` conserva le ultime tre versioni precedenti (runtime in `/opt/.dxregia-update-*` e parti del motore in `.dxregia-engine-previous-*` nella directory di stato) e cancella le più vecchie dopo un aggiornamento riuscito. Una copia dello script rimasta da prima dello spostamento del motore in `engine/` non funziona più: va riscaricata da `main`.
+
+
+## Diagnostica, spazio e conservazione
+
+In **Stato e sessioni → Diagnostica del nodo** trovi il ritardo di aggiornamento delle sessioni all’ultima lettura, l’età del più recente spot nel feed, lo spazio libero sul volume dati e i PID dei processi gestiti. L’assenza del PID di DXSpider può indicare un motore esterno al servizio. La presenza recente indica che il motore pubblica dati. Il riquadro del listener mostra a parte l’esito del controllo Telnet.
+
+Il riquadro misura le dimensioni di log DXSpider, debug, log di avvio e storico email partner ogni 30 secondi. La differenza riporta la variazione rispetto al campione precedente, che può essere negativa dopo una rotazione. Un dato mancante è indicato con un trattino. Lo spazio disco è disponibile su Linux e Windows.
+
+Il portale degli spot misura il tempo tra l’ultima scrittura dell’archivio aggiornato da DXSpider e la visualizzazione dei nuovi spot nel browser. La stima include il polling web e dipende dagli orologi del browser e del server. L’età dell’ultimo spot usa invece l’ora registrata nello spot. I dati coprono il feed, limitato a 100 spot da oggi e ieri in UTC.
+
+Per impostare la conservazione sulla versione nativa, aggiungi le variabili desiderate a /etc/dxregia.env e riavvia con sudo systemctl restart dxregia. Su Docker passale nell’ambiente del container mantenendo il volume dati. Le impostazioni sono facoltative.
+
+| Variabile | Valore | Effetto |
+| --- | --- | --- |
+| DXREGIA_EVENT_RETENTION_DAYS | 1–3650, vuota per impostazione iniziale | All’avvio e circa una volta all’ora elimina gli archivi DXSpider giornalieri di debug, i log mensili di periodi interamente scaduti e i messaggi archiviati nello storico email più vecchi della soglia. L’età viene controllata anche sulla data di ultima modifica del file. |
+| DXREGIA_PUBLIC_STATUS | on, vuota per impostazione iniziale | Pubblica /stato con disponibilità dei dati del motore e ora UTC dell’ultimo spot. Risponde 503 quando non arriva una fotografia recente. |
+
+La conservazione lascia fuori l’archivio spot, il database utenti, le configurazioni, le email ancora in coda e il file di avvio attivo. Prima di abilitare la cancellazione, salva le copie dei periodi che vuoi conservare.
+
+Il flusso live amministrativo usa ID con epoca e sequenza. Alla riconnessione con Last-Event-ID, invia subito un aggiornamento se il client è indietro e la dashboard rilegge la fotografia corrente. Il feed pubblico usa un ETag e risponde 304 quando la fotografia è identica. Le sequenze ripartono a ogni processo e la ripresa restituisce lo stato disponibile al momento della richiesta.

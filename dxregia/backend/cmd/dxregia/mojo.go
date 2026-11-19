@@ -66,11 +66,15 @@ func startMojo(service context.Context, children *sync.WaitGroup, perl, root str
 	if err := cmd.Start(); err != nil {
 		return err
 	}
+	pid := int64(cmd.Process.Pid)
+	managedEnginePID.Store(pid)
 	exited := make(chan error, 1)
 	children.Add(1)
 	go func() {
 		defer children.Done()
-		exited <- cmd.Wait()
+		err := cmd.Wait()
+		managedEnginePID.CompareAndSwap(pid, 0)
+		exited <- err
 	}()
 	probe, cancel := context.WithTimeout(service, 9*time.Second)
 	defer cancel()

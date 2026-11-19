@@ -4,6 +4,11 @@
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
   type Channel = { Call: string; Kind: string; State: string; Since: number; Outbound?: boolean }
   type Snapshot = { At: number; Channels: Channel[] | null }
+  type NodeHealth = {
+    LogBytes: number; FreeBytes: number; TotalBytes: number; GrowthBytes: number
+    GrowthIntervalSeconds: number; DiskAvailable: boolean; LogsAvailable: boolean
+    DXRegiaPID: number; DXSpiderPID: number; LatestSpotAt: number; RetentionDays: number
+  }
   type Tone = 'green' | 'amber' | 'red' | 'neutral'
 
   let { status, failed, refresh }: { status?: Status; failed: boolean; refresh: () => void } = $props()
@@ -16,7 +21,21 @@
   let liveState = $state<'live' | 'reconnecting' | 'polling'>('polling')
   let updatedAt = $state<number>()
   let publicTelnet = $state('')
-  let knownKeys: Set<string> | undefined
+  let nodeHealth = $state<NodeHealth>()
+  let presenceDelay = $state<number>()
+  const number = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 })
+  function size(bytes: number) {
+    const unit = Math.abs(bytes) >= 1024 ** 3 ? 3 : Math.abs(bytes) >= 1024 ** 2 ? 2 : Math.abs(bytes) >= 1024 ? 1 : 0
+    return number.format(bytes / 1024 ** unit) + ' ' + ['B', 'KiB', 'MiB', 'GiB'][unit]
+  }
+  const since = (at: number, current: number) => at > 0 && at <= current / 1000
+    ? Math.floor(current / 1000 - at) + ' s' : '—'
+  async function loadHealth() {
+    try {
+      const response = await fetch('/api/node-health', { cache: 'no-store', signal: AbortSignal.timeout(5000) })
+      nodeHealth = response.ok ? await response.json() : undefined
+    } catch { nodeHealth = undefined }
+  }
 
   const time = new Intl.DateTimeFormat('it-IT', { timeStyle: 'medium' })
 
@@ -50,9 +69,12 @@
         fetch('/api/presence', { cache: 'no-store' }), fetch('/api/partners', { cache: 'no-store' }),
       ])
       snapshot = presence.ok ? await presence.json() : undefined
+      const age = Date.now() / 1000 - (snapshot?.At ?? 0)
+      presenceDelay = snapshot?.At && age >= 0 ? Math.round(age) : undefined
       if (partners.ok) directory = await partners.json()
     } catch {
       snapshot = undefined
+      presenceDelay = undefined
     } finally {
       now = Date.now()
       updatedAt = now
@@ -63,6 +85,8 @@
 
   onMount(() => {
     void load()
+    void loadHealth()
+    const healthTimer = setInterval(loadHealth, 15000)
     void fetch('/api/node-settings', { cache: 'no-store' }).then(async response => {
       if (response.status !== 200) return
       const { advertisedHost, port } = await response.json()
@@ -82,7 +106,7 @@
     const safety = setInterval(load, 20000)
     const probe = setInterval(refresh, 30000)
     const clock = setInterval(() => { now = Date.now() }, 1000)
-    return () => { source?.close(); clearInterval(timer); clearInterval(safety); clearInterval(probe); clearInterval(clock) }
+    return () => { source?.close(); clearInterval(timer); clearInterval(safety); clearInterval(probe); clearInterval(clock); clearInterval(healthTimer) }
   })
 </script>
 
@@ -189,7 +213,31 @@
   </div>
 </div>
 
+<article class="glass-panel box diagnostics">
+  <h2>Diagnostica del nodo</h2>
+  <dl>
+    <div><dt>Ritardo aggiornamento sessioni</dt><dd>{fresh && presenceDelay !== undefined ? presenceDelay + ' s' : '—'}</dd></div>
+    <div><dt>Ultimo spot</dt><dd>{since(nodeHealth?.LatestSpotAt ?? 0, now)}</dd></div>
+    <div><dt>Spazio libero sul volume dati</dt><dd>{nodeHealth?.DiskAvailable ? size(nodeHealth.FreeBytes) + ' / ' + size(nodeHealth.TotalBytes) : '—'}</dd></div>
+    <div><dt>Log e storico email</dt><dd>
+      {nodeHealth?.LogsAvailable ? size(nodeHealth.LogBytes) : '—'}
+      {#if nodeHealth?.GrowthIntervalSeconds}
+        <small>{nodeHealth.GrowthBytes > 0 ? '+' : ''}{size(nodeHealth.GrowthBytes)} in {nodeHealth.GrowthIntervalSeconds} s</small>
+      {/if}
+      {#if nodeHealth?.RetentionDays}<small>Conservazione eventi: {nodeHealth.RetentionDays} giorni</small>{/if}
+    </dd></div>
+    <div><dt>Processo DXRegia</dt><dd>{nodeHealth?.DXRegiaPID ? 'PID ' + nodeHealth.DXRegiaPID : '—'}</dd></div>
+    <div><dt>Processo DXSpider</dt><dd>{nodeHealth?.DXSpiderPID ? 'PID ' + nodeHealth.DXSpiderPID : fresh ? 'Dati attivi · PID non rilevato' : 'Non rilevato'}</dd></div>
+  </dl>
+</article>
+
 <style>
+  .diagnostics { margin-top: 14px; }
+  .diagnostics dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 14px; margin: 12px 0 0; }
+  .diagnostics dt { color: #485b6d; font-size: .86rem; }
+  .diagnostics dd { margin: 4px 0 0; font-weight: 700; }
+  .diagnostics small { display: block; font-weight: 400; }
+
   .blocked, .blocked a { color: #9d2027; font-weight: 700; }
   .heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
   h1 { margin: 0; font-size: 1.65rem; line-height: 1.2; }

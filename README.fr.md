@@ -55,6 +55,8 @@ _Les documents techniques ci-dessous sont rédigés en italien._
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Architecture
 - [TASK.md](TASK.md) — Plan de travail
 - [CHANGELOG.md](CHANGELOG.md) — Journal des modifications (en anglais)
+- [Guides de démarrage et protocoles (en italien)](docs/QUICKSTART.md)
+- [Exemples de peering en six langues](docs/PEERING.md)
 
 **Organisation du dépôt :** `dxregia/` contient le code propre à DXRegia (backend, panneau, installateurs), `engine/` le moteur DXSpider Mojo avec sa structure d'origine et `docs/` la documentation.
 

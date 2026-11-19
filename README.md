@@ -49,6 +49,8 @@ The step-by-step guide covers ports, mail, partner nodes, updates, backups and t
 
 _The technical documents below are written in Italian._
 
+- [Quick guides, protocol reference, Raspberry Pi and migration](docs/QUICKSTART.md) (Italian)
+- [Peering examples in six languages](docs/PEERING.md)
 - [docs/OPERATIONS.md](docs/OPERATIONS.md) — Sysop operations: partner nodes, logs, backups
 - [docs/INTERFACES.md](docs/INTERFACES.md) — Public page, admin panel, Telnet and brand
 - [dxregia/deploy/README.md](dxregia/deploy/README.md) — Linux installer reference

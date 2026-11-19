@@ -8,6 +8,9 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Completare le proposte 171–190 con misure sul feed, diagnostica del nodo, conservazione opzionale, guida rapida e modelli per le issue. Le prove HTTP usano 32 lettori del feed e una rubrica con 250 partner sintetici. Il collaudo Raspberry Pi fisico resta al punto 131.
+- [x] Correggere lo smoke test Linux per il 2FA facoltativo e per le sessioni persistenti. La matrice nativa e Docker è passata sul ramo di verifica, su amd64 e arm64.
+
 - [x] Analizzare le [lacune operative di Mojo](docs/PRODUCT-ANALYSIS.md) e confrontarle con progetti esistenti.
 - [x] Aggiungere un controllo del prompt Telnet per il banco di prova.
 

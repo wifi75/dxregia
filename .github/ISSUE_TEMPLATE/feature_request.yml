@@ -1,0 +1,21 @@
+name: Feature request
+description: Propose a new feature for DXRegia
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Who needs this and what problem does it solve?
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected behavior
+      description: Describe the screen, action or command and an example of a successful outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Alternatives and compatibility
+      description: List any existing workaround and the devices, partners or DX Cluster clients involved.

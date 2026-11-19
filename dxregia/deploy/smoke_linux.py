@@ -346,6 +346,12 @@ def main():
     assert request(client, "/api/setup", config) == (200, {"started": True, "port": TELNET_PORT})
     portal_traffic(client)
     telnet_presence(client)
+    public = urllib.request.build_opener()
+    assert request(public, "/api/node-health")[0] == 401
+    assert request(public, "/stato")[0] == 404
+    status, diagnostics = request(client, "/api/node-health")
+    assert status == 200 and diagnostics["DXRegiaPID"] > 0 and diagnostics["DXSpiderPID"] > 0
+    assert diagnostics["DiskAvailable"] and 0 < diagnostics["FreeBytes"] <= diagnostics["TotalBytes"]
     if NATIVE:
         # The loopback Telnet check alone also passes with a loopback-only listener.
         listeners = subprocess.check_output(["ss", "-H4ltn", f"sport = :{TELNET_PORT}"], text=True)

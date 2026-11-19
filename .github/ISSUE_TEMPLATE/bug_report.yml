@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a reproducible DXRegia problem with redacted logs
+body:
+  - type: input
+    id: version
+    attributes:
+      label: DXRegia version or commit
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce and expected result
+      description: Include installation type, OS or architecture, browser or Telnet client, and whether the problem persists after restart.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Actual result and redacted evidence
+      description: Include a UTC timestamp and a few relevant lines. Replace passwords, SMTP credentials, tokens, TOTP keys and codes, emails, and private addresses with placeholders. Avoid posting config dumps or backups.
+    validations:
+      required: true

@@ -53,7 +53,7 @@ func TestLiveStreamSignalsChangesToSignedInSysopOnly(t *testing.T) {
 		}
 		close(lines)
 	}()
-	waitFor := func(want string) {
+	waitFor := func(want string) string {
 		t.Helper()
 		deadline := time.After(5 * time.Second)
 		for {
@@ -62,18 +62,40 @@ func TestLiveStreamSignalsChangesToSignedInSysopOnly(t *testing.T) {
 				if !ok {
 					t.Fatalf("stream closed before %q", want)
 				}
-				if line == want {
-					return
+				if strings.HasPrefix(line, want) {
+					return line
 				}
 			case <-deadline:
 				t.Fatalf("no %q in time", want)
 			}
 		}
 	}
+	firstID := strings.TrimPrefix(waitFor("id: "), "id: ")
 	waitFor("data: hello")
 	time.Sleep(50 * time.Millisecond)
 	if err := os.WriteFile(presenceFile, []byte(`{"At":2,"Channels":[]}`), 0600); err != nil {
 		t.Fatal(err)
 	}
+	lastID := strings.TrimPrefix(waitFor("id: "), "id: ")
 	waitFor("data: change")
+	if firstID == lastID {
+		t.Fatal("event ID stayed the same after a change")
+	}
+	for _, scenario := range []struct{ id, expected string }{
+		{lastID, ": current"},
+		{firstID, "id: " + lastID},
+	} {
+		req := request.Clone(request.Context())
+		req.Header.Set("Last-Event-ID", scenario.id)
+		reconnected, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		scan := bufio.NewScanner(reconnected.Body)
+		first, second := scan.Scan(), scan.Scan()
+		reconnected.Body.Close()
+		if !first || !second || scan.Text() != scenario.expected {
+			t.Fatalf("resuming from %q: got %q, want %q", scenario.id, scan.Text(), scenario.expected)
+		}
+	}
 }

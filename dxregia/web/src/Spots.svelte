@@ -56,6 +56,10 @@
   }
   let knownKeys: Set<string> | undefined
   let reading = false
+  let latestAt = $state(0)
+  let spotClock = $state(Date.now())
+  let arrivalDelay = $state<number>()
+  let archiveUpdatedAt = 0
   let views = $state<number>()
   const bandFor = (frequency: number) => bands.find(([, low, high]) => frequency >= low && frequency <= high)?.[0] ?? ''
   const modeFor = (comment: string) => comment.match(/\b(FT8|FT4|SSB|CW|RTTY|PSK31|USB|LSB)\b/i)?.[1].toUpperCase() ?? ''
@@ -119,20 +123,29 @@
       const data = await response.json()
       const rows: Spot[] = data.Spots ?? []
       const keys = new Set(rows.map(spotKey))
-      if (knownKeys) {
-        const added = [...keys].filter(key => !knownKeys!.has(key))
+      const previousKeys = knownKeys
+      if (previousKeys) {
+        const added = [...keys].filter(key => !previousKeys.has(key))
         if (added.length) {
+          const writtenAt: number = data.ArchiveUpdatedAt ?? 0
+          const delay = Date.now() - writtenAt
+          arrivalDelay = writtenAt > archiveUpdatedAt && delay >= 0 ? Math.floor(delay / 1000) : undefined
           freshKeys = new Set([...freshKeys, ...added])
           // Giallo pieno per 10 secondi, poi sfuma: la scheda resta evidenziata ancora 4 secondi durante la dissolvenza.
           setTimeout(() => { freshKeys = new Set([...freshKeys].filter(key => !added.includes(key))) }, 14500)
           if (soundOn()) for (let i = 0; i < Math.min(added.length, 4); i++) chirp(i * 0.16)
         }
       }
-      knownKeys = keys
+      knownKeys = data.Available ? keys : undefined
+      archiveUpdatedAt = data.ArchiveUpdatedAt ?? 0
+      latestAt = data.LatestAt ?? rows.reduce((at, spot) => Math.max(at, spot.At), 0)
+      if (!data.Available) arrivalDelay = undefined
       spots = rows
       available = data.Available
     } catch {
       available = false
+      knownKeys = undefined
+      arrivalDelay = undefined
     } finally {
       reading = false
     }
@@ -167,7 +180,8 @@
       if (response.ok) views = (await response.json()).Views
     }).catch(() => {})
     const timer = setInterval(refresh, 5000)
-    return () => { clearInterval(timer); clearInterval(adxoTimer); window.removeEventListener('click', closePopup); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock) }
+    const clockTimer = setInterval(() => { spotClock = Date.now() }, 1000)
+    return () => { clearInterval(timer); clearInterval(adxoTimer); clearInterval(clockTimer); window.removeEventListener('click', closePopup); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock) }
   })
 </script>
 
@@ -228,6 +242,12 @@
       </button>
     </div>
   </section>
+  {#if available && latestAt > 0}
+    <p class="spot-timing">
+      {t('lastSpotAge')} · {Math.max(0, Math.floor(spotClock / 1000 - latestAt))} s
+      {#if arrivalDelay !== undefined}<span>{t('spotArrivalDelay')} · {arrivalDelay} s</span>{/if}
+    </p>
+  {/if}
   <div class="desk glass-enter">
     <section class="log glass-panel" aria-label="Registro degli spot">
   {#if available === false}
@@ -296,6 +316,7 @@
 </main>
 
 <style>
+  .spot-timing { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 2px; color: #385569; font-size: .82rem; font-variant-numeric: tabular-nums; }
   main { position: relative; width: 100%; max-width: 1240px; margin: 0 auto; padding: 14px clamp(12px, 2vw, 32px) 24px; }
   @media (prefers-reduced-motion: reduce) { tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: none; background: #fff1a0; } }
   .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 7px 10px; margin-bottom: 12px; min-width: 0; }
