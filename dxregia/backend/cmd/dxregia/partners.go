@@ -27,6 +27,7 @@ type partnerStatus struct {
 	partner
 	LastConnectAttempt *time.Time `json:",omitempty"`
 	RetryEligibleAt    *time.Time `json:",omitempty"`
+	MailRetryAt        *time.Time `json:",omitempty"`
 	CanResend          bool       `json:",omitempty"`
 	Locked             bool       `json:",omitempty"`
 	CanUnlock          bool       `json:",omitempty"`
@@ -176,6 +177,9 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				var job partnerMail
 				if data, err := os.ReadFile(filepath.Join(root, "local_data", "dxregia-partners", call+".mail.json")); err == nil && json.Unmarshal(data, &job) == nil {
 					status.MailStatus = job.Status
+					if !job.RetryAt.IsZero() {
+						status.MailRetryAt = &job.RetryAt
+					}
 				}
 				view[call] = status
 			}

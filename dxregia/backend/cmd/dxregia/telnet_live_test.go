@@ -57,6 +57,7 @@ func TestLiveConsoleKeepsConnectionAndSeparatesSpots(t *testing.T) {
 
 	auth := &sysopAuth{session: sessionHash("token"), expires: time.Now().Add(time.Hour), factorOK: true}
 	mux := http.NewServeMux()
+	mux.Handle("GET /", http.NotFoundHandler())
 	registerTelnetConsole(mux, auth, listener.Addr().String)
 	request := func(method, id, body string, authenticated bool) *httptest.ResponseRecorder {
 		req := httptest.NewRequest(method, "/api/console/session", strings.NewReader(body))

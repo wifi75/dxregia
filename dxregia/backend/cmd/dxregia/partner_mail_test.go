@@ -7,6 +7,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/mail"
+	"net/textproto"
 	"os"
 	"path/filepath"
 	"strings"
@@ -55,6 +56,32 @@ func TestPartnerMailLifecycle(t *testing.T) {
 	}
 	if advancePartnerMail(dir, send, snapshot, &job) || len(sent) != 3 {
 		t.Fatal("confirmation sent twice")
+	}
+}
+
+func TestPartnerMailRetriesTransientSMTPFailure(t *testing.T) {
+	dir := t.TempDir()
+	job := partnerMail{Call: "Q3QQQ-2", Password: "test-password"}
+	if err := os.WriteFile(filepath.Join(dir, job.Call+".result"), []byte("Abilitato in Mojo"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	calls := 0
+	send := func(string, string, mailContent) error {
+		calls++
+		if calls == 1 {
+			return &textproto.Error{Code: 451, Msg: "Temporary error"}
+		}
+		return nil
+	}
+	if !advancePartnerMail(dir, send, presence{}, &job) || job.Password == "" || job.RetryAt.IsZero() {
+		t.Fatal("transient error did not schedule a retry")
+	}
+	if advancePartnerMail(dir, send, presence{}, &job) || calls != 1 {
+		t.Fatal("retried too soon")
+	}
+	job.RetryAt = time.Now().Add(-time.Second)
+	if !advancePartnerMail(dir, send, presence{}, &job) || calls != 2 || job.Password != "" || !job.RetryAt.IsZero() {
+		t.Fatal("retry did not complete delivery")
 	}
 }
 

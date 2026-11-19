@@ -6,7 +6,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -226,6 +226,12 @@
     } finally {
       enabling = false
     }
+  }
+
+  function mailTone(status?: string, retryAt?: string) {
+    if (retryAt || status?.startsWith('In attesa') || status?.includes('accodate')) return 'amber'
+    if (status?.includes('non riuscit') || status?.includes('non inviate')) return 'red'
+    return 'neutral'
   }
 
   function inboundInfo(provisioning?: string) {
@@ -484,7 +490,15 @@
                 <span class="muted">· Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</span>
               </p>
             {/if}
-            {#if selected.MailStatus || emailStatus}<p class="muted">Email: {selected.MailStatus || emailStatus}</p>{/if}
+            {#if selected.MailStatus || emailStatus}
+              {@const tone = mailTone(selected.MailStatus || emailStatus, selected.MailRetryAt)}
+              <div class="mail-notice" data-tone={tone} role="status">
+                <span class="led" data-tone={tone} aria-hidden="true"></span>
+                <span><strong>Email</strong> · {selected.MailStatus || emailStatus}
+                  {#if selected.MailRetryAt} · Prossimo tentativo {date.format(new Date(selected.MailRetryAt))}{/if}
+                </span>
+              </div>
+            {/if}
             {#if peerPassword && selected.Provisioning === 'Abilitato in Mojo'}
               <p>Password del partner:</p>
               <code>{peerPassword}</code>
@@ -590,6 +604,10 @@
 </section>
 
 <style>
+  .mail-notice { display: flex; align-items: baseline; gap: .5rem; padding: .65rem .75rem; border: 1px solid #b4cbd8; border-radius: 6px; }
+  .mail-notice[data-tone='red'] { border-color: #d8898b; background: #fff0f0; color: #8c2127; }
+  .mail-notice[data-tone='amber'] { border-color: #d7ad67; background: #fff5de; color: #764800; }
+
   .unlock-node { background: #a91e24; border-color: #84191e; color: #fff; }
   section { margin-top: 20px; padding: 16px; }
   .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }

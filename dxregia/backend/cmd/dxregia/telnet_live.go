@@ -59,7 +59,7 @@ func (s *liveConsole) read(reader *bufio.Reader) {
 func registerLiveTelnetConsole(mux *http.ServeMux, auth *sysopAuth, target func() string) {
 	var mu sync.Mutex
 	var current *liveConsole
-	mux.HandleFunc("/api/console/session", func(w http.ResponseWriter, r *http.Request) {
+	handle := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		if !auth.allowed(r) {
 			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
@@ -69,11 +69,6 @@ func registerLiveTelnetConsole(mux *http.ServeMux, auth *sysopAuth, target func(
 		owner := sessionHash(cookie.Value)
 		if r.Method != http.MethodGet && r.Header.Get("Content-Type") != "application/json" {
 			http.Error(w, "Formato non valido.", http.StatusUnsupportedMediaType)
-			return
-		}
-		if r.Method != http.MethodGet && r.Method != http.MethodPost && r.Method != http.MethodDelete {
-			w.Header().Set("Allow", "GET, POST, DELETE")
-			http.Error(w, "Metodo non consentito.", http.StatusMethodNotAllowed)
 			return
 		}
 
@@ -172,7 +167,10 @@ func registerLiveTelnetConsole(mux *http.ServeMux, auth *sysopAuth, target func(
 			current = nil
 			w.WriteHeader(http.StatusNoContent)
 		}
-	})
+	}
+	for _, method := range []string{http.MethodGet, http.MethodPost, http.MethodDelete} {
+		mux.HandleFunc(method+" /api/console/session", handle)
+	}
 }
 
 func decodeConsoleInput(w http.ResponseWriter, r *http.Request, input any) bool {
