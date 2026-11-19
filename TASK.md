@@ -112,3 +112,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Allineare i campi di accesso e aggiungere i riferimenti nel footer del login.
 - [x] Rendere cliccabile tutto il banner Aurora su smartphone.
 - [x] Applicare Sala operativa, mostrare gli esiti email preesistenti e spiegare Hop e filtri nel pannello.
+- [x] Installazione nativa nuova accessibile dalla LAN, con URL e credenziali iniziali documentati.

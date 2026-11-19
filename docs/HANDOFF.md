@@ -300,3 +300,4 @@ Versione 0.4.0 (tag v0.4.0, 2026-11-18): impostazioni di DXSpider nel pannello (
 - Login sysop: campi della stessa larghezza e footer con versione da /api/engine, repository e autore. Build Vite passata.
 - Banner Aurora mobile: il link copre il banner, con la chiusura separata. Build Vite passata.
 - Dashboard Sala operativa con tabella partner, storico email con ultimo esito dai job esistenti e guida inline per hop e filtri. Test Go e build Vite passati.
+- Installatore nativo: bind IPv4 pubblico per configurazioni nuove, URL LAN e utente sysop stampati con la password temporanea. Guide in sei lingue aggiornate. Sintassi shell verificata; prova pulita su Debian/Ubuntu da fare.

@@ -40,28 +40,23 @@ Il construit l'image et démarre un conteneur avec un volume persistant, puis af
 
 ## 3. Ouvrir le panneau
 
-Le panneau d'administration est sur `/admin` et n'est lié depuis aucune page publique. Par défaut il n'écoute que sur le serveur lui-même (`127.0.0.1`). Choisissez une voie :
-
-- **Sur le serveur :** ouvrez `http://127.0.0.1:8080/admin`.
-- **Depuis un autre PC de votre réseau :** autorisez-le, puis ouvrez `http://IP-DU-SERVEUR:8080/admin` :
-- **De n'importe où avec SSH :** ouvrez un tunnel, puis ouvrez `http://127.0.0.1:8080/admin` sur votre PC :
-
-```sh
-echo 'DXREGIA_HTTP_BIND=0.0.0.0' | sudo tee -a /etc/dxregia.env
-sudo systemctl restart dxregia
-```
+Ouvrez une adresse LAN affichée par le programme d’installation natif ou utilisez `http://127.0.0.1:8080/admin` sur le serveur. Une nouvelle installation native écoute sur toutes les interfaces IPv4. Avec Docker, utilisez un tunnel SSH car le port du panneau est publié sur la boucle locale de l’hôte.
 
 ```sh
 ssh -L 8080:127.0.0.1:8080 USER@SERVER
 ```
-
-DXRegia ne publie jamais le panneau sur Internet et n'ouvre aucun port du routeur pour lui. Avec Docker le panneau reste sur le loopback de l'hôte : utilisez le tunnel SSH.
 
 ## 4. Première connexion
 
 1. Ouvrez `/admin`. Connectez-vous avec l'utilisateur `sysop` et le mot de passe temporaire affiché par l'installateur.
 2. DXRegia demande un nouveau mot de passe (au moins 12 caractères). Le temporaire cesse de fonctionner.
 3. Activez la connexion à deux facteurs : scannez le code QR avec une application d'authentification (ou saisissez la clé à la main) et entrez le code à 6 chiffres. **Conservez les codes de récupération** en lieu sûr : ils permettent d'associer une nouvelle application si vous perdez le téléphone.
+
+Si nécessaire, lisez le mot de passe temporaire sur le serveur avant son premier changement :
+
+```sh
+sudo cat /var/lib/dxregia/sysop-initial
+```
 
 Ensuite chaque connexion demande l'utilisateur, le mot de passe et le code à 6 chiffres. L'utilisateur est votre indicatif de sysop dès que la configuration est terminée (avant, c'est `sysop`) ; majuscules et minuscules n'ont pas d'importance.
 

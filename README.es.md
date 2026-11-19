@@ -37,7 +37,7 @@ cd dxregia
 sh dxregia/deploy/install-native.sh
 ```
 
-1. Abre el panel en `http://SERVIDOR:8080/admin`. Por defecto solo escucha en el propio servidor: desde otro PC usa un túnel SSH, o define `DXREGIA_HTTP_BIND=0.0.0.0` en `/etc/dxregia.env` y ejecuta `sudo systemctl restart dxregia`.
+1. Abre la dirección LAN que muestra el instalador, por ejemplo `http://SERVIDOR:8080/admin`. Una instalación nativa nueva escucha en todas las interfaces IPv4.
 2. Entra con el usuario `sysop` y la contraseña temporal que muestra el instalador, elige una contraseña nueva y activa el acceso en dos pasos con una app de autenticación. Guarda los códigos de recuperación.
 3. Completa el asistente de primera configuración: indicativo del nodo, indicativo del sysop, locator y puerto Telnet. Al terminar, la página de spots está en `/spots` y Telnet responde en el puerto 7300.
 

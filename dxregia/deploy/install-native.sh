@@ -84,7 +84,7 @@ if [ ! -f "$unit" ]; then
     as_root install -m 0755 "$root/dxregia/deploy/update-native.sh" /usr/local/bin/dxregia-update
     as_root cp -R "$root/dxregia/web/dist/." "$runtime/web/"
     if [ ! -f /etc/dxregia.env ]; then
-        printf 'DXREGIA_WEB_PORT=%s\nDXREGIA_TELNET_PORT=%s\n' "$web_port" "$telnet_port" > "$stage/environment"
+        printf 'DXREGIA_WEB_PORT=%s\nDXREGIA_TELNET_PORT=%s\nDXREGIA_HTTP_BIND=0.0.0.0\n' "$web_port" "$telnet_port" > "$stage/environment"
         as_root install -m 0600 "$stage/environment" /etc/dxregia.env
     fi
     as_root install -m 0644 "$root/dxregia/deploy/dxregia.service" "$unit"
@@ -94,20 +94,32 @@ else
     as_root systemctl start dxregia.service
 fi
 configured_port=8080
+configured_bind=127.0.0.1
 if as_root test -f /etc/dxregia.env; then
     configured_port=$(as_root awk -F= '/^DXREGIA_WEB_PORT=[0-9]+$/ {print $2}' /etc/dxregia.env | tail -n 1)
+    configured_bind=$(as_root awk -F= '/^DXREGIA_HTTP_BIND=[0-9.]+$/ {bind=$2} END {print bind}' /etc/dxregia.env)
 fi
 if as_root test -f "$state/web-port"; then
     configured_port=$(as_root cat "$state/web-port")
 fi
-url="http://127.0.0.1:${configured_port:-8080}"
+probe_host=${configured_bind:-127.0.0.1}
+[ "$probe_host" != 0.0.0.0 ] || probe_host=127.0.0.1
+url="http://$probe_host:${configured_port:-8080}"
 for attempt in $(seq 1 30); do
     if curl -fsS --max-time 2 "$url/api/auth" >/dev/null 2>&1; then
         printf 'Pannello sysop: %s/admin\n' "$url"
+        if [ "$configured_bind" = 0.0.0.0 ]; then
+            for ip in $(hostname -I 2>/dev/null || true); do
+                case "$ip" in *:*) continue ;; esac
+                printf 'Pannello dalla rete: http://%s:%s/admin\n' "$ip" "${configured_port:-8080}"
+            done
+        fi
         if as_root test -f "$state/sysop-initial"; then
+            printf 'Utente iniziale: sysop\n'
             printf 'Password temporanea sysop: '
             as_root cat "$state/sysop-initial"
             printf '\n'
+            printf 'Al primo accesso cambia la password e configura la verifica in due passaggi.\n'
         fi
         exit 0
     fi

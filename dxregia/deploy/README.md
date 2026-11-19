@@ -31,7 +31,7 @@ Per Debian o Ubuntu con systemd, usa il checkout DXRegia e Go 1.22+, Node.js 22.
 DXREGIA_WEB_PORT=8787 DXREGIA_TELNET_PORT=7373 sh dxregia/deploy/install-native.sh
 ~~~
 
-Lo script compila frontend e backend, installa le dipendenze Perl e avvia il servizio systemd dxregia con il suo utente dedicato. Stampa l'indirizzo del pannello e, al primo avvio, la password temporanea. Le porte predefinite sono 8080 e 7300. I dati sono in /var/lib/dxregia e il runtime è in /opt/dxregia. Una nuova esecuzione avvia il servizio già installato e conserva i dati. L'accesso iniziale è sul loopback. Per un server remoto si può accedere al pannello con un tunnel SSH dalla propria postazione.
+Lo script compila frontend e backend, installa le dipendenze Perl e avvia il servizio systemd dxregia con il suo utente dedicato. Stampa l'indirizzo del pannello e, al primo avvio, la password temporanea. Le porte predefinite sono 8080 e 7300. I dati sono in /var/lib/dxregia e il runtime è in /opt/dxregia. Una nuova esecuzione avvia il servizio già installato e conserva i dati. Una nuova installazione nativa ascolta su tutte le interfacce IPv4 e stampa gli indirizzi IPv4 disponibili. Usa l’utente `sysop`, la password temporanea stampata e il 2FA dopo il cambio obbligatorio. La password temporanea si può leggere con `sudo cat /var/lib/dxregia/sysop-initial` prima del primo cambio.
 
 Il listener Telnet di DXSpider ascolta su `0.0.0.0` sulla porta scelta. Il firewall regola da quali reti accettare connessioni. Il pannello web usa un indirizzo di ascolto separato. All'avvio di un nodo gestito, DXRegia applica lo stesso standard anche alle installazioni precedenti e conserva una copia dell'eventuale configurazione sostituita.
 

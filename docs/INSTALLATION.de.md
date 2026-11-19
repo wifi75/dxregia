@@ -40,28 +40,23 @@ Es baut das Image, startet einen Container mit persistentem Volume und zeigt Adr
 
 ## 3. Das Panel öffnen
 
-Das Admin-Panel liegt unter `/admin` und ist von den öffentlichen Seiten aus nicht verlinkt. Standardmäßig lauscht es nur auf dem Server selbst (`127.0.0.1`). Wähle einen Weg:
-
-- **Auf dem Server:** öffne `http://127.0.0.1:8080/admin`.
-- **Von einem anderen PC im Netzwerk:** erlaube es und öffne dann `http://SERVER-IP:8080/admin`:
-- **Von überall per SSH:** öffne einen Tunnel und dann `http://127.0.0.1:8080/admin` auf deinem eigenen PC:
-
-```sh
-echo 'DXREGIA_HTTP_BIND=0.0.0.0' | sudo tee -a /etc/dxregia.env
-sudo systemctl restart dxregia
-```
+Öffne eine vom nativen Installer angezeigte LAN-Adresse oder direkt auf dem Server `http://127.0.0.1:8080/admin`. Eine neue native Installation lauscht auf allen IPv4-Schnittstellen. Bei Docker ist die Admin-Portfreigabe auf Loopback beschränkt. Verwende einen SSH-Tunnel.
 
 ```sh
 ssh -L 8080:127.0.0.1:8080 USER@SERVER
 ```
-
-DXRegia veröffentlicht das Panel nie im Internet und öffnet dafür keine Router-Ports. Mit Docker bleibt das Panel auf dem Loopback des Hosts: nutze den SSH-Tunnel.
 
 ## 4. Erste Anmeldung
 
 1. Öffne `/admin`. Melde dich mit dem Benutzer `sysop` und dem vom Installer angezeigten vorläufigen Passwort an.
 2. DXRegia verlangt ein neues Passwort (mindestens 12 Zeichen). Das vorläufige funktioniert dann nicht mehr.
 3. Richte die Zwei-Faktor-Anmeldung ein: scanne den QR-Code mit einer Authenticator-App (oder tippe den Schlüssel ein) und gib den 6-stelligen Code ein. **Bewahre die Wiederherstellungscodes** sicher auf: Mit ihnen koppelst du eine neue App, falls das Telefon verloren geht.
+
+Das temporäre Passwort kannst du vor der ersten Änderung auf dem Server lesen:
+
+```sh
+sudo cat /var/lib/dxregia/sysop-initial
+```
 
 Danach verlangt jede Anmeldung Benutzer, Passwort und den 6-stelligen Code. Der Benutzer ist dein Sysop-Rufzeichen, sobald die Einrichtung abgeschlossen ist (vorher `sysop`); Groß- und Kleinschreibung spielt keine Rolle.
 

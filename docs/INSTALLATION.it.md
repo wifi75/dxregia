@@ -40,28 +40,23 @@ Costruisce l'immagine e avvia un container con un volume persistente, poi stampa
 
 ## 3. Aprire il pannello
 
-Il pannello di amministrazione è su `/admin` e non è collegato dalle pagine pubbliche. Di base ascolta solo sul server stesso (`127.0.0.1`). Scegli una strada:
-
-- **Sul server:** apri `http://127.0.0.1:8080/admin`.
-- **Da un altro PC della tua rete:** consentilo, poi apri `http://IP-DEL-SERVER:8080/admin`:
-- **Da ovunque con SSH:** apri un tunnel, poi apri `http://127.0.0.1:8080/admin` sul tuo PC:
-
-```sh
-echo 'DXREGIA_HTTP_BIND=0.0.0.0' | sudo tee -a /etc/dxregia.env
-sudo systemctl restart dxregia
-```
+Apri uno degli indirizzi LAN stampati dallo script nativo. Sul server puoi usare anche `http://127.0.0.1:8080/admin`. Una nuova installazione nativa ascolta su tutte le interfacce IPv4. Con Docker usa un tunnel SSH, perché la porta del pannello è pubblicata sul loopback dell’host.
 
 ```sh
 ssh -L 8080:127.0.0.1:8080 USER@SERVER
 ```
-
-DXRegia non pubblica mai il pannello su Internet e non apre porte del router per lui. Con Docker il pannello resta sul loopback dell'host: usa il tunnel SSH.
 
 ## 4. Primo accesso
 
 1. Apri `/admin`. Accedi con l'utente `sysop` e la password temporanea stampata dall'installatore.
 2. DXRegia chiede una nuova password (almeno 12 caratteri). Quella temporanea smette di funzionare.
 3. Attiva l'accesso a due fattori: inquadra il codice QR con un'app di autenticazione (o scrivi la chiave a mano) e inserisci il codice a 6 cifre. **Conserva i codici di recupero** in un posto sicuro: servono per associare una nuova app se perdi il telefono.
+
+Se hai perso la password temporanea, puoi leggerla sul server prima del primo cambio:
+
+```sh
+sudo cat /var/lib/dxregia/sysop-initial
+```
 
 Da quel momento ogni accesso chiede utente, password e codice a 6 cifre. L'utente è il tuo indicativo da sysop appena hai completato la configurazione (prima è `sysop`); maiuscole e minuscole non contano.
 
