@@ -57,16 +57,18 @@ func TestRegistrationFlowEndToEnd(t *testing.T) {
 		return response, data
 	}
 
-	// Il pulsante del portale compare solo quando la funzione è attiva e la posta è pronta.
+	if err := writeNodeFile(filepath.Join(root, "local", "dxregia-node.json"), []byte(`{"node":"IU3WJQ-7","sysop":"IU3WJQ","locator":"JN55","port":8000,"advertisedHost":"cluster.example.org","email":"private@example.org"}`)); err != nil {
+		t.Fatal(err)
+	}
 	status, err := http.Get(server.URL + "/api/register/status")
 	if err != nil {
 		t.Fatal(err)
 	}
-	var enabled map[string]bool
-	_ = json.NewDecoder(status.Body).Decode(&enabled)
+	var public map[string]any
+	err = json.NewDecoder(status.Body).Decode(&public)
 	status.Body.Close()
-	if !enabled["Enabled"] {
-		t.Fatal("registration should be reported as open")
+	if err != nil || len(public) != 3 || public["Enabled"] != true || public["Host"] != "cluster.example.org" || public["Port"] != float64(8000) {
+		t.Fatalf("unexpected public registration status: %+v, %v", public, err)
 	}
 
 	// Dati non validi.

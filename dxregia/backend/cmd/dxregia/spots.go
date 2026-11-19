@@ -90,6 +90,7 @@ type spotFeed struct {
 func registerSpots(mux *http.ServeMux, root string, qsl *qslDirectory) func() spotSnapshot {
 	directory := loadDXCC(root)
 	registerSpotResearch(mux, root, directory, qsl)
+	registerPropagation(mux, root, directory)
 	path := filepath.Join(root, "local_data", "spots")
 	var mu sync.Mutex
 	var previous [3]spotFileVersion

@@ -27,16 +27,6 @@ func parseBulletin(kind, line string) (clusterBulletin, bool) {
 	var row clusterBulletin
 	var timestamp string
 	switch kind {
-	case "ann":
-		fields := strings.SplitN(line, "^", 5)
-		if len(fields) != 5 || fields[1] != "ann" ||
-			(fields[2] != "ALL" && fields[2] != "*" && fields[2] != "LOCAL") {
-			return row, false
-		}
-		timestamp, row.Call, row.Text = fields[0], fields[3], fields[4]
-		if strings.HasPrefix(strings.ToLower(row.Text), "[to "+strings.ToLower(row.Call)+" only]") {
-			return row, false
-		}
 	case "wwv":
 		fields := strings.Split(line, "^")
 		if len(fields) < 7 {
@@ -59,7 +49,7 @@ func parseBulletin(kind, line string) (clusterBulletin, bool) {
 	row.At, _ = strconv.ParseInt(timestamp, 10, 64)
 	row.Call = strings.ToUpper(strings.TrimSpace(row.Call))
 	row.Text = strings.TrimSpace(row.Text)
-	return row, row.At > 0 && row.At < 1<<32 && researchCall.MatchString(row.Call) && (kind != "ann" || row.Text != "")
+	return row, row.At > 0 && row.At < 1<<32 && researchCall.MatchString(row.Call)
 }
 
 func readBulletins(path, kind string) ([]clusterBulletin, error) {
@@ -105,7 +95,7 @@ func registerBulletins(mux *http.ServeMux, root string) {
 	cache := map[string]snapshot{}
 	mux.HandleFunc("GET /api/cluster-bulletins/{kind}", func(w http.ResponseWriter, r *http.Request) {
 		kind := r.PathValue("kind")
-		if kind != "ann" && kind != "wwv" && kind != "wcy" {
+		if kind != "wwv" && kind != "wcy" {
 			http.NotFound(w, r)
 			return
 		}
@@ -116,16 +106,12 @@ func registerBulletins(mux *http.ServeMux, root string) {
 			rows := make([]clusterBulletin, 0)
 			if root != "" {
 				month := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
-				dir := kind
-				if dir == "ann" {
-					dir = "log"
-				}
 				for offset := range 3 {
 					if len(rows) >= 50 {
 						break
 					}
 					date := month.AddDate(0, -offset, 0)
-					path := filepath.Join(root, "local_data", dir, fmt.Sprintf("%04d", date.Year()), fmt.Sprintf("%02d.dat", date.Month()))
+					path := filepath.Join(root, "local_data", kind, fmt.Sprintf("%04d", date.Year()), fmt.Sprintf("%02d.dat", date.Month()))
 					found, err := readBulletins(path, kind)
 					if err != nil && !os.IsNotExist(err) {
 						mu.Unlock()

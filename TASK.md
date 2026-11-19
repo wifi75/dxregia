@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Mostrare la propagazione osservata per area e banda. Aggiungere alla registrazione le istruzioni Telnet per sette logger in sei lingue. Rendere più compatta la tabella con colonna QSL e rimuovere Annunci, il filtro QSL e l’evidenziazione delle nuove entità.
+
 - [x] Integrare le quattro proposte dal confronto con CC User. Editor regole spot DXSpider, recupero automatico su riconnessione, annunci e propagazione WWV/WCY, indicatori e filtro LoTW/eQSL AG.
 
 - [x] Mostrare il portale pubblico e la dashboard sysop nei README in sei lingue con schermate dimostrative della build web.

@@ -6,11 +6,9 @@
   import { soundOn, chirp, unlockAudio } from './sound.svelte'
 
   import SpotResearch from './SpotResearch.svelte'
-  import ClusterBulletins from './ClusterBulletins.svelte'
   import { alertStorageKey, bandFor, bands, localDay, migrateSpotSearch, spotMatcher, corroboratedSpots, groupOf, modeInfo, exportSpotCSV, spotKey, type Spot, type SpotView } from './spotTools'
 
-  type QSLFilter = '' | 'lotw' | 'eqsl' | 'both'
-  type SavedFilter = { name: string; bands: string[]; modes: string[]; noFt8: boolean; query: string; comment?: string; confirmed: boolean; qsl?: QSLFilter; expires?: string }
+  type SavedFilter = { name: string; bands: string[]; modes: string[]; noFt8: boolean; query: string; comment?: string; confirmed: boolean; expires?: string }
   const filterKey = 'dxregia-spot-filters'
   let savedFilters = $state<SavedFilter[]>([])
   let selectedFilter = $state('')
@@ -36,11 +34,6 @@
   let bandA = $state('20 m')
   let bandB = $state('15 m')
   let onlyConfirmed = $state(false)
-  let qslFilter = $state<QSLFilter>('')
-  let qslAvailable = $state({ LoTWAvailable: false, EQSLAvailable: false })
-  let qslUnavailable = $derived(((qslFilter === 'lotw' || qslFilter === 'both') && !qslAvailable.LoTWAvailable) ||
-    ((qslFilter === 'eqsl' || qslFilter === 'both') && !qslAvailable.EQSLAvailable))
-  let highlight = $state(true)
   let paused = $state(false)
   let frozen = $state<Spot[]>([])
   let pending = $state<Spot[]>([])
@@ -54,9 +47,6 @@
   let recoveryCursor: string | undefined
   let pauseCursor: string | undefined
   let retained: Spot[] = []
-  let newEntityKeys = $state(new Set<string>())
-  let seenEntities = new Set<number>()
-  let entityDay = ''
   let shown = $derived(paused || reviewing ? frozen : spots)
   const confirmedKeys = $derived(corroboratedSpots(shown))
   const matchesSearch = $derived(spotMatcher(query))
@@ -73,7 +63,7 @@
     const name = saveName.trim()
     if (!name || (saveExpiry && saveExpiry < localDay(new Date()))) return
     const next = savedFilters.filter(filter => filter.name !== name).slice(-19)
-    next.push({ name, bands: [...bandSel], modes: [...modeSel], noFt8, query, confirmed: onlyConfirmed, qsl: qslFilter, expires: saveExpiry })
+    next.push({ name, bands: [...bandSel], modes: [...modeSel], noFt8, query, confirmed: onlyConfirmed, expires: saveExpiry })
     if (persistFilters(next)) { selectedFilter = name; showSave = false; saveName = ''; saveExpiry = '' }
   }
   function restoreFilter(name: string) {
@@ -82,7 +72,6 @@
     if (!filter || (filter.expires && filter.expires < localDay(new Date()))) return
     bandSel = [...filter.bands]; modeSel = [...filter.modes]; noFt8 = filter.noFt8
     query = migrateSpotSearch(filter.query, filter.comment ?? ''); onlyConfirmed = filter.confirmed
-    qslFilter = filter.qsl ?? ''
   }
   async function recoverArchive(cursor: string): Promise<{ Spots: Spot[]; Complete: boolean }> {
     const response = await fetch('/api/spot-resume?' + new URLSearchParams({ after: cursor }), {
@@ -198,7 +187,6 @@
     (!modeSel.length || modeSel.includes(groupOf(modeInfo(spot).mode))) &&
     (!noFt8 || modeInfo(spot).mode !== 'FT8') &&
     (!onlyConfirmed || confirmedKeys.has(spotKey(spot))) &&
-    (!qslFilter || (qslFilter === 'lotw' ? spot.LoTW : qslFilter === 'eqsl' ? spot.EQSL : spot.LoTW && spot.EQSL)) &&
     matchesSearch(spot)
   ))
 
@@ -213,7 +201,6 @@
       if (!response.ok) throw new Error()
       const data = await response.json()
       if (!data.Available) throw new Error()
-      qslAvailable = { LoTWAvailable: Boolean(data.LoTWAvailable), EQSLAvailable: Boolean(data.EQSLAvailable) }
       const liveRows: Spot[] = data.Spots ?? []
       const latestCursor = liveRows.find(spot => spot.Cursor)?.Cursor
       const keys = new Set(liveRows.map(spotKey))
@@ -242,19 +229,6 @@
         rows = [...merged.values()].sort((a, b) => b.At - a.At).slice(0, limitPending)
       }
       if (!recoveryNeeded && latestCursor) recoveryCursor = latestCursor
-      const day = new Date().toISOString().slice(0, 10)
-      if (entityDay !== day) {
-        entityDay = day
-        seenEntities = new Set()
-        newEntityKeys = new Set()
-      }
-      const newEntities = new Set(newEntityKeys)
-      for (const spot of [...rows].reverse()) {
-        if (spot.DXCC <= 0 || spot.DXCC === 666 || seenEntities.has(spot.DXCC) || new Date(spot.At * 1000).toISOString().slice(0, 10) !== day) continue
-        seenEntities.add(spot.DXCC)
-        if (previousKeys && !previousKeys.has(spotKey(spot))) newEntities.add(spotKey(spot))
-      }
-      newEntityKeys = new Set([...newEntities].filter(key => keys.has(key)))
       if (paused) {
         const existing = new Set([...pending, ...frozen].map(spotKey))
         const arrival = liveRows.filter(spot => !previousKeys?.has(spotKey(spot)) && !existing.has(spotKey(spot)))
@@ -358,7 +332,15 @@
     {:else}<p role="status">{alertsFailed ? t('archiveDown') : t('loading')}</p>{/if}
   </div>
   {#if researchOpened}<div hidden={activePage !== 'research'}><SpotResearch {spots} /></div>{/if}
-  {#if activePage === 'ann' || activePage === 'propagation'}<ClusterBulletins view={activePage} />{/if}
+  {#if activePage === 'propagation'}
+    {#await import('./ClusterBulletins.svelte')}
+      <p role="status">{t('loading')}</p>
+    {:then section}
+      <section.default />
+    {:catch}
+      <p role="status">{t('bulletinsUnavailable')}</p>
+    {/await}
+  {/if}
   <div hidden={activePage !== 'feed'}>
   <section class="filters glass-panel glass-enter" aria-label={t('filters')}>
     <div class="chip-row">
@@ -441,7 +423,6 @@
     <button type="button" onclick={() => exportSpotCSV(displayed)} disabled={!displayed.length}>{t('spotExportCSV')}</button>
     <div class="feed-options">
       <label class="check" title={t('spotConfirmedHint')}><input type="checkbox" bind:checked={onlyConfirmed} /> {t('spotOnlyConfirmed')}</label>
-      <label class="check"><input type="checkbox" bind:checked={highlight} /> {t('spotMarkNew')}</label>
     </div>
     {#if showSave}
       <form class="save-filter" onsubmit={commitFilter}>
@@ -453,15 +434,6 @@
         {/if}
       </form>
     {/if}
-    <label>{t('qslService')}
-      <select bind:value={qslFilter} aria-label={t('qslService')}>
-        <option value="">{t('allShort')}</option>
-        <option value="lotw">LoTW</option>
-        <option value="eqsl">eQSL AG</option>
-        <option value="both">LoTW + eQSL AG</option>
-      </select>
-    </label>
-    {#if qslUnavailable}<p role="status">{t('qslDirectoryUnavailable')}</p>{/if}
     {#if saveError}<p role="status">{t('spotStorageUnavailable')}</p>{/if}
   </div>
   {#if !paused && !reviewing && (automaticCount || automaticPartial)}
@@ -493,28 +465,28 @@
     <!-- svelte-ignore a11y_no_noninteractive_tabindex (scrollable table needs keyboard focus) -->
     <div class="table-wrap" tabindex="0" role="region" aria-label={t('tableLabel')}>
       <table class:compact={view === 'compact'}>
-        <thead><tr><th scope="col">{t('thDe')}</th><th scope="col">{t('thFreq')}</th><th>{t('thMode')}</th><th>{t('thDx')}</th><th>{t('thEntity')}</th><th>{t('thComment')}</th><th>{t('thUtc')}</th></tr></thead>
+        <thead><tr><th scope="col">{t('thDe')}</th><th scope="col">{t('thFreq')}</th><th>{t('thMode')}</th><th>{t('thDx')}</th><th>{t('thEntity')}</th><th scope="col" class="qsl-column">QSL</th><th class="comment">{t('thComment')}</th><th>{t('thUtc')}</th></tr></thead>
         <tbody>
           {#each rowsKeyed(rows) as { spot, key, id } (key)}
             {@const m = modeInfo(spot)}
-            <tr class:fresh={freshKeys.has(id)} class:new-entity={highlight && newEntityKeys.has(id)}>
+            <tr class:fresh={freshKeys.has(id)}>
               <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Spotter} onclick={() => query = spot.Spotter}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>{spot.Spotter}</span></td>
               <td><strong class="frequency" style:--c={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
               <td data-empty={!m.mode || undefined}><span class="mode" data-mode={m.mode} data-inferred={m.inferred && m.mode ? '' : undefined} title={m.inferred && m.mode ? t('modeInferred') : undefined}>{m.mode || '—'}</span></td>
-              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><span class="dx-call"><strong>{spot.Call}</strong>
-                {#if spot.LoTW || spot.EQSL}
-                  <span class="qsl-marks">
-                    {#if spot.LoTW}<span class="qsl-mark" title={t('lotwMember')}>LoTW</span>{/if}
-                    {#if spot.EQSL}<span class="qsl-mark" title={t('eqslMember')}>eQSL AG</span>{/if}
-                  </span>
-                {/if}
-              </span>{#if confirmedKeys.has(id)}<span class="confirmed" role="img" aria-label={t('spotConfirmedHint')} title={t('spotConfirmedHint')}>✓</span>{/if}{#if adxoFor(spot.Call)}{@const entry = adxoFor(spot.Call)!}<button class="info" type="button" title={t('adxoTitle') + ': ' + entry.Entity} aria-label={t('adxoTitle') + ': ' + entry.Entity} onmouseenter={event => openInfo(event, entry)} onfocus={event => openInfo(event, entry)} onmouseleave={hideInfoSoon} onblur={hideInfoSoon} onclick={event => openInfo(event, entry)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg></button>{/if}</span></td>
+              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><strong>{spot.Call}</strong>{#if confirmedKeys.has(id)}<span class="confirmed" role="img" aria-label={t('spotConfirmedHint')} title={t('spotConfirmedHint')}>✓</span>{/if}{#if adxoFor(spot.Call)}{@const entry = adxoFor(spot.Call)!}<button class="info" type="button" title={t('adxoTitle') + ': ' + entry.Entity} aria-label={t('adxoTitle') + ': ' + entry.Entity} onmouseenter={event => openInfo(event, entry)} onfocus={event => openInfo(event, entry)} onmouseleave={hideInfoSoon} onblur={hideInfoSoon} onclick={event => openInfo(event, entry)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg></button>{/if}</span></td>
               <td>
                 {#if dxccFlags[spot.DXCC]}
                   <img src={'/flags/' + dxccFlags[spot.DXCC] + '.svg'} alt="" width="26" height="19" loading="lazy" />
                 {/if}
                 {(lang() === 'it' ? entities[spot.DXCC]?.[0] : undefined) ?? (spot.Entity || (spot.DXCC > 0 && spot.DXCC !== 666 ? 'DXCC ' + spot.DXCC : '—'))}
-                {#if highlight && newEntityKeys.has(id)}<span class="spot-tag">{t('spotNewEntity')}</span>{/if}
+              </td>
+              <td class="qsl-column">
+                {#if spot.LoTW || spot.EQSL}
+                  <span class="qsl-marks">
+                    {#if spot.LoTW}<span class="qsl-mark" title={t('lotwMember')}>LoTW</span>{/if}
+                    {#if spot.EQSL}<span class="qsl-mark" title={t('eqslMember')}>eQSL</span>{/if}
+                  </span>
+                {/if}
               </td>
               <td class="comment" title={spot.Comment}>{spot.Comment}</td>
               <td>{utc.format(new Date(spot.At * 1000))}</td>
@@ -586,8 +558,6 @@
   .empty-spots { margin: 10px; }
   table.compact td { padding-block: 2px; }
   table.compact .lens, table.compact .mode, table.compact .frequency { min-height: 21px; }
-  .new-entity td:nth-child(5) { box-shadow: inset 3px 0 #c28522; font-weight: 700; }
-  .spot-tag { margin-inline-start: 4px; color: #55360b; background: #ffe5a0; font-size: .72rem; border-radius: 5px; padding: 2px 4px; }
   .confirmed { color: #197849; font-weight: 800; }
   @media (max-width: 900px) { .comparison.paired { grid-template-columns: minmax(0, 1fr); } }
   .spot-timing { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 2px; color: #385569; font-size: .82rem; font-variant-numeric: tabular-nums; }
@@ -610,38 +580,36 @@
   .table-wrap { overflow: auto; }
   table { width: 100%; table-layout: fixed; border-collapse: collapse; text-align: left; white-space: nowrap; }
   td { overflow: hidden; text-overflow: ellipsis; }
-  th:nth-child(1) { width: 150px; } th:nth-child(2) { width: 150px; } th:nth-child(3) { width: 100px; }
-  th:nth-child(4) { width: 220px; } th:nth-child(5) { width: 210px; } th:nth-child(7) { width: 96px; }
   @media (min-width: 701px) {
-    th:nth-child(4) { width: 200px; }
-    th:nth-child(5) { width: 210px; }
-    th:nth-child(4), td:nth-child(4) { padding-left: calc(clamp(10px, 1.15vw, 20px) + 20px); }
+    th:nth-child(1) { width: 12%; } th:nth-child(2) { width: 13%; } th:nth-child(3) { width: 9%; }
+    th:nth-child(4) { width: 16%; } th:nth-child(5) { width: 17%; }
+    th.qsl-column { width: 10%; } th:last-child { width: 8%; }
+    th:nth-child(4), td:nth-child(4) { padding-left: calc(clamp(10px, 1.15vw, 20px) + 12px); }
     th:nth-child(5), td:nth-child(5) { padding-left: calc(clamp(10px, 1.15vw, 20px) + 3px); }
-    th:nth-child(6), td:nth-child(6) { padding-left: calc(clamp(10px, 1.15vw, 20px) - 2px); }
-    td:nth-child(5), td.comment { font-size: .94em; }
+    th.comment, td.comment { padding-left: calc(clamp(10px, 1.15vw, 20px) - 2px); }
+    td:nth-child(5), td.comment { font-size: .83rem; }
   }
   td:nth-child(2), td:nth-child(3) { overflow: visible; text-overflow: clip; }
   th, td { padding: 8px clamp(10px, 1.15vw, 20px); border-bottom: 1px solid #c4d6e3; }
-  th { background: #ffffffa3; color: #1d5d8c; border-bottom: 2px solid #2972a0; font-size: .86rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+  th { background: #ffffffa3; color: #1d5d8c; border-bottom: 2px solid #2972a0; font-size: .8rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
   tbody tr:nth-child(odd) { background: #fbfdff; }
   tbody tr:nth-child(even) { background: #d6e8f3; }
   tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: fresh 14s ease-out both; }
   @keyframes fresh { 0%, 71% { background: #fff1a0; box-shadow: inset 4px 0 #e0a020; } 100% { background: transparent; box-shadow: inset 4px 0 transparent; } }
-  .dx-call { display: inline-grid; gap: 2px; }
   .qsl-marks { display: flex; flex-wrap: wrap; gap: 3px; }
-  .qsl-mark { border: 1px solid currentColor; border-radius: 4px; padding: 0 3px; font-size: .66rem; line-height: 1.25; }
+  .qsl-mark { border-radius: 3px; padding: 1px 3px; background: #dfedf6; color: #244d68; font-size: .65rem; line-height: 1.25; font-weight: 700; }
   .callcell { display: inline-flex; align-items: center; gap: 6px; }
   .lens { display: inline-grid; place-items: center; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; --button-face: transparent; --button-edge: transparent; --button-ink: #3d5a70; box-shadow: none; }
   .lens:hover:not(:disabled) { --button-ink: #175c82; --button-face: #e3eef6; transform: none; filter: none; }
   tbody tr:hover, tbody tr:nth-child(even):hover { background: #c3dbec; }
   .frequency, .mode { display: inline-block; padding: 2px 7px; border: 1.5px solid transparent; border-radius: 5px; text-align: center; }
-  .frequency { width: 10ch; color: #142b39; font-weight: 700; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 30%); }
+  .frequency { width: min(100%, 10ch); color: #142b39; font-weight: 700; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 30%); }
   .frequency, td:last-child { font-variant-numeric: tabular-nums; }
-  td { color: #14293a; font-weight: 500; }
+  td { color: #14293a; font-weight: 500; font-size: .86rem; }
   td:first-child, td:last-child, .comment { color: #1f3a4e; }
   img { object-fit: cover; vertical-align: middle; margin-right: 7px; border: 1px solid #15263826; border-radius: 2px; }
   .mode[data-inferred] { border-style: dashed; }
-  .mode { min-width: 4.6em; color: #4c6374; font-size: .92rem; font-weight: 700; }
+  .mode { min-width: 4.6em; color: #4c6374; font-size: .82rem; font-weight: 700; }
   .mode[data-mode=CW] { --c: #fff0d7; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #7d430e; }
   .mode[data-mode=SSB], .mode[data-mode=USB], .mode[data-mode=LSB] { --c: #d7f0e3; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #1a6046; }
   .mode[data-mode=FT8], .mode[data-mode=FT4], .mode[data-mode=RTTY], .mode[data-mode=PSK31], .mode[data-mode=DIGI] { --c: #eee4ff; background: var(--c); border-color: color-mix(in srgb, var(--c), #000 28%); color: #573894; }
@@ -674,21 +642,25 @@
     .funnel { display: grid; flex: none; place-items: center; width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 50%; background: #1f86ff; color: #fff; box-shadow: none; }
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     table { table-layout: auto; width: 100%; min-width: 0; }
-    th { width: auto !important; position: sticky; top: 0; padding: 7px 3px; font-size: .6rem; letter-spacing: 0; }
-    td { padding: 3px 3px; font-size: .8rem; }
+    th { width: auto !important; position: sticky; top: 0; padding: 7px 3px; font-size: .58rem; letter-spacing: 0; }
+    td { padding: 3px 3px; font-size: .76rem; }
     th:first-child, td:first-child { padding-left: 8px; }
     td:nth-child(1) .lens { display: none; }
     td:nth-child(2), td:nth-child(3) { overflow: visible; text-overflow: clip; }
-    th:nth-child(6), td:nth-child(6) { display: none; }
+    th.comment, td.comment { display: none; }
     td:nth-child(5) { font-size: 0; padding-left: 2px; padding-right: 2px; }
     td:nth-child(5) img { width: 28px; height: 20px; margin: 0; }
-    td:nth-child(7) { font-size: .74rem; padding-right: 8px; }
+    td:last-child { font-size: .7rem; padding-right: 8px; }
     .callcell { gap: 2px; }
-    .frequency { width: auto; min-width: 0; padding: 0 4px; font-size: .78rem; }
-    .mode { min-width: 0; padding: 0 4px; font-size: .72rem; }
+    .frequency { width: auto; min-width: 0; padding: 0 4px; font-size: .74rem; }
+    .mode { min-width: 0; padding: 0 4px; font-size: .69rem; }
     .lens { width: 18px; min-height: 18px; }
     .lens svg { width: 14px; height: 14px; }
     .info { width: 18px; min-height: 18px; }
+  }
+  @media (max-width: 400px) {
+    .qsl-marks { flex-direction: column; align-items: start; gap: 2px; }
+    .qsl-mark { font-size: .6rem; padding: 0 2px; }
   }
   .info { display: inline-grid; place-items: center; width: 24px; min-height: 24px; padding: 0; border-radius: 50%; --button-face: #e3f0fa; --button-edge: #7fb1d9; --button-ink: #175c82; box-shadow: none; flex: 0 0 auto; }
   .popup { position: absolute; z-index: 30; width: min(380px, calc(100% - 16px)); padding: 12px 14px; border: 1px solid #9db8cc; border-radius: 12px; background: #ffffffee; backdrop-filter: blur(10px); box-shadow: 0 14px 34px #143a5940; color: #14293a; font-size: .88rem; line-height: 1.45; white-space: normal; }

@@ -44,7 +44,7 @@ At `/admin`, sysops can see Telnet and cluster status, partner link direction, a
 - **Easy to install** — one script on Debian or Ubuntu (systemd, amd64 or arm64), or Docker.
 
 - Save and compare spot views, explore DXCC and callsign history, and set local radio alerts that run while the portal is open.
-- **Cluster bulletins and QSL** — the public portal shows announcements and WWV/WCY, recovers missed spots from the archive after a connection interruption, and filters by LoTW and eQSL AG. Admins can edit spot rules under Hop and filters.
+- **Observed propagation and QSL** — the public map shows recent spot activity by region and band, with WWV/WCY bulletins below. Live spots have a QSL column for LoTW and eQSL AG. The registration page explains how to connect by Telnet from seven documented loggers. Sysops can edit spot rules under Hop and filters.
 
 ## Quick start
 

@@ -1,5 +1,8 @@
 <script lang="ts">
   import { t, lang } from './i18n.svelte'
+  import LoggerGuide from './LoggerGuide.svelte'
+
+  let { connection }: { connection?: { Host: string; Port: number } } = $props()
 
   let call = $state('')
   let name = $state('')
@@ -41,13 +44,15 @@
   }
 </script>
 
-<main>
+<main class="registration">
+  <div class="registration-form">
   <h1>{t('regTitle')}</h1>
   {#if sent}
     <p class="done glass-panel" role="status">{t('regSent')}</p>
     <p><a href="/spots">{t('confBack')}</a></p>
   {:else}
     <p class="intro">{t('regIntro')}</p>
+    <p class="guide-link"><a href="#logger-guide-title">{t('regLoggerTitle')}</a></p>
     <form class="glass-panel glass-enter" onsubmit={submit}>
       <label>{t('regCall')}
         <input bind:value={call} required maxlength="10" autocapitalize="characters" autocomplete="username" spellcheck="false" style:text-transform="uppercase" disabled={busy} />
@@ -81,11 +86,16 @@
       <button disabled={busy}>{busy ? t('regSending') : t('regSubmit')}</button>
     </form>
   {/if}
+  </div>
+  <LoggerGuide {connection} />
 </main>
 
 <style>
-  main { width: 100%; max-width: 560px; margin: 0 auto; padding: 22px clamp(14px, 2vw, 36px); }
+  .registration { width: 100%; max-width: 1080px; margin: 0 auto; padding: 24px clamp(14px, 2vw, 36px); display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: 20px; }
+  @media (max-width: 720px) { .registration { grid-template-columns: 1fr; } }
   h1 { margin: 0 0 .6rem; font-size: 1.6rem; color: #143a60; }
+  .guide-link { margin: 0 0 1rem; }
+  @media (min-width: 721px) { .guide-link { display: none; } }
   .intro { margin: 0 0 1rem; color: #3b566d; }
   form, .done { display: grid; gap: 14px; padding: 18px 20px; }
   label { display: grid; gap: 4px; font-weight: 600; min-width: 0; }

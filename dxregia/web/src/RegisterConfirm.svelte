@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { t } from './i18n.svelte'
+  import LoggerGuide from './LoggerGuide.svelte'
+
+  let { connection }: { connection?: { Host: string; Port: number } } = $props()
 
   let state = $state<'working' | 'ok' | 'bad' | 'expired' | 'refused' | 'pending'>('working')
   let call = $state('')
@@ -33,6 +36,7 @@
     {:else if state === 'pending'}{t('confPending')}
     {:else}{t('confBad')}{/if}
   </p>
+  {#if state === 'ok'}<LoggerGuide {connection} {call} />{/if}
   <p><a href="/spots">{t('confBack')}</a></p>
 </main>
 

@@ -44,7 +44,7 @@ Sur `/admin`, les sysops consultent l’état de Telnet et du cluster, le sens d
 - **Facile à installer** — un seul script sur Debian ou Ubuntu (systemd, amd64 ou arm64), ou Docker.
 
 - Enregistrez et comparez les vues, consultez le catalogue DXCC et l’historique des indicatifs et configurez des alertes actives lorsque le portail est ouvert.
-- **Bulletins et QSL** — le portail affiche les annonces et les bulletins WWV/WCY, récupère les spots manqués après une interruption et filtre par LoTW et eQSL AG. Le sysop peut modifier les règles de spots dans Sauts et filtres.
+- **Propagation observée et QSL** — la carte publique affiche les spots récents par région et par bande, avec les bulletins WWV/WCY. Le tableau des spots propose une colonne QSL pour LoTW et eQSL AG. La page d’inscription explique la connexion Telnet avec sept logiciels de log documentés. Le sysop modifie les règles dans Sauts et filtres.
 
 ## Démarrage rapide
 

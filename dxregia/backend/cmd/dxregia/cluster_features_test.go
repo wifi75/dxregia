@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -85,28 +84,15 @@ func TestSpotFilterEditor(t *testing.T) {
 	}
 }
 
-func TestPublicBulletinArchiveExcludesPrivateMessages(t *testing.T) {
-	now := time.Now().UTC()
-	root := t.TempDir()
-	path := filepath.Join(root, "local_data", "log", fmt.Sprintf("%04d", now.Year()), fmt.Sprintf("%02d.dat", now.Month()))
-	log := `1800000000^ann^*^Q1LAB^Public^with caret
-1800000000^ann^*^Q1LAB^Public^with caret
-1800000001^ann^SYSOP^Q1LAB^Secret admins
-1800000001^ann^Q2LAB^Q1LAB^Secret recipient
-1800000001^talk^ALL^Q1LAB^Secret talk
-1800000001^ann^*^Q1LAB^[to Q1LAB only] Rejected
-1800000001^ann^ALL^Q1LAB^Incomplete`
-	if err := writeNodeFile(path, []byte(log)); err != nil {
-		t.Fatal(err)
-	}
+func TestOnlySolarBulletinsArePublic(t *testing.T) {
 	mux := http.NewServeMux()
-	registerBulletins(mux, root)
+	registerBulletins(mux, t.TempDir())
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, httptest.NewRequest("GET", "/api/cluster-bulletins/ann", nil))
-	var rows []clusterBulletin
-	if err := json.Unmarshal(w.Body.Bytes(), &rows); err != nil || len(rows) != 1 || rows[0].Text != "Public^with caret" {
-		t.Fatalf("unexpected public announcements: %s", w.Body)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("announcement endpoint returned %d: %s", w.Code, w.Body)
 	}
+
 	wwv, ok := parseBulletin("wwv", "Q1LAB^1800000000^147^6^2^quiet^Q2LAB^71")
 	if !ok || wwv.SFI != "147" || wwv.K != "2" || wwv.Text != "quiet" || wwv.Sunspots != "71" {
 		t.Fatalf("bad WWV: %+v", wwv)
@@ -150,5 +136,33 @@ func TestSpotQSLDirectoryInvalidatesFeed(t *testing.T) {
 	directory.snapshot().enrich(&portable)
 	if portable.EQSL {
 		t.Fatal("portable membership attributed to a different callsign")
+	}
+}
+
+func TestPropagationRoutesAcrossUTCMidnight(t *testing.T) {
+	root := t.TempDir()
+	now := time.Date(2027, 1, 1, 0, 5, 0, 0, time.UTC)
+	directory := dxccDirectory{entries: map[int]dxccEntry{
+		85:  {Continent: "EU"},
+		95:  {Continent: "AS"},
+		198: {Continent: "OC"},
+	}}
+	yesterday := now.AddDate(0, 0, -1)
+	write := func(date time.Time, content string) {
+		t.Helper()
+		if err := writeNodeFile(spotArchivePaths(root, date)[0], []byte(content)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write(yesterday, fmt.Sprintf("14074^JA1ABC^%d^FT8^I1ABC^95^85\n14074^JA2ABC^%d^FT8^I1ABC^95^85\n",
+		now.Add(-20*time.Minute).Unix(), now.Add(-31*time.Minute).Unix()))
+	write(now, fmt.Sprintf("14075^JA3ABC^%d^^I1ABC^95^85\n28074^VK1ABC^%d^^JA1ABC^198^95\n14074^JA1ABC^%d^^NOCOORD^95\n",
+		now.Add(-time.Minute).Unix(), now.Unix(), now.Unix()))
+	routes, err := propagationRoutes(root, now, directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(routes) != 2 || routes[0] != (propagationRoute{"AS", "OC", "10m", 1}) || routes[1] != (propagationRoute{"EU", "AS", "20m", 2}) {
+		t.Fatalf("unexpected observed routes: %+v", routes)
 	}
 }

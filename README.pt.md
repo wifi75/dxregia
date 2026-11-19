@@ -44,7 +44,7 @@ Em `/admin`, o sysop consulta o estado do Telnet e do cluster, o sentido das lig
 - **Fácil de instalar** — um só script em Debian ou Ubuntu (systemd, amd64 ou arm64), ou Docker.
 
 - Guarde e compare vistas, consulte o catálogo DXCC e o histórico por indicativo e configure alertas que funcionam enquanto o portal estiver aberto.
-- **Boletins e QSL** — o portal mostra anúncios e boletins WWV/WCY, recupera spots do arquivo após uma interrupção e filtra por LoTW e eQSL AG. O sysop pode editar as regras de spots em Saltos e filtros.
+- **Propagação observada e QSL** — o mapa público mostra os spots recentes por região e banda, com boletins WWV/WCY. A tabela tem uma coluna QSL para LoTW e eQSL AG. A página de registo explica a ligação Telnet em sete loggers documentados. O sysop edita as regras em Saltos e filtros.
 
 ## Início rápido
 

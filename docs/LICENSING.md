@@ -51,3 +51,5 @@ L’installatore nativo usa i pacchetti del sistema. L’immagine finale usa Deb
 ## Verifiche prima della release
 
 L’inventario applicativo e gli avvisi distribuiti sono disponibili. Restano la dichiarazione esplicita per il codice originale DXRegia, la verifica delle condizioni dei dati AD1C e ADXO e il controllo dei pacchetti e degli avvisi dentro l’immagine definitiva.
+
+La mappa di propagazione usa le coste del dataset [Natural Earth Land 1:110m](https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-land/). I poligoni esterni provengono dal file GeoJSON nel tag `v5.1.2`, con coordinate arrotondate a 0,1° e punti consecutivi duplicati rimossi. Il dataset è di pubblico dominio. [Termini Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/)

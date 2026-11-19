@@ -203,7 +203,19 @@ func registerUsers(mux *http.ServeMux, root string, auth *sysopAuth) {
 	// Stato pubblico: serve al portale per mostrare o nascondere il pulsante «Registrati».
 	mux.HandleFunc("GET /api/register/status", func(w http.ResponseWriter, r *http.Request) {
 		settings := readRegisterSettings(root)
-		reply(w, map[string]bool{"Enabled": settings.Enabled && registrationMailer(root) != nil})
+		status := struct {
+			Enabled bool
+			Host    string `json:",omitempty"`
+			Port    int    `json:",omitempty"`
+		}{Enabled: settings.Enabled && registrationMailer(root) != nil}
+		if status.Enabled {
+			data, err := os.ReadFile(filepath.Join(root, "local", "dxregia-node.json"))
+			var node nodeConfig
+			if err == nil && json.Unmarshal(data, &node) == nil && node.validate() == nil && node.AdvertisedHost != "" {
+				status.Host, status.Port = node.AdvertisedHost, node.Port
+			}
+		}
+		reply(w, status)
 	})
 
 	mux.HandleFunc("POST /api/register", func(w http.ResponseWriter, r *http.Request) {

@@ -21,7 +21,7 @@
   const statsPage = window.location.pathname === '/statistiche'
   function viewFromURL(): SpotView {
     const view = new URLSearchParams(location.search).get('view')
-    return view === 'research' || view === 'alerts' || view === 'ann' || view === 'propagation' ? view : 'feed'
+    return view === 'research' || view === 'alerts' || view === 'propagation' ? view : 'feed'
   }
   let spotView = $state(viewFromURL())
   function openSpotView(event: MouseEvent, next: SpotView) {
@@ -33,13 +33,19 @@
   }
   const toolPage = contactPage || registerPage || confirmPage || statsPage
   let registrationOpen = $state(false)
+  let registrationConnection = $state<{ Host: string; Port: number }>()
   if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
-    fetch('/api/register/status').then(async response => { if (response.ok) registrationOpen = (await response.json()).Enabled === true }).catch(() => {})
+    fetch('/api/register/status').then(async response => {
+      if (!response.ok) return
+      const status = await response.json()
+      registrationOpen = status.Enabled === true
+      if (status.Host && status.Port) registrationConnection = { Host: status.Host, Port: status.Port }
+    }).catch(() => {})
   }
   // Il pannello sysop è solo su /admin; ogni altra pagina è il portale pubblico.
   const publicPortal = !(window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'))
   if (publicPortal) trackPortalPresence()
-  const titles = { feed: 'spotsTitle', research: 'spotResearch', alerts: 'radioAlerts', ann: 'navAnnouncements', propagation: 'navPropagation' } as const
+  const titles = { feed: 'spotsTitle', research: 'spotResearch', alerts: 'radioAlerts', propagation: 'navPropagation' } as const
   const portalTitle = $derived(t(titles[spotView]))
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
@@ -95,7 +101,6 @@
     {#if publicPortal}
       <a href="/spots?view=research" aria-current={!toolPage && spotView === 'research' ? 'page' : undefined} onclick={event => openSpotView(event, 'research')}>{t('spotResearch')}</a>
       <a href="/spots?view=alerts" aria-current={!toolPage && spotView === 'alerts' ? 'page' : undefined} onclick={event => openSpotView(event, 'alerts')}>{t('radioAlerts')}</a>
-      <a href="/spots?view=ann" aria-current={!toolPage && spotView === 'ann' ? 'page' : undefined} onclick={event => openSpotView(event, 'ann')}>{t('navAnnouncements')}</a>
       <a href="/spots?view=propagation" aria-current={!toolPage && spotView === 'propagation' ? 'page' : undefined} onclick={event => openSpotView(event, 'propagation')}>{t('navPropagation')}</a>
     {/if}
     {#if publicPortal}<a class="stats-link" href="/statistiche" aria-current={statsPage ? 'page' : undefined}>{t('navStats')}</a>{/if}
@@ -150,9 +155,9 @@
 {/if}
 
 {#if confirmPage}
-  <RegisterConfirm />
+  <RegisterConfirm connection={registrationConnection} />
 {:else if registerPage}
-  <Register />
+  <Register connection={registrationConnection} />
 {:else if contactPage}
   <Contact />
 {:else if statsPage}
@@ -211,13 +216,14 @@
     header { gap: 4px; padding: 6px 12px; }
     header .brand { font-size: 1.1rem; }
     .sep, .page { font-size: 1.05rem; }
-    .tools { width: 100%; justify-content: space-between; margin-left: 0; }
-    header a { padding: .4rem .6rem; font-size: .92rem; }
+    .tools { width: 100%; flex-wrap: wrap; justify-content: flex-end; margin-left: 0; }
+    header nav { flex: 0 0 100%; }
+    header nav a { padding: .4rem .6rem; font-size: .92rem; }
     .lang-btn, .tool { width: 36px; min-height: 36px; }
   }
   @media (max-width: 420px) {
     header nav { flex-wrap: wrap; gap: .1rem; }
-    header a { padding: .35rem .45rem; font-size: .85rem; white-space: nowrap; }
+    header nav a { padding: .35rem .45rem; font-size: .85rem; white-space: nowrap; }
     .tools { gap: .3rem; }
     .lang-btn, .tool { width: 32px; min-height: 32px; }
   }
