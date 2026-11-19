@@ -33,12 +33,16 @@ func preparePartnerMail(root string, entry partner) (partnerMail, error) {
 }
 
 func writePartnerMail(path string, job partnerMail) error {
+	return writePartnerMailJSON(path, job)
+}
+
+func writePartnerMailJSON(path string, value any) error {
 	tmp, err := os.CreateTemp(filepath.Dir(path), ".partner-mail-")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(tmp.Name())
-	err = json.NewEncoder(tmp).Encode(job)
+	err = json.NewEncoder(tmp).Encode(value)
 	if closeErr := tmp.Close(); err == nil {
 		err = closeErr
 	}
@@ -60,7 +64,10 @@ func processPartnerMail(root string, mailer *contactMailer, snapshot presence) {
 		if err != nil || json.Unmarshal(data, &job) != nil {
 			continue
 		}
-		if advancePartnerMail(dir, mailer.sendContent, snapshot, &job) {
+		send := func(kind, to string, content mailContent) error {
+			return archivePartnerDelivery(root, job.Call, kind, to, job.Password, content, mailer.sendContent)
+		}
+		if advancePartnerMail(dir, send, snapshot, &job) {
 			if err := writePartnerMail(path, job); err != nil {
 				return
 			}
@@ -69,7 +76,7 @@ func processPartnerMail(root string, mailer *contactMailer, snapshot presence) {
 	}
 }
 
-func advancePartnerMail(dir string, send func(string, mailContent) error, snapshot presence, job *partnerMail) bool {
+func advancePartnerMail(dir string, send func(string, string, mailContent) error, snapshot presence, job *partnerMail) bool {
 	if job.Password != "" {
 		result, err := os.ReadFile(filepath.Join(dir, job.Call+".result"))
 		if err != nil {
@@ -80,7 +87,7 @@ func advancePartnerMail(dir string, send func(string, mailContent) error, snapsh
 			job.Status = "Abilitazione non riuscita. Istruzioni non inviate."
 			return true
 		}
-		if err := send(job.Recipient, mailInstructions(job.Lang, *job, job.Contact)); err != nil {
+		if err := send("instructions", job.Recipient, mailInstructions(job.Lang, *job, job.Contact)); err != nil {
 			job.Status = "Invio istruzioni non riuscito"
 			job.Password = ""
 			return true
@@ -103,7 +110,7 @@ func advancePartnerMail(dir string, send func(string, mailContent) error, snapsh
 		}
 	}
 	if connected {
-		if err := send(job.Recipient, mailLinkOK(job.Lang, *job, job.Contact)); err != nil {
+		if err := send("confirmed", job.Recipient, mailLinkOK(job.Lang, *job, job.Contact)); err != nil {
 			job.Status = "Invio conferma non riuscito"
 		} else {
 			job.Status = "Conferma inviata: collegamento operativo"
@@ -119,7 +126,7 @@ func advancePartnerMail(dir string, send func(string, mailContent) error, snapsh
 		return true
 	}
 	if !job.PendingSent && !job.VerifyAfter.IsZero() && time.Now().After(job.VerifyAfter) {
-		if err := send(job.Recipient, mailLinkPending(job.Lang, *job, job.Contact)); err != nil {
+		if err := send("pending", job.Recipient, mailLinkPending(job.Lang, *job, job.Contact)); err != nil {
 			job.Status = "Invio avviso non riuscito"
 		} else {
 			job.Status = "Collegamento non ancora attivo: avviso inviato"

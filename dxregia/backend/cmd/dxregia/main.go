@@ -98,6 +98,7 @@ func main() {
 	registerNodeFiles(mux, *setupRoot, auth)
 	registerNodeLists(mux, *setupRoot, auth)
 	registerConnections(mux, *setupRoot, auth)
+	registerPartnerMailHistory(mux, *setupRoot, auth)
 	registerUsers(mux, *setupRoot, auth)
 	registerAutoPartner(mux, *setupRoot, auth)
 	registerLive(mux, *setupRoot, auth)

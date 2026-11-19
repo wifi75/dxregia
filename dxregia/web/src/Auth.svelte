@@ -11,6 +11,7 @@
   import Partners from './Partners.svelte'
   import BackupVerify from './BackupVerify.svelte'
   import MailSettings from './MailSettings.svelte'
+  import PartnerMailHistory from './PartnerMailHistory.svelte'
   import NodeMessage from './NodeMessage.svelte'
   import NodeStartup from './NodeStartup.svelte'
   import NodeAccesses from './NodeAccesses.svelte'
@@ -28,7 +29,7 @@
   let { onSaved, nodeStatus }: { onSaved: () => void; nodeStatus: Snippet } = $props()
   const groups = [
     { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['accessi', 'Accessi al nodo'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet'], ['opzioni-telnet', 'Opzioni Telnet'], ['messaggio', 'Messaggio e pianificazione'], ['avvio', 'Script di avvio'], ['liste', 'Liste di blocco'], ['hop', 'Hop e filtri'], ['log-dxspider', 'Log DXSpider']] },
-    { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['richieste', 'Richieste ricevute'], ['utenti', 'Utenti registrati']] },
+    { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['email-partner', 'Storico email partner'], ['richieste', 'Richieste ricevute'], ['utenti', 'Utenti registrati']] },
     { label: 'Gestione', items: [['analytics', 'Analytics'], ['posta', 'Server di posta'], ['backup', 'Backup'], ['password', 'Password']] },
   ] as const
   type Page = typeof groups[number]['items'][number][0]
@@ -289,6 +290,8 @@
           <MojoLog />
         {:else if page === 'partner'}
           <Partners {draft} />
+        {:else if page === 'email-partner'}
+          <PartnerMailHistory />
         {:else if page === 'richieste'}
           <ContactRequests onDraft={request => {
             draft = { ...request }

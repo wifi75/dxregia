@@ -44,6 +44,7 @@ export const adminRows: string[][] = [
   ['Hop e filtri', 'Hops and filters', 'Saltos y filtros', 'Hops und Filter', 'Sauts et filtres', 'Saltos e filtros'],
   ['Log DXSpider', 'DXSpider log', 'Registro de DXSpider', 'DXSpider-Protokoll', 'Journal DXSpider', 'Registo do DXSpider'],
   ['Nodi partner', 'Partner nodes', 'Nodos asociados', 'Partnerknoten', 'Nœuds partenaires', 'Nós parceiros'],
+  ['Storico email partner', 'Partner email history', 'Historial de correo de socios', 'E-Mail-Verlauf der Partner', 'Historique des e-mails partenaires', 'Histórico de emails dos parceiros'],
   ['Richieste ricevute', 'Requests received', 'Solicitudes recibidas', 'Eingegangene Anfragen', 'Demandes reçues', 'Pedidos recebidos'],
   ['Richieste non lette', 'Unread requests', 'Solicitudes sin leer', 'Ungelesene Anfragen', 'Demandes non lues', 'Pedidos por ler'],
   ['Analytics', 'Analytics', 'Analíticas', 'Statistiken', 'Statistiques', 'Estatísticas'],

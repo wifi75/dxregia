@@ -13,7 +13,7 @@ func TestPartnerMailLifecycle(t *testing.T) {
 	job := partnerMail{Call: "Q3QQQ-2", Recipient: "operator@example.org", Contact: "Mario",
 		Password: "temporary-lab-password", LocalNode: "IU3WJQ-7", Host: "node.example.org", Port: 7373, Lang: "en"}
 	var sent []mailContent
-	send := func(to string, c mailContent) error {
+	send := func(kind, to string, c mailContent) error {
 		sent = append(sent, c)
 		return nil
 	}
