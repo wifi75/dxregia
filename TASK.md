@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Integrare nel portale le proposte 1–20 dopo le anteprime. Verificati catalogo e metadati DXCC, storico, recupero da archivio, CSV e interazioni del portale su Edge con dati simulati.
+
 - [x] Completare le proposte 171–190 con misure sul feed, diagnostica del nodo, conservazione opzionale, guida rapida e modelli per le issue. Le prove HTTP usano 32 lettori del feed e una rubrica con 250 partner sintetici. Il collaudo Raspberry Pi fisico resta al punto 131.
 - [x] Correggere lo smoke test Linux per il 2FA facoltativo e per le sessioni persistenti. La matrice nativa e Docker è passata sul ramo di verifica, su amd64 e arm64.
 
@@ -19,7 +21,7 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 - [x] Definire [pagina pubblica degli spot e area sysop](docs/INTERFACES.md).
 - [x] Autenticazione sysop con cambio obbligatorio della password temporanea e protezione del wizard lato API.
 - [x] Implementare la prima pagina spot pubblica con dati Mojo, filtri e layout mobile.
-- [ ] Completare la mappa delle entità DXCC.
+- [x] Usare il catalogo completo delle entità DXCC presente nei dati distribuiti con DXSpider.
 - [x] Verificare lo stesso spot al client Telnet e ai feed dei due nodi Linux, su amd64 e arm64. Evidenza nei job Docker del run 44277402955, che si fermano dopo, alla riconnessione.
 - [x] Riprodurre l'avvio di Mojo su Linux e registrare dipendenze, configurazione minima e accesso locale alla console.
 - [ ] Verificare la baseline con due nodi locali e una sessione Telnet. Annotare gli scambi attesi e i criteri per spot, riconnessione e persistenza.

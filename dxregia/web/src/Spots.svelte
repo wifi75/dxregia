@@ -5,13 +5,98 @@
   import { t, locale, lang } from './i18n.svelte'
   import { soundOn, chirp, unlockAudio } from './sound.svelte'
 
-  type Spot = { Frequency: number; Call: string; At: number; Comment: string; Spotter: string; DXCC: number; Entity?: string }
-  const bands = [
-    ['160 m', 1800, 2000], ['80 m', 3500, 4000], ['60 m', 5250, 5450],
-    ['40 m', 7000, 7300], ['30 m', 10100, 10150], ['20 m', 14000, 14350],
-    ['17 m', 18068, 18168], ['15 m', 21000, 21450], ['12 m', 24890, 24990],
-    ['10 m', 28000, 29700], ['6 m', 50000, 54000], ['VHF+', 70000, Infinity],
-  ] as const
+  import SpotResearch from './SpotResearch.svelte'
+  import { bandFor, bands, commentMatcher, corroboratedSpots, exportSpotCSV, spotKey, type Spot } from './spotTools'
+
+  type SavedFilter = { name: string; bands: string[]; modes: string[]; noFt8: boolean; query: string; comment: string; confirmed: boolean }
+  const filterKey = 'dxregia-spot-filters'
+  let savedFilters = $state<SavedFilter[]>([])
+  let selectedFilter = $state('')
+  let saveName = $state('')
+  let showSave = $state(false)
+  let saveError = $state(false)
+  let activePage = $state<'feed' | 'research'>('feed')
+  let researchOpened = $state(false)
+  let view = $state<'table' | 'compact' | 'band' | 'compare'>('table')
+  let bandA = $state('20 m')
+  let bandB = $state('15 m')
+  let commentQuery = $state('')
+  let onlyConfirmed = $state(false)
+  let highlight = $state(true)
+  let paused = $state(false)
+  let frozen = $state<Spot[]>([])
+  let pending = $state<Spot[]>([])
+  let reviewing = $state(false)
+  let resuming = $state(false)
+  let recovered = $state(0)
+  let pauseGap = $state(false)
+  let newEntityKeys = $state(new Set<string>())
+  let seenEntities = new Set<number>()
+  let entityDay = ''
+  let shown = $derived(paused || reviewing ? frozen : spots)
+  const confirmedKeys = $derived(corroboratedSpots(shown))
+  const matchesComment = $derived(commentMatcher(commentQuery))
+  const limitPending = 1000
+
+  function persistFilters(next: SavedFilter[]) {
+    try { localStorage.setItem(filterKey, JSON.stringify(next)) } catch { saveError = true; return false }
+    saveError = false
+    savedFilters = next
+    return true
+  }
+  function commitFilter(event: SubmitEvent) {
+    event.preventDefault()
+    const name = saveName.trim()
+    if (!name) return
+    const next = savedFilters.filter(filter => filter.name !== name).slice(-19)
+    next.push({ name, bands: [...bandSel], modes: [...modeSel], noFt8, query, comment: commentQuery, confirmed: onlyConfirmed })
+    if (persistFilters(next)) { selectedFilter = name; showSave = false; saveName = '' }
+  }
+  function restoreFilter(name: string) {
+    selectedFilter = name
+    const filter = savedFilters.find(filter => filter.name === name)
+    if (!filter) return
+    bandSel = [...filter.bands]; modeSel = [...filter.modes]; noFt8 = filter.noFt8
+    query = filter.query; commentQuery = filter.comment; onlyConfirmed = filter.confirmed
+  }
+  async function togglePause() {
+    if (!paused) {
+      frozen = [...spots]
+      pending = []
+      pauseGap = false
+      recovered = 0
+      paused = true
+      return
+    }
+    resuming = true
+    const cursor = frozen.find(spot => spot.Cursor)?.Cursor
+    let archived: Spot[] = []
+    if (cursor) {
+      try {
+        const response = await fetch('/api/spot-resume?' + new URLSearchParams({ after: cursor }), {
+          signal: AbortSignal.timeout(7000),
+        })
+        if (!response.ok) throw new Error()
+        const data: {Spots: Spot[]; Complete: boolean} = await response.json()
+        archived = data.Spots
+        pauseGap = !data.Complete
+      } catch { pauseGap = true }
+    }
+    const before = new Set(frozen.map(spotKey))
+    const combined = new Map([...archived, ...pending].filter(spot => !before.has(spotKey(spot))).map(spot => [spotKey(spot), spot]))
+    recovered = combined.size
+    if (combined.size) frozen = [...combined.values()].sort((a, b) => a.At - b.At)
+    paused = false
+    reviewing = true
+    resuming = false
+  }
+  function returnLive() {
+    frozen = []
+    pending = []
+    reviewing = false
+    pauseGap = false
+  }
+
   let utc = $derived(new Intl.DateTimeFormat(locale(), { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }))
   let khz = $derived(new Intl.NumberFormat(locale(), { maximumFractionDigits: 3 }))
   let spots = $state<Spot[]>([])
@@ -21,7 +106,6 @@
   let noFt8 = $state(false)
   const toggle = (list: string[], value: string) => list.includes(value) ? list.filter(item => item !== value) : [...list, value]
   let query = $state('')
-  const spotKey = (spot: Spot) => spot.At + '|' + spot.Call + '|' + spot.Frequency
   let freshKeys = $state<Set<string>>(new Set())
 
   // Spedizioni DX annunciate (feed pubblico NG3K ADXO, scaricato dal nodo): icona accanto al nominativo e popup con i dettagli.
@@ -61,7 +145,6 @@
   let arrivalDelay = $state<number>()
   let archiveUpdatedAt = 0
   let views = $state<number>()
-  const bandFor = (frequency: number) => bands.find(([, low, high]) => frequency >= low && frequency <= high)?.[0] ?? ''
   const modeFor = (comment: string) => comment.match(/\b(FT8|FT4|SSB|CW|RTTY|PSK31|USB|LSB)\b/i)?.[1].toUpperCase() ?? ''
   // Se il commento non indica il modo, lo si deduce dalla frequenza (piano di banda IARU regione 1).
   const ft8 = [1840, 3573, 5357, 7074, 10136, 14074, 18100, 21074, 24915, 28074, 50313]
@@ -107,12 +190,16 @@
     })
   }
   const groupOf = (value: string) => ['FT8', 'FT4', 'RTTY', 'PSK31'].includes(value) ? 'DIGI' : ['SSB', 'USB', 'LSB'].includes(value) ? 'SSB' : value
-  let filtered = $derived(spots.filter(spot =>
+  let filtered = $derived(shown.filter(spot =>
     (!bandSel.length || bandSel.includes(bandFor(spot.Frequency))) &&
     (!modeSel.length || modeSel.includes(groupOf(modeInfo(spot).mode))) &&
     (!noFt8 || modeInfo(spot).mode !== 'FT8') &&
+    (!onlyConfirmed || confirmedKeys.has(spotKey(spot))) && matchesComment(spot.Comment) &&
     (!query.trim() || [spot.Call, spot.Spotter, spot.Comment].some(value => value.toLowerCase().includes(query.trim().toLowerCase())))
   ))
+
+  const comparisonBands = $derived(view === 'compare' ? [...new Set([bandA, bandB])] : view === 'band' ? [bandA] : [])
+  const displayed = $derived(comparisonBands.length ? filtered.filter(spot => comparisonBands.includes(bandFor(spot.Frequency))) : filtered)
 
   async function refresh() {
     if (reading) return
@@ -124,6 +211,27 @@
       const rows: Spot[] = data.Spots ?? []
       const keys = new Set(rows.map(spotKey))
       const previousKeys = knownKeys
+      if (data.Available) {
+        const day = new Date().toISOString().slice(0, 10)
+        if (entityDay !== day) {
+          entityDay = day
+          seenEntities = new Set()
+          newEntityKeys = new Set()
+        }
+        const newEntities = new Set(newEntityKeys)
+        for (const spot of [...rows].reverse()) {
+          if (spot.DXCC <= 0 || spot.DXCC === 666 || seenEntities.has(spot.DXCC) || new Date(spot.At * 1000).toISOString().slice(0, 10) !== day) continue
+          seenEntities.add(spot.DXCC)
+          if (previousKeys && !previousKeys.has(spotKey(spot))) newEntities.add(spotKey(spot))
+        }
+        newEntityKeys = new Set([...newEntities].filter(key => keys.has(key)))
+      }
+      if (paused && data.Available) {
+        const existing = new Set([...pending, ...frozen].map(spotKey))
+        const arrival = rows.filter(spot => !previousKeys?.has(spotKey(spot)) && !existing.has(spotKey(spot)))
+        if ((rows.length >= 100 && !rows.some(spot => previousKeys?.has(spotKey(spot)))) || pending.length + arrival.length > limitPending) pauseGap = true
+        pending = [...arrival, ...pending].slice(0, limitPending)
+      }
       if (previousKeys) {
         const added = [...keys].filter(key => !previousKeys.has(key))
         if (added.length) {
@@ -133,9 +241,10 @@
           freshKeys = new Set([...freshKeys, ...added])
           // Giallo pieno per 10 secondi, poi sfuma: la scheda resta evidenziata ancora 4 secondi durante la dissolvenza.
           setTimeout(() => { freshKeys = new Set([...freshKeys].filter(key => !added.includes(key))) }, 14500)
-          if (soundOn()) for (let i = 0; i < Math.min(added.length, 4); i++) chirp(i * 0.16)
+          if (!paused && !reviewing && soundOn()) for (let i = 0; i < Math.min(added.length, 4); i++) chirp(i * 0.16)
         }
       }
+      if (!data.Available && paused) pauseGap = true
       knownKeys = data.Available ? keys : undefined
       archiveUpdatedAt = data.ArchiveUpdatedAt ?? 0
       latestAt = data.LatestAt ?? rows.reduce((at, spot) => Math.max(at, spot.At), 0)
@@ -144,6 +253,7 @@
       available = data.Available
     } catch {
       available = false
+      if (paused) pauseGap = true
       knownKeys = undefined
       arrivalDelay = undefined
     } finally {
@@ -167,6 +277,11 @@
     } catch { /* il piè di pagina funziona anche senza */ }
   })
   onMount(() => {
+    try {
+      const stored: unknown = JSON.parse(localStorage.getItem(filterKey) || '[]')
+      if (Array.isArray(stored)) savedFilters = stored.slice(-20).filter(item => item && typeof item.name === 'string' &&
+        Array.isArray(item.bands) && Array.isArray(item.modes) && typeof item.query === 'string' && typeof item.comment === 'string')
+    } catch { /* storage may be unavailable */ }
     const unlock = () => unlockAudio()
     window.addEventListener('pointerdown', unlock, { once: true })
     window.addEventListener('keydown', unlock, { once: true })
@@ -187,6 +302,12 @@
 
 <main aria-labelledby="spots-title">
   <Sponsor />
+  <nav class="spot-tabs" aria-label={t('spotViews')}>
+    <button class="chip" type="button" aria-pressed={activePage === 'feed'} onclick={() => activePage = 'feed'}>{t('navSpots')}</button>
+    <button class="chip" type="button" aria-pressed={activePage === 'research'} onclick={() => { researchOpened = true; activePage = 'research' }}>{t('spotResearch')}</button>
+  </nav>
+  {#if researchOpened}<div hidden={activePage !== 'research'}><SpotResearch {spots} /></div>{/if}
+  <div hidden={activePage !== 'feed'}>
   <section class="filters glass-panel glass-enter" aria-label={t('filters')}>
     <div class="chip-row">
       <div class="chips" role="group" aria-label={t('bands')}>
@@ -242,6 +363,52 @@
       </button>
     </div>
   </section>
+  <div class="feed-controls glass-panel">
+    <label>{t('spotSavedFilters')}
+      <select value={selectedFilter} onchange={event => restoreFilter(event.currentTarget.value)}>
+        <option value="">{t('spotChooseFilter')}</option>
+        {#each savedFilters as filter (filter.name)}<option value={filter.name}>{filter.name}</option>{/each}
+      </select>
+    </label>
+    <button type="button" aria-expanded={showSave} onclick={() => { showSave = !showSave; saveName = selectedFilter; saveError = false }}>{t('spotSaveFilter')}</button>
+    <label>{t('spotView')}
+      <select bind:value={view}>
+        <option value="table">{t('spotTable')}</option><option value="compact">{t('spotCompact')}</option>
+        <option value="band">{t('spotByBand')}</option><option value="compare">{t('spotBandCompare')}</option>
+      </select>
+    </label>
+    {#if comparisonBands.length}
+      <label>{t('bands')} A<select bind:value={bandA}>{#each bands as [band]}<option>{band}</option>{/each}</select></label>
+      {#if view === 'compare'}<label>{t('bands')} B<select bind:value={bandB}>{#each bands as [band]}<option>{band}</option>{/each}</select></label>{/if}
+    {/if}
+    {#if reviewing}
+      <button type="button" onclick={returnLive}>{t('spotBackLive')}</button>
+    {:else}
+      <button type="button" onclick={togglePause} disabled={resuming}>{resuming ? t('loading') : paused ? t('spotResume') : t('spotPause')}</button>
+    {/if}
+    <button type="button" onclick={() => exportSpotCSV(displayed)} disabled={!displayed.length}>{t('spotExportCSV')}</button>
+    {#if showSave}
+      <form class="save-filter" onsubmit={commitFilter}>
+        <label>{t('spotFilterName')}<input bind:value={saveName} maxlength="40" required /></label>
+        <button type="submit">{t('spotSaveFilter')}</button>
+        {#if savedFilters.some(filter => filter.name === saveName.trim())}
+          <button type="button" onclick={() => { if (persistFilters(savedFilters.filter(filter => filter.name !== saveName.trim()))) { selectedFilter = ''; saveName = ''; showSave = false } }}>{t('spotRemoveFilter')}</button>
+        {/if}
+      </form>
+    {/if}
+    {#if saveError}<p role="status">{t('spotStorageUnavailable')}</p>{/if}
+  </div>
+  <div class="feed-controls glass-panel">
+    <label class="comment-search">{t('spotCommentSearch')}
+      <input type="search" bind:value={commentQuery} maxlength="200" placeholder={'FT8 -CQ OR "strong signal"'} />
+    </label>
+    <label class="check" title={t('spotConfirmedHint')}><input type="checkbox" bind:checked={onlyConfirmed} /> {t('spotOnlyConfirmed')}</label>
+    <label class="check"><input type="checkbox" bind:checked={highlight} /> {t('spotMarkNew')}</label>
+  </div>
+  {#if paused || reviewing}
+    <p class="spot-timing" role="status">{paused ? t('spotWaiting', { n: pending.length }) : t('spotReviewing', { n: recovered })}</p>
+    {#if pauseGap}<p class="spot-timing" role="status">{t('spotGap')}</p>{/if}
+  {/if}
   {#if available && latestAt > 0}
     <p class="spot-timing">
       {t('lastSpotAge')} · {Math.max(0, Math.floor(spotClock / 1000 - latestAt))} s
@@ -255,36 +422,48 @@
   {:else if available === undefined}
     <p role="status">{t('loading')}</p>
   {/if}
-  {#if filtered.length}
+  {#snippet spotTable(rows: Spot[], label?: string)}
+    {#if label}<h2 class="band-heading">{label} · {rows.length}</h2>{/if}
+    {#if rows.length}
     <!-- svelte-ignore a11y_no_noninteractive_tabindex (scrollable table needs keyboard focus) -->
     <div class="table-wrap" tabindex="0" role="region" aria-label={t('tableLabel')}>
-      <table>
+      <table class:compact={view === 'compact'}>
         <thead><tr><th scope="col">{t('thDe')}</th><th scope="col">{t('thFreq')}</th><th>{t('thMode')}</th><th>{t('thDx')}</th><th>{t('thEntity')}</th><th>{t('thComment')}</th><th>{t('thUtc')}</th></tr></thead>
         <tbody>
-          {#each rowsKeyed(filtered) as { spot, key, id } (key)}
+          {#each rowsKeyed(rows) as { spot, key, id } (key)}
             {@const m = modeInfo(spot)}
-            <tr class:fresh={freshKeys.has(id)}>
+            <tr class:fresh={freshKeys.has(id)} class:new-entity={highlight && newEntityKeys.has(id)}>
               <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Spotter} onclick={() => query = spot.Spotter}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>{spot.Spotter}</span></td>
               <td><strong class="frequency" style:--c={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
               <td data-empty={!m.mode || undefined}><span class="mode" data-mode={m.mode} data-inferred={m.inferred && m.mode ? '' : undefined} title={m.inferred && m.mode ? t('modeInferred') : undefined}>{m.mode || '—'}</span></td>
-              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><strong>{spot.Call}</strong>{#if adxoFor(spot.Call)}{@const entry = adxoFor(spot.Call)!}<button class="info" type="button" title={t('adxoTitle') + ': ' + entry.Entity} aria-label={t('adxoTitle') + ': ' + entry.Entity} onmouseenter={event => openInfo(event, entry)} onfocus={event => openInfo(event, entry)} onmouseleave={hideInfoSoon} onblur={hideInfoSoon} onclick={event => openInfo(event, entry)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg></button>{/if}</span></td>
+              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><strong>{spot.Call}</strong>{#if confirmedKeys.has(id)}<span class="confirmed" role="img" aria-label={t('spotConfirmedHint')} title={t('spotConfirmedHint')}>✓</span>{/if}{#if adxoFor(spot.Call)}{@const entry = adxoFor(spot.Call)!}<button class="info" type="button" title={t('adxoTitle') + ': ' + entry.Entity} aria-label={t('adxoTitle') + ': ' + entry.Entity} onmouseenter={event => openInfo(event, entry)} onfocus={event => openInfo(event, entry)} onmouseleave={hideInfoSoon} onblur={hideInfoSoon} onclick={event => openInfo(event, entry)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg></button>{/if}</span></td>
               <td>
                 {#if dxccFlags[spot.DXCC]}
                   <img src={'/flags/' + dxccFlags[spot.DXCC] + '.svg'} alt="" width="26" height="19" loading="lazy" />
                 {/if}
-                {entities[spot.DXCC]?.[0] ?? (spot.Entity || (spot.DXCC > 0 && spot.DXCC !== 666 ? 'DXCC ' + spot.DXCC : '—'))}
+                {(lang() === 'it' ? entities[spot.DXCC]?.[0] : undefined) ?? (spot.Entity || (spot.DXCC > 0 && spot.DXCC !== 666 ? 'DXCC ' + spot.DXCC : '—'))}
+                {#if highlight && newEntityKeys.has(id)}<span class="spot-tag">{t('spotNewEntity')}</span>{/if}
               </td>
-              <td class="comment">{spot.Comment}</td>
+              <td class="comment" title={spot.Comment}>{spot.Comment}</td>
               <td>{utc.format(new Date(spot.At * 1000))}</td>
             </tr>
           {/each}
         </tbody>
       </table>
     </div>
-  {:else if available}
-    <p>{spots.length ? t('noMatch') : t('noRecent')}</p>
+    {:else if available}<p class="empty-spots">{shown.length ? t('noMatch') : t('noRecent')}</p>{/if}
+  {/snippet}
+  {#if comparisonBands.length}
+    <div class="comparison" class:paired={comparisonBands.length > 1}>
+      {#each comparisonBands as band (band)}
+        <div>{@render spotTable(displayed.filter(spot => bandFor(spot.Frequency) === band), band)}</div>
+      {/each}
+    </div>
+  {:else}
+    {@render spotTable(displayed)}
   {/if}
     </section>
+  </div>
   </div>
   <footer class="foot">
     {#if views !== undefined}
@@ -316,6 +495,29 @@
 </main>
 
 <style>
+  .spot-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+  .spot-tabs button { min-height: 34px; font-size: .86rem; }
+  .feed-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 8px 10px; margin-bottom: 8px; }
+  .feed-controls label { display: grid; gap: 3px; font-size: .8rem; font-weight: 650; min-width: 0; }
+  .feed-controls select, .feed-controls input:not([type=checkbox]), .feed-controls button { min-height: 34px; min-width: 0; }
+  .feed-controls input:not([type=checkbox]) { width: 100%; }
+  .feed-controls .check { display: flex; align-items: center; gap: 5px; min-height: 34px; }
+  .check input { width: auto; min-height: 0; }
+  .comment-search { flex: 1 1 200px; }
+  .save-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; flex-basis: 100%; }
+  .band-heading { font-size: 1rem; margin: 8px 12px; }
+  .comparison { display: grid; }
+  .comparison.paired { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .comparison > div { min-width: 0; }
+  .comparison.paired table { table-layout: auto; }
+  .comparison.paired th, .comparison.paired td { width: auto; padding-inline: 5px; }
+  .empty-spots { margin: 10px; }
+  table.compact td { padding-block: 2px; }
+  table.compact .lens, table.compact .mode, table.compact .frequency { min-height: 21px; }
+  .new-entity td:nth-child(5) { box-shadow: inset 3px 0 #c28522; font-weight: 700; }
+  .spot-tag { margin-inline-start: 4px; color: #55360b; background: #ffe5a0; font-size: .72rem; border-radius: 5px; padding: 2px 4px; }
+  .confirmed { color: #197849; font-weight: 800; }
+  @media (max-width: 900px) { .comparison.paired { grid-template-columns: minmax(0, 1fr); } }
   .spot-timing { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 2px; color: #385569; font-size: .82rem; font-variant-numeric: tabular-nums; }
   main { position: relative; width: 100%; max-width: 1240px; margin: 0 auto; padding: 14px clamp(12px, 2vw, 32px) 24px; }
   @media (prefers-reduced-motion: reduce) { tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: none; background: #fff1a0; } }

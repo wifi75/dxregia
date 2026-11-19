@@ -17,14 +17,23 @@ import (
 	"time"
 )
 
+const maxSpotTail = 256 * 1024
+
 type publicSpot struct {
-	Frequency float64
-	Call      string
-	At        int64
-	Comment   string
-	Spotter   string
-	DXCC      int
-	Entity    string `json:",omitempty"`
+	Cursor           string `json:",omitempty"`
+	Frequency        float64
+	Call             string
+	At               int64
+	Comment          string
+	Spotter          string
+	DXCC             int
+	SpotterDXCC      int      `json:",omitempty"`
+	Continent        string   `json:",omitempty"`
+	SpotterContinent string   `json:",omitempty"`
+	CQ, ITU          int      `json:",omitempty"`
+	Grids            []string `json:",omitempty"`
+	Special          bool     `json:",omitempty"`
+	Entity           string   `json:",omitempty"`
 }
 
 type spotSnapshot struct {
@@ -58,7 +67,8 @@ func fileSignature(paths ...string) string {
 }
 
 func registerSpots(mux *http.ServeMux, root string) func() spotSnapshot {
-	entities := spotEntities(root)
+	directory := loadDXCC(root)
+	registerSpotResearch(mux, root, directory)
 	var mu sync.Mutex
 	var signature string
 	var cached spotSnapshot
@@ -90,7 +100,7 @@ func registerSpots(mux *http.ServeMux, root string) func() spotSnapshot {
 					}
 				}
 				for i := range rows {
-					rows[i].Entity = entities[rows[i].DXCC]
+					directory.enrich(&rows[i])
 					next.LatestAt = max(next.LatestAt, rows[i].At)
 				}
 				next.Spots = append(next.Spots, rows...)
@@ -158,6 +168,10 @@ func spotDataPath(root, name string) string {
 }
 
 func recentSpots(path string, limit int) ([]publicSpot, error) {
+	return readSpotTail(path, limit, maxSpotTail)
+}
+
+func readSpotTail(path string, limit int, maxBytes int64) ([]publicSpot, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -167,12 +181,11 @@ func recentSpots(path string, limit int) ([]publicSpot, error) {
 	if err != nil {
 		return nil, err
 	}
-	const maxTail = 256 * 1024
-	start := info.Size() - min(info.Size(), maxTail)
+	start := info.Size() - min(info.Size(), maxBytes)
 	if _, err := file.Seek(start, io.SeekStart); err != nil {
 		return nil, err
 	}
-	data, err := io.ReadAll(io.LimitReader(file, maxTail))
+	data, err := io.ReadAll(io.LimitReader(file, maxBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -182,8 +195,11 @@ func recentSpots(path string, limit int) ([]publicSpot, error) {
 		first = 1
 	}
 	spots := make([]publicSpot, 0, limit)
+	day := filepath.Base(filepath.Dir(path)) + strings.TrimSuffix(filepath.Base(path), ".dat")
+	offset := start + int64(len(data)-len(lines[len(lines)-1]))
 	for i := len(lines) - 2; i >= first && len(spots) < limit; i-- {
-		columns := strings.SplitN(strings.TrimRight(string(lines[i]), "\r"), "^", 7)
+		offset -= int64(len(lines[i]) + 1)
+		columns := strings.SplitN(strings.TrimRight(string(lines[i]), "\r"), "^", 11)
 		if len(columns) < 6 || len(columns[1]) > 24 || len(columns[4]) > 24 || len(columns[3]) > 1024 {
 			continue
 		}
@@ -196,8 +212,16 @@ func recentSpots(path string, limit int) ([]publicSpot, error) {
 			continue
 		}
 		entity, _ := strconv.Atoi(columns[5])
-		spots = append(spots, publicSpot{Frequency: frequency, Call: columns[1],
-			At: at, Comment: columns[3], Spotter: columns[4], DXCC: entity})
+		spot := publicSpot{Cursor: fmt.Sprintf("%s-%020d", day, offset), Frequency: frequency, Call: columns[1],
+			At: at, Comment: columns[3], Spotter: columns[4], DXCC: entity}
+		if len(columns) > 6 {
+			spot.SpotterDXCC, _ = strconv.Atoi(columns[6])
+		}
+		if len(columns) > 9 {
+			spot.ITU, _ = strconv.Atoi(columns[8])
+			spot.CQ, _ = strconv.Atoi(columns[9])
+		}
+		spots = append(spots, spot)
 	}
 	return spots, nil
 }

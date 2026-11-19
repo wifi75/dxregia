@@ -330,3 +330,12 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 - Le metriche del nodo sono disponibili nell’API autenticata /api/node-health e nel riquadro Diagnostica del nodo. La conservazione è disattivata in partenza e si abilita con DXREGIA_EVENT_RETENTION_DAYS. Impostare DXREGIA_PUBLIC_STATUS=on per pubblicare /stato. Vedi [Operazioni](OPERATIONS.md).
 - Il collaudo HTTP usa file sintetici, letture concorrenti del feed e 250 schede partner. Le prove esercitano il backend e la generazione della risposta. Il carico di 250 connessioni effettive tra nodi e l’installazione su Raspberry Pi fisico richiedono un ambiente dedicato.
 - Il workflow Linux salta le modifiche ai soli documenti, annulla i run superati sullo stesso riferimento e verifica esplicitamente 2FA opzionale e persistenza della sessione. Tutte e quattro le varianti sono passate nel [run di verifica](https://github.com/wifi75/dxregia/actions/runs/44531010488).
+
+
+## 2026-11-19 — Portale spot e ricerca DXCC
+
+- Le schede **Spot in diretta** e **Ricerca e DXCC** usano il feed pubblico. Il browser salva fino a 20 filtri per profilo locale. Vista normale, compatta, per banda e confronto esportano solo gli spot mostrati. Nel filtro commenti le parole si combinano, le virgolette delimitano una frase, il segno meno la esclude e OR separa alternative.
+- La spunta indica riscontro nello stesso insieme di spot da due nominativi distinti entro 3 minuti e 1 kHz. La novità DXCC si misura sugli spot ricevuti dal browser nella giornata UTC. Il locator nei commenti può riferirsi a una delle stazioni citate. Il locator della scheda DXCC indica il riferimento del catalogo.
+- Il portale continua a campionare durante la pausa e recupera gli arrivi dall’archivio usando giorno UTC e posizione del record. Il server recupera fino a 1.000 eventi da un massimo di 7 giorni, con lettura limitata a 256 KiB per file. Il portale segnala il recupero parziale e mostra gli arrivi in ordine cronologico.
+- Catalogo derivato dai dati del motore, con CQ e ITU del record, continente del DX e dello spotter per entità ed eccezioni per nominativo esatto da cty.dat. La cronologia cerca nei 7 giorni disponibili, fino a 8.000 record o 1 MiB per giorno. Il riepilogo bande usa tutte le righe indicizzate dell’entità. La tabella ritorna al massimo 200 risultati.
+- Test Go per metadati, esclusione degli IP dagli spot pubblici, cronologia e ripresa tra giorni UTC. Prova della build del portale su Edge headless con feed simulato a larghezza ridotta.
