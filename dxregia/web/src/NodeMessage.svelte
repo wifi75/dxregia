@@ -3,7 +3,14 @@
   import Hint from './Hint.svelte'
 
   type Entry = { Minute: string; Hour: string; Day: string; Month: string; Weekday: string; Command: string }
-  let text = $state('')
+  const languages = [
+    { code: 'en', flag: 'gb', name: 'English · predefinito' }, { code: 'it', flag: 'it', name: 'Italiano' },
+    { code: 'es', flag: 'es', name: 'Español' }, { code: 'de', flag: 'de', name: 'Deutsch' },
+    { code: 'fr', flag: 'fr', name: 'Français' }, { code: 'pt', flag: 'pt', name: 'Português' },
+  ]
+  let language = $state('en')
+  let banners = $state<Record<string, string>>({ en: '', it: '', es: '', de: '', fr: '', pt: '' })
+  let loaded = $state(false)
   let maxBytes = $state(2000)
   let entries = $state<Entry[]>([])
   let extra = $state<string[]>([])
@@ -17,14 +24,20 @@
     box.style.height = 'auto'
     box.style.height = Math.min(box.scrollHeight + 2, window.innerHeight * 0.8) + 'px'
   }
-  $effect(() => { text; box; void tick().then(fit) })
+  $effect(() => { banners[language]; box; void tick().then(fit) })
   const blank = (): Entry => ({ Minute: '0', Hour: '3', Day: '*', Month: '*', Weekday: '*', Command: '' })
-  const size = $derived(new TextEncoder().encode(text).length)
+  const size = $derived(new TextEncoder().encode(banners[language]).length)
+  const flag = $derived(languages.find(option => option.code === language)?.flag ?? 'gb')
 
   onMount(async () => {
     try {
       const [motd, cron] = await Promise.all([fetch('/api/motd'), fetch('/api/crontab')])
-      if (motd.ok) { const data = await motd.json(); text = data.Text; maxBytes = data.MaxBytes }
+      if (motd.ok) {
+        const data = await motd.json()
+        banners = { ...banners, ...data.Translations, en: data.Text }
+        maxBytes = data.MaxBytes
+        loaded = true
+      } else motdStatus = 'Impossibile leggere i banner Telnet.'
       if (cron.ok) { const data = await cron.json(); entries = data.Entries; extra = data.Extra }
     } catch {
       motdStatus = cronStatus = 'Impostazioni non disponibili.'
@@ -44,7 +57,8 @@
   }
   const saveMotd = async (event: SubmitEvent) => {
     event.preventDefault()
-    motdStatus = await save('/api/motd', { Text: text }, text.trim() ? 'Banner salvato. Riapri la connessione Telnet per vederlo prima del login.' : 'Messaggio rimosso.')
+    if (!loaded || busy) return
+    motdStatus = await save('/api/motd', { Text: banners[language], Language: language }, 'Testo della lingua selezionata salvato.')
   }
   const saveCron = async (event: SubmitEvent) => {
     event.preventDefault()
@@ -55,12 +69,20 @@
 <section class="glass-panel" aria-labelledby="motd-title">
   <h1 id="motd-title">Messaggio del giorno</h1>
   <form onsubmit={saveMotd}>
-    <p>Il banner appare appena ci si collega via Telnet, prima del prompt login. Salva un testo vuoto per nasconderlo.</p>
+    <p>Il banner predefinito appare prima di <code>login:</code>. Puoi preparare e salvare anche le traduzioni. La selezione automatica tramite IP non è ancora disponibile.</p>
+    <label>Lingua del banner
+      <span class="language-picker">
+        <img src={'/flags/' + flag + '.svg'} width="24" height="17" alt="" />
+        <select bind:value={language} disabled={!loaded || busy} onchange={() => { motdStatus = '' }}>
+          {#each languages as option (option.code)}<option value={option.code}>{option.name}</option>{/each}
+        </select>
+      </span>
+    </label>
     <label>Testo<Hint text="Si mostra a chi si collega via Telnet, prima del prompt. Puoi andare a capo. Massimo 2000 byte: le lettere accentate ne occupano 2." />
-      <textarea bind:this={box} bind:value={text} rows="6" wrap="off" disabled={busy} class="telnet-banner"></textarea>
+      <textarea bind:this={box} bind:value={banners[language]} rows="6" wrap="off" disabled={!loaded || busy} class="telnet-banner"></textarea>
     </label>
     <small class:over={size > maxBytes}>{size} / {maxBytes} byte</small>
-    <button disabled={busy || size > maxBytes}>Salva messaggio</button>
+    <button disabled={!loaded || busy || size > maxBytes}>Salva messaggio</button>
   </form>
   {#if motdStatus}<p role="status">{motdStatus}</p>{/if}
 
@@ -93,6 +115,7 @@
 </section>
 
 <style>
+  .language-picker { display: inline-flex; align-items: center; gap: .55rem; }
   .telnet-banner { font-family: ui-monospace, monospace; }
   section { padding: 22px; }
   h1 { margin: 0 0 1rem; }

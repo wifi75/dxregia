@@ -115,3 +115,4 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Installazione nativa nuova accessibile dalla LAN, con URL e credenziali iniziali documentati.
 - [x] Rendere il 2FA facoltativo e disattivato per nuove installazioni; spostare Commento di altri 10 px su desktop.
 - [x] Affiancare orario e stato dei partner nella dashboard.
+- [x] Modificare e salvare i banner Telnet per lingua in una sola pagina.

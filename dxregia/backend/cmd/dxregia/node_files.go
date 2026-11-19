@@ -100,6 +100,7 @@ func registerNodeFiles(mux *http.ServeMux, root string, auth *sysopAuth) {
 	}
 	var lock sync.Mutex
 	issuePath := filepath.Join(root, "local_data", "issue")
+	translations := map[string]bool{"it": true, "es": true, "de": true, "fr": true, "pt": true}
 	cronPath := filepath.Join(root, "local_cmd", "crontab")
 	guard := func(w http.ResponseWriter, r *http.Request, write bool) bool {
 		w.Header().Set("Cache-Control", "no-store")
@@ -144,19 +145,36 @@ func registerNodeFiles(mux *http.ServeMux, root string, auth *sysopAuth) {
 			http.Error(w, "Impossibile leggere il messaggio.", http.StatusInternalServerError)
 			return
 		}
-		reply(w, map[string]any{"Text": string(data), "MaxBytes": motdMaxBytes})
+		localized := make(map[string]string, len(translations))
+		for lang := range translations {
+			content, err := os.ReadFile(issuePath + "." + lang)
+			if err != nil && !os.IsNotExist(err) {
+				http.Error(w, "Impossibile leggere la traduzione.", http.StatusInternalServerError)
+				return
+			}
+			localized[lang] = string(content)
+		}
+		reply(w, map[string]any{"Text": string(data), "Translations": localized, "MaxBytes": motdMaxBytes})
 	})
 	mux.HandleFunc("PUT /api/motd", func(w http.ResponseWriter, r *http.Request) {
 		if !guard(w, r, true) {
 			return
 		}
-		var change struct{ Text string }
+		var change struct{ Text, Language string }
 		if !decode(w, r, &change) {
 			return
 		}
 		if !validMotd(change.Text) {
 			http.Error(w, "Messaggio non valido: massimo 2000 byte, senza caratteri di controllo.", http.StatusBadRequest)
 			return
+		}
+		path := issuePath
+		if change.Language != "" && change.Language != "en" {
+			if !translations[change.Language] {
+				http.Error(w, "Lingua non supportata.", http.StatusBadRequest)
+				return
+			}
+			path += "." + change.Language
 		}
 		lock.Lock()
 		defer lock.Unlock()
@@ -167,7 +185,7 @@ func registerNodeFiles(mux *http.ServeMux, root string, auth *sysopAuth) {
 			normalized = strings.ReplaceAll(normalized, "\r", "\n")
 			banner = []byte(strings.TrimRight(normalized, "\n") + "\n")
 		}
-		if err := writeNodeFile(issuePath, banner); err != nil {
+		if err := writeNodeFile(path, banner); err != nil {
 			http.Error(w, "Impossibile salvare il messaggio.", http.StatusInternalServerError)
 			return
 		}
