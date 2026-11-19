@@ -36,7 +36,7 @@
       : { tone: 'red', title: 'Irraggiungibile', detail: status.address })
   let cluster = $derived<{ tone: Tone; title: string; detail: string }>(
     fresh ? { tone: 'green', title: 'Attivo', detail: 'Dati aggiornati ' + time.format(new Date((snapshot?.At ?? 0) * 1000)) }
-      : { tone: 'red', title: 'Nessun dato', detail: 'Mojo non invia dati recenti.' })
+      : { tone: 'red', title: 'Nessun dato', detail: 'DXSpider non invia dati recenti.' })
   let partnerTile = $derived<{ tone: Tone; title: string; detail: string }>(
     !partnerCalls.length ? { tone: 'neutral', title: 'Nessun partner', detail: 'Aggiungi un nodo dalla pagina Nodi partner.' }
       : connected.length === partnerCalls.length ? { tone: 'green', title: `${connected.length} su ${partnerCalls.length} collegati`, detail: 'Tutti i nodi sono attivi.' }
@@ -98,7 +98,7 @@
 <section class="health" aria-label="Salute del nodo">
   {#each [
     { label: 'Listener Telnet', ...listener },
-    { label: 'Cluster Mojo', ...cluster },
+    { label: 'Cluster DXSpider', ...cluster },
     { label: 'Nodi partner', ...partnerTile },
   ] as tile (tile.label)}
     <article class="tile glass-panel" data-tone={tile.tone}>
@@ -119,7 +119,7 @@
     <header class="box-head"><h2>Nodi partner</h2><span class="count">{[...new Set([...partnerCalls, ...nodes.map(node => node.Call)])].length}</span></header>
     <p class="sub">Altri cluster collegati al tuo come partner.</p>
     {#if lockedCalls.length}
-      <p class="blocked" role="status">Nodi bloccati in Mojo · {lockedCalls.join(', ')}. <a href="#partner">Apri Nodi partner</a></p>
+      <p class="blocked" role="status">Nodi bloccati in DXSpider · {lockedCalls.join(', ')}. <a href="#partner">Apri Nodi partner</a></p>
     {/if}
     {#if partnerCalls.length || nodes.length}
       <div class="partner-table">
@@ -132,7 +132,7 @@
               {@const tone = locked || !node ? 'red' : node.State === 'normal' ? 'green' : 'amber'}
               <tr>
                 <td><strong>{call}</strong>{#if directory[call]?.Name && directory[call].Name !== call}<small>{directory[call].Name}</small>{/if}</td>
-                <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in Mojo' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}
+                <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in DXSpider' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}
                   {#if !locked && node?.State === 'normal'}<small>· dalle {time.format(new Date(node.Since * 1000))}</small>{/if}</span></td>
                 <td>{#if node}<span class="tag">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{:else}—{/if}</td>
               </tr>
@@ -177,13 +177,13 @@
             <li>
               <span class="led" data-tone="green" aria-hidden="true"></span>
               <strong>{session.Call}</strong>
-              <span class="muted">{session.Kind === 'telnet' ? 'Telnet' : 'Web Mojo'}</span>
+              <span class="muted">{session.Kind === 'telnet' ? 'Telnet' : 'Web DXSpider'}</span>
               <span class="state">dalle {time.format(new Date(session.Since * 1000))}</span>
             </li>
           {/each}
         </ul>
       {:else}
-        <p class="muted">Nessuna sessione Telnet o Web Mojo attiva.</p>
+        <p class="muted">Nessuna sessione Telnet o Web DXSpider attiva.</p>
       {/if}
     </article>
   </div>

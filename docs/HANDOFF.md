@@ -317,3 +317,5 @@ I README e le guide di installazione in sei lingue documentano la configurazione
 ## Console Telnet e navigazione
 
 La console resta montata nella sessione di amministrazione. Passare a Stato e sessioni lascia aperto il collegamento Telnet e conserva cronologia e output. Il riquadro Radioamatori collegati deve mostrare la sessione come Telnet dopo il successivo aggiornamento della presenza. La verifica su un nodo installato resta aperta.
+
+La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva in ingresso. La conferma SMTP resta da verificare nello storico. Le diciture del pannello usano DXSpider e i messaggi di salvataggio Telnet indicano direttamente l’esito.

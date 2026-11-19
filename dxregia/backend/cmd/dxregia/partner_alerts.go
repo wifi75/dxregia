@@ -139,7 +139,7 @@ func advancePartnerAlerts(root string, snapshot presence, now time.Time, prefs e
 
 func partnerOutageReason(root string, entry partner, state string, snapshot presence, since, now time.Time) string {
 	if _, locked := snapshot.LockedPartners[entry.Call]; locked || entry.Provisioning == lockedPartnerStatus {
-		return "Nodo bloccato in Mojo"
+		return "Nodo bloccato in DXSpider"
 	}
 	address := net.JoinHostPort(entry.Host, strconv.Itoa(entry.Port))
 	utc := now.UTC()
@@ -161,9 +161,9 @@ func partnerOutageReason(root string, entry partner, state string, snapshot pres
 		}
 	}
 	if state != "Disconnesso" {
-		return state + ". Mojo non ha registrato una causa più precisa."
+		return state + ". DXSpider non ha registrato una causa più precisa."
 	}
-	return "Sessione DXSpider assente. Mojo non ha registrato una causa più precisa."
+	return "Sessione DXSpider assente. DXSpider non ha registrato una causa più precisa."
 }
 
 func partnerAlertMail(entry partner, outage partnerOutage, reason string, recovered bool, now time.Time) mailContent {

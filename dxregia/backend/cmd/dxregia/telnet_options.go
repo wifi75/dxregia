@@ -47,7 +47,7 @@ func registerTelnetOptions(mux *http.ServeMux, auth *sysopAuth, root string) {
 		defer lock.Unlock()
 		snapshot := readPresence(presencePath)
 		if snapshot.Telnet == nil {
-			http.Error(w, "Opzioni non disponibili. Verifica che Mojo sia operativo e aggiornato.", http.StatusServiceUnavailable)
+			http.Error(w, "Opzioni non disponibili. Verifica che DXSpider sia operativo e aggiornato.", http.StatusServiceUnavailable)
 			return
 		}
 		desired := *snapshot.Telnet

@@ -54,7 +54,7 @@ func registerTelnetPassword(mux *http.ServeMux, auth *sysopAuth, root string) {
 			}
 			snapshot := readPresence(filepath.Join(dir, "dxregia-presence.json"))
 			if !snapshot.SysopPassword {
-				http.Error(w, "Il nodo Mojo deve essere attivo con l’integrazione DXRegia aggiornata.", http.StatusServiceUnavailable)
+				http.Error(w, "Il nodo DXSpider deve essere attivo con l’integrazione DXRegia aggiornata.", http.StatusServiceUnavailable)
 				return
 			}
 			auth.mu.Lock()

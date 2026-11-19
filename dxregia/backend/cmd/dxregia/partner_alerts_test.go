@@ -23,7 +23,7 @@ func TestPartnerAlertsThresholdReasonAndRecovery(t *testing.T) {
 	}
 	advancePartnerAlerts(root, snapshot, start.Add(3*time.Minute), prefs, partners, outages, send)
 	advancePartnerAlerts(root, snapshot, start.Add(5*time.Minute), prefs, partners, outages, send)
-	if len(delivered) != 1 || !strings.Contains(delivered[0].Text, "Nodo bloccato in Mojo") {
+	if len(delivered) != 1 || !strings.Contains(delivered[0].Text, "Nodo bloccato in DXSpider") {
 		t.Fatal("expected exactly one alert with the recorded reason")
 	}
 	snapshot.Channels = []presenceChannel{{Call: entry.Call, Kind: "node", State: "normal"}}

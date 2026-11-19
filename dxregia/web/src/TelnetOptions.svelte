@@ -44,7 +44,7 @@
     try {
       const result = await readOptions()
       options = result.Options
-      if (!result.Applied) status = 'Modifiche salvate, in attesa di Mojo.'
+      if (!result.Applied) status = 'Opzioni salvate. Applicazione in corso.'
     } catch (failure) {
       error = true
       status = failure instanceof Error ? failure.message : 'Impostazioni non disponibili.'
@@ -68,12 +68,12 @@
       if (!response.ok) throw new Error((await response.text()).trim())
       let result = await response.json() as Snapshot
       for (let i = 0; !result.Applied && i < 8; i++) {
-        status = 'Salvato. Attendo conferma da Mojo…'
+        status = 'Opzioni salvate. Attendo conferma…'
         await new Promise(resolve => setTimeout(resolve, 1000))
         result = await readOptions()
       }
       options = result.Options
-      status = result.Applied ? 'Impostazioni applicate da Mojo.' : 'Salvato. Mojo non ha ancora confermato le modifiche.'
+      status = result.Applied ? 'Impostazioni Telnet applicate.' : 'Opzioni salvate. Le modifiche sono ancora in attesa di conferma.'
     } catch (failure) {
       error = true
       status = failure instanceof Error ? failure.message : 'Impossibile salvare.'
@@ -110,7 +110,7 @@
         </div>
         <p>Imposta 0 nei limiti di connessione per disattivare il relativo limite. Le modifiche si applicano ai collegamenti successivi.</p>
       </fieldset>
-      <button disabled={busy}>{busy ? 'Attendo Mojo…' : 'Salva opzioni'}</button>
+      <button disabled={busy}>{busy ? 'Applicazione in corso…' : 'Salva opzioni'}</button>
     </form>
   {/if}
   {#if status}<p role={error ? 'alert' : 'status'}>{status}</p>{/if}

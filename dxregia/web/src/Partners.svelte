@@ -138,7 +138,7 @@
   async function enable(outgoingOnly = false, mail = false, unlock = false, resetCCInbound = false, switchFromIP = false) {
     const call = selected?.Call
     if (!call || enabling) return
-    if (unlock && !confirm(tr('Sbloccare {} in Mojo e preparare il collegamento? Se il nodo ha già una password locale, potrà usarla per collegarsi.', call))) return
+    if (unlock && !confirm(tr('Sbloccare {} in DXSpider e preparare il collegamento? Se il nodo ha già una password locale, potrà usarla per collegarsi.', call))) return
     enabling = true
     if (mail) emailStatus = 'In attesa dell’abilitazione'
     error = ''
@@ -320,7 +320,7 @@
   function inboundInfo(provisioning?: string) {
     if (provisioning === 'Abilitato in Mojo') return { tone: 'green', text: 'Abilitato: il partner può collegarsi al tuo nodo.' }
     if (provisioning === 'In attesa di Mojo') return { tone: 'amber', text: 'Operazione in corso: attendi qualche secondo.' }
-    if (provisioning === 'Nodo bloccato in Mojo') return { tone: 'red', text: 'Nodo bloccato in Mojo' }
+    if (provisioning === 'Nodo bloccato in Mojo') return { tone: 'red', text: 'Nodo bloccato in DXSpider' }
     if (provisioning?.includes('verificare')) return { tone: 'red', text: 'Accesso in ingresso sospeso: verifica il tipo e le credenziali locali del nodo.' }
     return { tone: 'neutral', text: 'Non abilitato: il partner non può collegarsi al tuo nodo.' }
   }
@@ -337,6 +337,12 @@
     if (direction === 'Uscita') return 'In uscita ↗ (avviato da te)'
     if (direction === 'Ingresso') return 'In ingresso ↙ (avviato dal partner)'
     return '—'
+  }
+
+  function connectionLabel(state?: string) {
+    if (state === 'Stato Mojo non disponibile') return 'Stato DXSpider non disponibile'
+    if (state === 'Account Mojo non abilitato') return 'Accesso del partner non abilitato'
+    return state || 'Stato in attesa'
   }
 
   function connectionTone(state?: string) {
@@ -457,7 +463,7 @@
           <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
           <tbody>
             {#each (onlyInbound ? inboundPartners : partners).toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
-              {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in Mojo' : partner.InboundTestUntil && partner.Connection !== 'Attivo' ? 'Prova in ingresso' : partner.Connection || 'Stato in attesa'}
+              {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in DXSpider' : partner.InboundTestUntil && partner.Connection !== 'Attivo' ? 'Prova in ingresso' : connectionLabel(partner.Connection)}
               <tr class:current={selected?.Call === partner.Call}>
                 <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
                 <td>{partner.Name || '—'}</td>
@@ -495,7 +501,7 @@
         {#if selected}
           <p class="observed-state">
             <span class="led" data-tone={inboundTestWaiting ? 'amber' : connectionTone(selected.Connection)} aria-hidden="true"></span>
-            {inboundTestWaiting ? 'Prova in ingresso' : selected.Connection || 'Stato in attesa'}
+            {inboundTestWaiting ? 'Prova in ingresso' : connectionLabel(selected.Connection)}
             {#if selected.Direction}<span class="muted">· {directionLabel(selected.Direction)}</span>{/if}
             <span class="muted">· Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'non ancora rilevata'}</span>
           </p>
@@ -513,7 +519,7 @@
             <p class="hint">Usa questa sezione per collegarti tu al nodo del partner (ad esempio per ricevere i suoi spot).</p>
             <p class="observed-state" role="status">
               <span class="led" data-tone={inboundTestWaiting ? 'amber' : connectionTone(selected.Connection)} aria-hidden="true"></span>
-              {inboundTestWaiting ? 'Uscita sospesa durante la prova in ingresso' : selected.Connection || 'Stato in attesa'}
+              {inboundTestWaiting ? 'Uscita sospesa durante la prova in ingresso' : connectionLabel(selected.Connection)}
             </p>
             {#if !inboundTestWaiting && selected.Connection === 'Collegamento in corso' && selected.Direction === 'Uscita'}
               <p class="hint">In attesa della risposta del nodo remoto. Se l’attesa continua, chiedi al referente di verificare che il tuo indicativo completo, SSID incluso, sia configurato come nodo partner e che la richiesta di password corrisponda.</p>
@@ -532,7 +538,7 @@
                   {#if selected.CanUnlock}
                     <button class="unlock-node" type="button" disabled={enabling || busy} onclick={() => enable(true, false, true)}>Sblocca questo nodo</button>
                   {/if}
-                  <span class="hint">Mojo ha un blocco locale per questo indicativo. Può essere stato impostato dal sysop o applicato quando Mojo ha scoperto il nodo in rete.</span>
+                  <span class="hint">DXSpider ha un blocco locale per questo indicativo. Può essere stato impostato dal sysop o applicato quando DXSpider ha scoperto il nodo in rete.</span>
                 {:else if selected.Connection !== 'Attivo' && outgoingReady}
                   <button disabled={enabling || busy || inboundTestWaiting || selected.Connection === "In coda" || selected.Connection === "Collegamento in corso"}>Connetti ora</button>
                 {:else if selected.Connection !== 'Attivo'}

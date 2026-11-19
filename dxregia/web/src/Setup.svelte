@@ -96,7 +96,7 @@
       }
       profile = await response.json()
       profileDraft = undefined
-      profileMessage = 'Profilo salvato. Mojo lo legge al prossimo aggiornamento.'
+      profileMessage = 'Profilo salvato. DXSpider lo legge al prossimo aggiornamento.'
     } catch {
       profileError = 'Il servizio non risponde.'
     } finally {
@@ -140,7 +140,7 @@
   <section class="glass-panel" aria-labelledby="setup-title">
     <h2 id="setup-title">{available || result ? "Prima configurazione" : "Configurazione sysop"}</h2>
     {#if result}
-      <p role="status">{result.started ? 'Mojo è attivo su 127.0.0.1:' + result.port + '.' : 'Configurazione Mojo salvata.'}</p>
+      <p role="status">{result.started ? 'DXSpider è attivo su 127.0.0.1:' + result.port + '.' : 'Configurazione DXSpider salvata.'}</p>
     {:else if profile && !available}
       <p>Nodo {profile.node} · Porta Telnet {profile.port}</p>
     {:else if postponed}

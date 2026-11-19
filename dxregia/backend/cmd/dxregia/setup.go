@@ -186,7 +186,7 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 			return
 		}
 		if saved == nil && config.Port == internalPort {
-			http.Error(w, "Scegli una porta Telnet diversa dalla porta interna di Mojo.", http.StatusBadRequest)
+			http.Error(w, "Scegli una porta Telnet diversa dalla porta interna di DXSpider.", http.StatusBadRequest)
 			return
 		}
 		if fixedPort && config.Port != suggestedPort {
@@ -206,7 +206,7 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 			}
 			if err := writeMojoConfig(root, local, string(template), config, internalPort); err != nil {
 				log.Printf("Mojo setup: %v", err)
-				http.Error(w, "Impossibile salvare la configurazione Mojo.", http.StatusInternalServerError)
+				http.Error(w, "Impossibile salvare la configurazione DXSpider.", http.StatusInternalServerError)
 				return
 			}
 			saved = &config
@@ -215,7 +215,7 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 		if perl != "" {
 			if err := startMojo(service, children, perl, root, config); err != nil {
 				log.Printf("Mojo startup: %v", err)
-				http.Error(w, "Configurazione salvata. Avvio di Mojo non riuscito. Consulta il registro di avvio e riprova.", http.StatusServiceUnavailable)
+				http.Error(w, "Configurazione salvata. Avvio di DXSpider non riuscito. Consulta il registro di avvio e riprova.", http.StatusServiceUnavailable)
 				return
 			}
 		}

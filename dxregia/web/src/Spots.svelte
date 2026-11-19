@@ -275,7 +275,7 @@
       <span class="dot" aria-hidden="true"></span>
     {/if}
     {#if engine}
-      <span class="stat" title="DXSpider Mojo">DXSpider <strong>{engine}</strong></span>
+      <span class="stat" title="DXSpider">DXSpider <strong>{engine}</strong></span>
       <span class="dot" aria-hidden="true"></span>
     {/if}
     <a class="project" href="https://github.com/wifi75/dxregia" target="_blank" rel="noopener noreferrer" title={t('projectNote')}>

@@ -87,7 +87,7 @@
           <label class="choice"><input type="checkbox" bind:checked={preferences.PartnerDown} /> Avvisami se un partner resta scollegato</label>
           <label class="minutes">Attendi <input type="number" min="1" max="1440" step="1" required bind:value={preferences.PartnerDownMinutes} /> minuti</label>
           <label class="choice"><input type="checkbox" bind:checked={preferences.PartnerRecovered} disabled={!preferences.PartnerDown} /> Avvisami quando il collegamento torna attivo</label>
-          <p class="hint">L’avviso riporta l’ultimo esito di Mojo, quando disponibile. Viene inviato una volta per interruzione.</p>
+          <p class="hint">L’avviso riporta l’ultimo esito di DXSpider, quando disponibile. Viene inviato una volta per interruzione.</p>
         </fieldset>
         <button disabled={busy}>Salva preferenze email</button>
       </form>

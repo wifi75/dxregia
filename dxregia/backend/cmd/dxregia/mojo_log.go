@@ -83,7 +83,7 @@ func mojoDebugParser(tail string) func(string) (mojoLogEvent, bool) {
 				if message == "Account Mojo esistente da verificare" {
 					message = "Configurazione sospesa: verifica il tipo e le credenziali locali del nodo"
 				}
-				return mojoLogEvent{At: at, Kind: "Collegamenti", Message: message, Call: m[2]}, true
+				return mojoLogEvent{At: at, Kind: "Collegamenti", Message: strings.ReplaceAll(message, "Mojo", "DXSpider"), Call: m[2]}, true
 			}
 			return mojoLogEvent{}, false
 		}

@@ -369,7 +369,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			return
 		}
 		if locked && !options.Unlock {
-			http.Error(w, lockedPartnerStatus, http.StatusConflict)
+			http.Error(w, "Nodo bloccato in DXSpider.", http.StatusConflict)
 			return
 		}
 		if entry.Provisioning == "In attesa di Mojo" || (!options.Unlock && !options.SwitchFromIP && entry.Provisioning == "Abilitato in Mojo") {
@@ -410,7 +410,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		password, err := queuePartnerCredential(root, call, options.ResetCCInbound)
 		if err != nil {
 			log.Printf("Queue partner: %v", err)
-			http.Error(w, "Impossibile inviare la richiesta a Mojo.", http.StatusServiceUnavailable)
+			http.Error(w, "Impossibile inviare la richiesta a DXSpider.", http.StatusServiceUnavailable)
 			return
 		}
 		mailStatus := ""
@@ -763,11 +763,11 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		}
 		snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
 		if !snapshot.PartnerConnect {
-			http.Error(w, "Mojo deve essere attivo con l’hook DXRegia aggiornato.", http.StatusServiceUnavailable)
+			http.Error(w, "DXSpider deve essere attivo con l’hook DXRegia aggiornato.", http.StatusServiceUnavailable)
 			return
 		}
 		if _, locked := snapshot.LockedPartners[call]; locked {
-			http.Error(w, lockedPartnerStatus, http.StatusConflict)
+			http.Error(w, "Nodo bloccato in DXSpider.", http.StatusConflict)
 			return
 		}
 		if inboundTestUntil(root, call).After(time.Now()) {
@@ -775,7 +775,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			return
 		}
 		if !partnerOutgoingReady(entry, snapshot) {
-			http.Error(w, "Abilita prima l’account partner in Mojo.", http.StatusConflict)
+			http.Error(w, "Abilita prima l’account partner in DXSpider.", http.StatusConflict)
 			return
 		}
 		if r.URL.Query().Get("retry") == "true" {

@@ -66,10 +66,11 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Pagina spot pubblica rifatta (filtri multi-selezione, lente, modo dedotto, suono e giallo sui nuovi spot, tema scuro, layout telefono e tablet), spedizioni DX annunciate (NG3K ADXO), logo «DXREGIA a blocchi pesanti», favicon e documentazione in sei lingue. Verificati nel browser: layout, filtri, popup; non verificati dal vivo: suono, giallo sui nuovi spot e le pagine nelle lingue diverse da italiano.
 - [x] Pannello su `/admin`, accesso con utente e password, dashboard live (SSE), eliminazione di richieste e nodi partner.
 - [ ] Decidere se il modo dedotto dalla frequenza resta con il bordo tratteggiato, diventa continuo o si nasconde.
-- [ ] Tradurre il pannello admin nelle sei lingue (oggi solo italiano) e i documenti tecnici oltre README e guida di installazione.
+- [ ] Completare le voci mancanti del pannello admin nelle sei lingue e tradurre i documenti tecnici oltre README e guida di installazione.
 - [x] Configurare automaticamente i partner idonei dal modulo pubblico e inviare le istruzioni dopo l’abilitazione locale.
 - [x] Configurare l’accesso CC Cluster per IP o nome DNS e confermare via email la prima sessione in ingresso rilevata.
-- [ ] Collaudare sul server l’intero flusso dal modulo pubblico alla conferma SMTP e la connessione senza password da un CC Cluster remoto.
+- [x] Verificare un collegamento in ingresso senza password da un CC Cluster remoto (N4ZKF-1 attivo in ingresso).
+- [ ] Collaudare sul server l’intero flusso dal modulo pubblico alle due email, incluso l’esito SMTP della conferma per N4ZKF-1.
 
 - [x] Abilitare dal pannello un partner in ingresso con password e conferma di Mojo.
 - [x] Accodare su scelta sysop istruzioni dopo la conferma dell'account e un esito dopo cinque minuti.
@@ -127,3 +128,5 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 
 - [x] Mantenere aperta la Console Telnet web passando da una pagina di amministrazione all’altra.
 - [ ] Verificare sul server che la sessione web compaia in Stato e sessioni mentre la console è aperta.
+
+- [x] Uniformare le diciture visibili del pannello a DXSpider e semplificare i messaggi delle Opzioni Telnet.

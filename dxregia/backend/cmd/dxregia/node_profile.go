@@ -49,7 +49,7 @@ func registerProfile(mux *http.ServeMux, local string, auth *sysopAuth) {
 		}
 		hook, err := os.ReadFile(filepath.Join(local, "Local.pm"))
 		if err != nil || !bytes.Equal(hook, presenceHook) {
-			http.Error(w, "Serve l’hook Mojo gestito da DXRegia per aggiornare il profilo.", http.StatusConflict)
+			http.Error(w, "Serve l’integrazione DXSpider gestito da DXRegia per aggiornare il profilo.", http.StatusConflict)
 			return
 		}
 		if err := saveNodeProfile(path, config); err != nil {
