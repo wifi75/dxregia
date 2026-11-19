@@ -248,7 +248,10 @@
   .transcript p { margin: 0; color: #a8bed1; }
   .command-line label, .command-line input, pre { font-family: ui-monospace, monospace; }
   .command-line input { flex: 1; min-width: 0; width: auto; }
+  .command-line input, .command-line input:disabled { background: #142638; color: #edf6ff; opacity: 1; }
+  .command-line input::placeholder { color: #bdcfdf; opacity: 1; }
   .command-line button { flex-shrink: 0; }
+  .command-line button:disabled { background: #39546b; color: #eff7ff; opacity: 1; }
   pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
   .spot-terminal pre { color: #8de1b8; }
   .suggestions { display: flex; flex-wrap: wrap; gap: .45rem; margin: .6rem 0; }

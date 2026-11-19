@@ -23,7 +23,31 @@ use DXTimer;
 
 use IO::File;
 use IO::Socket;
+use JSON ();
+use Socket ();
 use IPC::Open3;
+
+# A configured CC Cluster peer must use its exact TCP source address.
+sub dxregia_peer_ip_match
+{
+	my ($conn, $call, $user) = @_;
+	return undef if length($call) > 12 || $call !~ /\A[A-Z0-9]+(?:-[0-9]+)?\z/;
+	my $path = "$main::local_data/dxregia-partners/$call.inbound-ip";
+	return undef unless -e $path;
+	return 0 unless $user && $user->sort eq 'L' && !$user->lockout &&
+		($user->priv || 0) <= 1 && $call ne $main::mycall && $call ne $main::myalias;
+	open(my $file, '<:raw', $path) or return 0;
+	my $data = '';
+	read($file, $data, 80);
+	close $file;
+	my $trusted = eval { JSON::decode_json($data) };
+	my $source = eval { $conn->{sock}->handle->peerhost };
+	return 0 unless defined($trusted) && !ref($trusted) && defined($source);
+	$source =~ s/^::ffff://i;
+	my $family = $trusted =~ /:/ ? Socket::AF_INET6() : Socket::AF_INET();
+	my ($expected, $actual) = eval { map { Socket::inet_pton($family, $_) } ($trusted, $source) };
+	return defined($expected) && defined($actual) && $expected eq $actual;
+}
 
 use vars qw(@ISA $deftimeout);
 
@@ -163,8 +187,16 @@ sub dequeue
 					if ($main::allowslashcall || $msg !~ m|/|) {
 						my $sort = $conn->{csort};
 						$sort = 'local' if $conn->{peerhost} =~ /127\.\d+\.\d+\.\d+$/ || $conn->{peerhost} eq '::1';
-						my $uref;
-						if ($main::passwdreq || ($uref = DXUser::get_current($call)) && $uref->passwd ) {
+						my $uref = DXUser::get_current($call);
+						my $ip_match = dxregia_peer_ip_match($conn, $call, $uref);
+						if (defined($ip_match)) {
+							if ($ip_match) {
+								$conn->to_connected($call, 'A', $sort);
+							} else {
+								$conn->send_now("Connection rejected: unexpected source address");
+								$conn->disconnect;
+							}
+						} elsif ($main::passwdreq || $uref && $uref->passwd) {
 							$conn->conns($call);
 							$conn->{state} = 'WP';
 							$conn->{decho} = $conn->{echo};

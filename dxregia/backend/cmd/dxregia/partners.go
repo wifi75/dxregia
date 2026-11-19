@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/mail"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -33,6 +34,8 @@ type partnerStatus struct {
 	MailRetryAt          *time.Time `json:",omitempty"`
 	OutgoingReady        bool
 	CanResetCCInbound    bool
+	CanSetInboundIP      bool   `json:",omitempty"`
+	InboundIP            string `json:",omitempty"`
 	CanResend            bool   `json:",omitempty"`
 	Locked               bool   `json:",omitempty"`
 	CanUnlock            bool   `json:",omitempty"`
@@ -155,6 +158,8 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				if until := inboundTestUntil(root, call); until.After(time.Now()) {
 					status.InboundTestUntil = &until
 				}
+				status.CanSetInboundIP = snapshot.CCInboundReset[call]
+				status.InboundIP = partnerInboundIP(root, call)
 				status.CanResetCCInbound = snapshot.CCInboundReset[call] && entry.Provisioning != "In attesa di Mojo" && entry.Provisioning != "Abilitato in Mojo"
 				status.CanUnlock, status.Locked = snapshot.LockedPartners[call]
 				if snapshot.LockedPartners == nil && entry.Provisioning == lockedPartnerStatus {
@@ -536,6 +541,60 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		w.WriteHeader(http.StatusAccepted)
 		json.NewEncoder(w).Encode(map[string]string{"MailStatus": job.Status})
 	})
+	inboundIP := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
+			return
+		}
+		call := r.PathValue("call")
+		lock.Lock()
+		defer lock.Unlock()
+		if _, ok := partners[call]; !ok || !validPartnerIPCall(call) {
+			http.NotFound(w, r)
+			return
+		}
+		path := partnerInboundIPPath(root, call)
+		var err error
+		if r.Method == http.MethodDelete {
+			err = os.Remove(path)
+			if os.IsNotExist(err) {
+				err = nil
+			}
+		} else {
+			var address string
+			decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 128))
+			if decoder.Decode(&address) != nil || decoder.Decode(new(any)) != io.EOF {
+				http.Error(w, "Indirizzo IP non valido.", http.StatusBadRequest)
+				return
+			}
+			ip, parseErr := netip.ParseAddr(strings.TrimSpace(address))
+			ip = ip.Unmap()
+			if parseErr != nil || ip.Zone() != "" || !ip.IsGlobalUnicast() || ip.IsPrivate() {
+				http.Error(w, "Inserisci l’indirizzo IP pubblico del partner.", http.StatusBadRequest)
+				return
+			}
+			snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
+			if !snapshot.CCInboundReset[call] {
+				http.Error(w, "Serve un account CC Cluster locale e sbloccato.", http.StatusConflict)
+				return
+			}
+			if err = os.MkdirAll(filepath.Dir(path), 0700); err == nil {
+				err = writePrivateJSON(path, ip.String())
+			}
+		}
+		if err != nil {
+			http.Error(w, "Impossibile aggiornare l’accesso per IP.", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
+	mux.HandleFunc("PUT /api/partners/{call}/inbound-ip", inboundIP)
+	mux.HandleFunc("DELETE /api/partners/{call}/inbound-ip", inboundIP)
 	inboundTest := func(w http.ResponseWriter, r *http.Request) {
 		if !auth.allowed(r) {
 			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
@@ -562,7 +621,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			return
 		}
 		snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
-		if _, locked := snapshot.LockedPartners[call]; !snapshot.PartnerConnect || locked || entry.Provisioning != "Abilitato in Mojo" {
+		if _, locked := snapshot.LockedPartners[call]; !snapshot.PartnerConnect || locked || !partnerInboundEnabled(root, entry, snapshot) {
 			http.Error(w, "Per la prova serve un nodo attivo con accesso in ingresso abilitato.", http.StatusConflict)
 			return
 		}

@@ -6,7 +6,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; InboundTestUntil?: string; InboundAutoNext?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; CanSetInboundIP?: boolean; InboundIP?: string; InboundTestUntil?: string; InboundAutoNext?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
@@ -26,6 +26,7 @@
   let storedPassword = false
   let autoReconnect = $state(false)
   let emailStatus = $state('')
+  let inboundIP = $state('')
   let publicMail = $state<{ call: string; state: 'sending' | 'accepted' | 'failed'; text: string }>()
   let localNode = $state('')
 
@@ -52,6 +53,7 @@
     autoReconnect = partner?.Reconnect === 'Abilitata'
     emailStatus = ''
     selected = partner
+    inboundIP = partner?.InboundIP ?? ''
     form = partner
       ? { Call: partner.Call, Name: partner.Name, Contact: partner.Contact, Email: partner.Email, Host: partner.Host, Port: partner.Port, Lang: partner.Lang ?? '', Person: partner.Person ?? '' }
       : empty()
@@ -249,6 +251,31 @@
     }
   }
 
+  async function saveInboundIP(remove = false) {
+    const call = selected?.Call
+    if (!call || enabling) return
+    enabling = true
+    error = message = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/inbound-ip', {
+        method: remove ? 'DELETE' : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: remove ? undefined : JSON.stringify(inboundIP),
+      })
+      if (!response.ok) {
+        error = (await response.text()).trim()
+        return
+      }
+      if (remove) inboundIP = ''
+      message = remove ? 'Accesso per IP rimosso.' : 'Accesso senza password abilitato per l’indirizzo IP del partner.'
+      await refreshProvisioning()
+    } catch {
+      error = 'Impossibile aggiornare l’accesso per IP.'
+    } finally {
+      enabling = false
+    }
+  }
+
   async function startInboundTest(automatic: boolean, disable = false) {
     const call = selected?.Call
     if (!call || enabling) return
@@ -434,7 +461,8 @@
   {/if}
 
   {#if editing}
-    {@const inbound = inboundInfo(selected?.Locked ? 'Nodo bloccato in Mojo' : selected?.Provisioning)}
+    {@const inboundByIP = Boolean(selected?.CanSetInboundIP && selected?.InboundIP)}
+    {@const inbound = inboundInfo(selected?.Locked ? 'Nodo bloccato in Mojo' : inboundByIP ? 'Abilitato in Mojo' : selected?.Provisioning)}
     {@const incoming = incomingInfo(selected)}
     {@const lockedInMojo = Boolean(selected?.Locked)}
     {@const canEnableInbound = selected && !lockedInMojo && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '') && !selected.Provisioning?.includes('verificare')}
@@ -533,6 +561,18 @@
                 <span class="muted">· Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</span>
               </p>
             {/if}
+            {#if selected.CanSetInboundIP || selected.InboundIP}
+              <form onsubmit={event => { event.preventDefault(); void saveInboundIP() }}>
+                <label>Accesso CC Cluster senza password · IP pubblico del partner
+                  <input bind:value={inboundIP} required maxlength="45" spellcheck="false" autocomplete="off" disabled={!selected.CanSetInboundIP || enabling} />
+                </label>
+                <p class="hint">Usa l’IP pubblico da cui il partner avvia la connessione. Il suo indicativo sarà accettato solo da quell’indirizzo.</p>
+                <div class="actions">
+                  <button type="submit" disabled={enabling || busy || !selected.CanSetInboundIP}>Salva accesso per IP</button>
+                  {#if selected.InboundIP}<button class="secondary" type="button" disabled={enabling || busy} onclick={() => saveInboundIP(true)}>Rimuovi accesso per IP</button>{/if}
+                </div>
+              </form>
+            {/if}
             {#if selected.InboundAutoNext}
               <p class="muted">Prova automatica attiva.
                 {#if selected.Connection === 'Attivo' && selected.Direction === 'Ingresso'}
@@ -573,30 +613,30 @@
               <div class="actions"><button class="secondary" type="button" onclick={revealPassword}>Mostra la password del partner</button></div>
             {/if}
             <div class="actions">
-              {#if selected.CanResetCCInbound && selected.Email}
+              {#if selected.CanResetCCInbound && selected.Email && !inboundByIP}
                 <button type="button" disabled={enabling || busy} onclick={() => openPartnerConfirmation('password')}
                   title="Sostituisce la password locale del partner e la invia dopo l’abilitazione.">Imposta nuova password e invia l’email</button>
-              {:else if selected.Provisioning !== 'Abilitato in Mojo' && selected.Email}
+              {:else if selected.Provisioning !== 'Abilitato in Mojo' && selected.Email && !inboundByIP}
                 <button type="button" disabled={!canEnableInbound || enabling || busy} onclick={() => enable(false, true)}>Abilita e invia l’email a {selected.Email}</button>
                 {#if canEnableInbound}
                   <button class="secondary" type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita senza email</button>
                 {/if}
-              {:else if canEnableInbound}
+              {:else if canEnableInbound && !inboundByIP}
                 <button type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita l’accesso</button>
                 <span class="hint">Aggiungi l’email del referente in «Dati del nodo» per poter inviare le istruzioni.</span>
               {/if}
-              {#if selected.Provisioning === 'Abilitato in Mojo'}
+              {#if selected.Provisioning === 'Abilitato in Mojo' && !inboundByIP}
                 <button type="button" disabled={enabling || busy || !selected.CanResend} onclick={resend}>Reinvia le istruzioni via email</button>
                 {#if !selected.CanResend}<span class="hint">Per reinviare servono l’email del referente e una password conservata da questa versione in poi.</span>{/if}
               {/if}
-              {#if selected.Provisioning === 'Abilitato in Mojo' && !selected.InboundTestUntil && !(selected.Connection === 'Attivo' && selected.Direction === 'Ingresso')}
+              {#if (selected.Provisioning === 'Abilitato in Mojo' || inboundByIP) && !selected.InboundTestUntil && !(selected.Connection === 'Attivo' && selected.Direction === 'Ingresso')}
                 <button class="secondary" type="button" disabled={enabling || busy} onclick={() => openPartnerConfirmation('manual')}
                   title="Apre una finestra in ingresso di cinque minuti.">Prova ingresso ora</button>
               {/if}
               {#if selected.InboundAutoNext}
                 <button class="secondary" type="button" disabled={enabling || busy} onclick={() => startInboundTest(false, true)}
                   title="Interrompe la programmazione delle prossime finestre.">Disattiva prova automatica</button>
-              {:else if selected.Provisioning === 'Abilitato in Mojo'}
+              {:else if selected.Provisioning === 'Abilitato in Mojo' || inboundByIP}
                 <button class="secondary" type="button" disabled={enabling || busy} onclick={() => openPartnerConfirmation('automatic')}
                   title="Programma finestre in ingresso anche a portale chiuso.">Attiva prova automatica</button>
               {/if}

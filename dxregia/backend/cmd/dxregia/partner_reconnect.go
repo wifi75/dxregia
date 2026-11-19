@@ -162,7 +162,7 @@ func runAutomaticInboundTests(root string, partners map[string]partner, snapshot
 		return
 	}
 	for call, entry := range partners {
-		if len(call) > 12 || !callsign.MatchString(call) || entry.Provisioning != "Abilitato in Mojo" || hasInboundSession(snapshot, call) {
+		if len(call) > 12 || !callsign.MatchString(call) || !partnerInboundEnabled(root, entry, snapshot) || hasInboundSession(snapshot, call) {
 			continue
 		}
 		if _, locked := snapshot.LockedPartners[call]; locked {
@@ -180,4 +180,28 @@ func runAutomaticInboundTests(root string, partners map[string]partner, snapshot
 			log.Printf("Schedule automatic inbound window for %s: %v", call, err)
 		}
 	}
+}
+
+func validPartnerIPCall(call string) bool {
+	return len(call) <= 12 && callsign.MatchString(call)
+}
+
+func partnerInboundIPPath(root, call string) string {
+	return filepath.Join(root, "local_data", "dxregia-partners", call+".inbound-ip")
+}
+
+func partnerInboundIP(root, call string) string {
+	if !validPartnerIPCall(call) {
+		return ""
+	}
+	var address string
+	if data, err := os.ReadFile(partnerInboundIPPath(root, call)); err == nil {
+		_ = json.Unmarshal(data, &address)
+	}
+	return address
+}
+
+func partnerInboundEnabled(root string, entry partner, snapshot presence) bool {
+	return entry.Provisioning == "Abilitato in Mojo" ||
+		(snapshot.CCInboundReset[entry.Call] && partnerInboundIP(root, entry.Call) != "")
 }
