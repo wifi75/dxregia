@@ -55,14 +55,42 @@
   .text { margin: 0 0 8px; font-size: .86rem; line-height: 1.4; opacity: .95; }
   .modes { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; list-style: none; }
   .modes li { padding: 1px 9px; border-radius: 999px; border: 1px solid #ffffff55; background: #ffffff1f; font-size: .72rem; font-weight: 700; }
-  .burst { flex: none; display: grid; place-items: center; width: 78px; height: 78px; background: #f6c33a; color: #3a2a00; font-weight: 800; font-size: .72rem; line-height: 1.1; text-align: center; text-transform: uppercase; transform: rotate(-12deg); clip-path: polygon(50% 0, 60% 12%, 75% 6%, 78% 22%, 94% 25%, 88% 40%, 100% 50%, 88% 60%, 94% 75%, 78% 78%, 75% 94%, 60% 88%, 50% 100%, 40% 88%, 25% 94%, 22% 78%, 6% 75%, 12% 60%, 0 50%, 12% 40%, 6% 25%, 22% 22%, 25% 6%, 40% 12%); }
-  .burst span { max-width: 52px; }
+  .burst {
+    --burst-shape: polygon(42% 0%, 52% 9%, 63% 2%, 70% 15%, 83% 13%, 85% 27%, 98% 32%, 93% 45%, 100% 55%, 89% 63%, 93% 76%, 80% 79%, 77% 92%, 64% 89%, 57% 100%, 46% 92%, 35% 99%, 29% 86%, 15% 88%, 14% 74%, 2% 69%, 8% 56%, 0% 47%, 11% 38%, 6% 25%, 19% 22%, 22% 8%, 35% 12%);
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 108px;
+    aspect-ratio: 1;
+    background: #f87810;
+    color: #3a2a00;
+    font-size: .82rem;
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    clip-path: var(--burst-shape);
+  }
+  .burst::before {
+    content: '';
+    grid-area: 1 / 1;
+    place-self: stretch;
+    margin: 5px;
+    background: #ffd23e;
+    clip-path: var(--burst-shape);
+  }
+  .burst span {
+    grid-area: 1 / 1;
+    position: relative;
+    max-width: 65px;
+    transform: rotate(-9deg);
+  }
   @media (prefers-reduced-motion: no-preference) {
     .burst { animation: aurora-wave 5s ease-in-out 1s infinite; }
     @keyframes aurora-wave {
-      0%, 30%, 100% { transform: rotate(-12deg) scale(1); }
-      9% { transform: rotate(-5deg) scale(1.08); }
-      18% { transform: rotate(-16deg) scale(1.03); }
+      0%, 30%, 100% { transform: rotate(0deg) scale(1); }
+      9% { transform: rotate(7deg) scale(1.08); }
+      18% { transform: rotate(-4deg) scale(1.03); }
     }
   }
   .get { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 999px; background: #fff; color: #0b3a4a; font-weight: 800; text-decoration: none; box-shadow: 0 3px 10px #0004; }
