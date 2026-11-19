@@ -192,6 +192,18 @@ func mailValues(call, node, name, host string, port int) map[string]string {
 	return map[string]string{"call": call, "node": node, "name": name, "host": host, "port": fmt.Sprint(port)}
 }
 
+func mailNodeDetails(job partnerMail) mailContent {
+	s := textsFor(job.Lang)
+	v := mailValues(job.Call, job.LocalNode, job.Contact, job.Host, job.Port)
+	title := fill(s.DetailsTitle, v)
+	return renderMail("DXRegia · "+title, mailBlocks{
+		Preheader: title, Title: title, Hello: fill(s.Hello, v), Intro: s.DetailsIntro,
+		DataTitle: s.DataTitle, Tone: "info", Lang: job.Lang,
+		Rows:   []mailRow{{s.LNode, job.LocalNode, false}, {s.LHost, job.Host, false}, {s.LPort, fmt.Sprint(job.Port), false}},
+		Footer: s.Footer, Auto: fill(s.AutoNote, v),
+	})
+}
+
 func mailInstructions(lang string, job partnerMail, contact string) mailContent {
 	s := textsFor(lang)
 	v := mailValues(job.Call, job.LocalNode, contact, job.Host, job.Port)

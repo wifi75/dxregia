@@ -207,6 +207,27 @@
     }
   }
 
+  async function sendNodeDetails() {
+    const call = selected?.Call
+    if (!call || enabling) return
+    enabling = true
+    error = message = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(call) + '/send-node-details', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      })
+      if (!response.ok) {
+        error = (await response.text()).trim()
+        return
+      }
+      message = 'Dati pubblici del nodo inviati. Verifica il messaggio nello Storico email partner.'
+    } catch {
+      error = 'Invio non confermato. Controlla lo Storico email partner.'
+    } finally {
+      enabling = false
+    }
+  }
+
   function inboundInfo(provisioning?: string) {
     if (provisioning === 'Abilitato in Mojo') return { tone: 'green', text: 'Abilitato: il partner può collegarsi al tuo nodo.' }
     if (provisioning === 'In attesa di Mojo') return { tone: 'amber', text: 'Operazione in corso: attendi qualche secondo.' }
@@ -487,6 +508,10 @@
               {#if selected.Provisioning === 'Abilitato in Mojo'}
                 <button type="button" disabled={enabling || busy || !selected.CanResend} onclick={resend}>Reinvia le istruzioni via email</button>
                 {#if !selected.CanResend}<span class="hint">Per reinviare servono l’email del referente e una password conservata da questa versione in poi.</span>{/if}
+              {/if}
+              {#if selected.Email}
+                <button class="secondary" type="button" disabled={enabling || busy} onclick={sendNodeDetails}
+                  title="Invia indicativo, host e porta. L’accesso e le password restano invariati.">Invia dati pubblici via email</button>
               {/if}
               <button class="secondary" type="button" disabled={enabling || busy || checkingStatus} onclick={async () => {
                 manualStatusCall = selected?.Call ?? ''

@@ -430,6 +430,40 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"password": password})
 	})
+	mux.HandleFunc("POST /api/partners/{call}/send-node-details", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
+			return
+		}
+		call := r.PathValue("call")
+		lock.Lock()
+		entry, ok := partners[call]
+		lock.Unlock()
+		if !ok || !callsign.MatchString(call) || len(call) > 12 {
+			http.Error(w, "Nodo non trovato.", http.StatusNotFound)
+			return
+		}
+		smtp := mailer()
+		if smtp == nil {
+			http.Error(w, "Configura SMTP prima di inviare i dati del nodo.", http.StatusConflict)
+			return
+		}
+		job, err := preparePartnerMail(root, entry)
+		if err != nil {
+			http.Error(w, "Per l’email servono l’indirizzo del referente e l’host pubblico del nodo.", http.StatusBadRequest)
+			return
+		}
+		if err := archivePartnerDelivery(root, call, "node-details", job.Recipient, "", mailNodeDetails(job), smtp.sendContent); err != nil {
+			http.Error(w, "Invio dei dati del nodo non confermato. Controlla lo storico email e la configurazione SMTP.", http.StatusBadGateway)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("POST /api/partners/{call}/resend", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		if !auth.allowed(r) {
