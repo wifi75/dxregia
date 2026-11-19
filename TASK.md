@@ -124,3 +124,6 @@ Da Linux, il sysop configura il nodo via browser, collega un partner Mojo, ricev
 - [x] Animare il bollino Aurora con supporto a movimento ridotto.
 
 - [x] Semplificare la registrazione pubblica e impostare automaticamente il nodo di riferimento per il primo accesso Telnet.
+
+- [x] Mantenere aperta la Console Telnet web passando da una pagina di amministrazione all’altra.
+- [ ] Verificare sul server che la sessione web compaia in Stato e sessioni mentre la console è aperta.

@@ -293,6 +293,10 @@
         </div>
         {#if error}<p role="alert">{error}</p>{/if}
       </aside>
+      <div class="workspace-content" hidden={page !== 'console'}>
+        <TelnetConsole />
+      </div>
+      {#if page !== 'console'}
       {#key page}
       <div class="workspace-content glass-enter">
         {#if page === 'stato'}
@@ -301,8 +305,6 @@
           <Setup {onSaved} />
         {:else if page === 'accesso-web'}
           <WebSettings />
-        {:else if page === 'console'}
-          <TelnetConsole />
         {:else if page === 'opzioni-telnet'}
           <TelnetOptions />
         {:else if page === 'log-dxspider'}
@@ -340,6 +342,7 @@
         {/if}
       </div>
       {/key}
+      {/if}
     </div>
   {:else}
     <section class="auth-card glass-panel glass-enter">

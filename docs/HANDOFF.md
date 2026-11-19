@@ -313,3 +313,7 @@ Il modulo raccoglie nome, località (QTH) e locator (QRA). Alla conferma email M
 ## Richieste partner e conferma in ingresso
 
 I README e le guide di installazione in sei lingue documentano la configurazione automatica dal modulo, l’accesso CC Cluster senza password per IP o DNS e la seconda email, che parte solo quando il partner avvia una sessione attiva. Lo storico registra l’esito SMTP. Il test Go verifica la distinzione tra ingresso e uscita e la build web è passata. Restano da provare sul server SMTP reale e il collegamento in ingresso di un CC Cluster remoto.
+
+## Console Telnet e navigazione
+
+La console resta montata nella sessione di amministrazione. Passare a Stato e sessioni lascia aperto il collegamento Telnet e conserva cronologia e output. Il riquadro Radioamatori collegati deve mostrare la sessione come Telnet dopo il successivo aggiornamento della presenza. La verifica su un nodo installato resta aperta.
