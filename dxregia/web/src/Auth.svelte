@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { version as dxregiaVersion } from '../package.json'
   import type { Snippet } from 'svelte'
   import { toDataURL } from 'qrcode'
   import WebSettings from './WebSettings.svelte'
@@ -115,6 +116,7 @@
   let password = $state('')
   let revealPassword = $state(false)
   let capsLock = $state(false)
+  declare const __DXREGIA_REVISION__: string
   let engineVersion = $state('')
   let user = $state('')
   let error = $state('')
@@ -255,7 +257,10 @@
   {:else if session.signedIn && !session.mustChange && !session.mustVerify}
     <div class="workspace">
       <aside class="sidebar">
-        <p class="sidebar-title">Amministrazione</p>
+        <div class="sidebar-heading">
+          <p class="sidebar-title">Amministrazione</p>
+          <p class="sidebar-version">DXRegia v{dxregiaVersion}{#if __DXREGIA_REVISION__} · <code>{__DXREGIA_REVISION__}</code>{/if}</p>
+        </div>
         <nav aria-label="Amministrazione DXRegia">
           {#each groups as group (group.label)}
             <div class="nav-group" style:--c={groupColor[group.label]}>
@@ -424,7 +429,9 @@
   .workspace { display: grid; grid-template-columns: clamp(190px, 19vw, 264px) minmax(0, 1fr); align-items: start; gap: clamp(14px, 2vw, 28px); }
   .workspace-content { min-width: 0; }
   .sidebar { position: sticky; top: 18px; display: flex; flex-direction: column; padding: 16px 12px; min-height: calc(100vh - 112px); border-radius: 14px; background: #0f2438; color: #c9d9e8; box-shadow: 0 8px 24px #0f243833; }
-  .sidebar-title { margin: 0 0 14px; padding-inline: .7rem; font-size: 1.02rem; color: #ffffff; font-weight: 750; letter-spacing: .02em; }
+  .sidebar-heading { margin: 0 0 14px; padding-inline: .7rem; }
+  .sidebar-version { margin: .2rem 0 0; color: #b9cde0; font-size: .75rem; overflow-wrap: anywhere; }
+  .sidebar-title { margin: 0; font-size: 1.02rem; color: #ffffff; font-weight: 750; letter-spacing: .02em; }
   .sidebar nav { flex: 1; }
   .sidebar ul { margin: 0; padding: 0; list-style: none; }
   .nav-group + .nav-group { margin-top: 10px; }
