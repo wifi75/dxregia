@@ -268,9 +268,9 @@ def peer_link(primary):
         wait_for("secondary web service", lambda: remote("/api/auth")[0] == 200)
         virgin = docker("exec", peer, "cat", "/data/sysop-initial")
         assert remote("/api/auth/login", {"User": "sysop", "Password": virgin})[1]["mustChange"]
-        status, enrollment = remote("/api/auth/password", secrets.token_hex(24))
-        assert status == 200 and enrollment["mustVerify"]
-        assert remote("/api/auth/totp", totp(enrollment["enrollmentKey"]))[0] == 200
+        status, changed = remote("/api/auth/password", secrets.token_hex(24))
+        assert status == 200 and not changed.get("mustChange") and not changed.get("mustVerify"), changed
+        assert remote("/api/factor-settings") == (200, {"Enabled": False})
         config = {"node": "Q3QQQ-2", "sysop": "Q3QQQ", "locator": "JN55AA", "port": peer_port}
         assert remote("/api/setup", config) == (200, {"started": True, "port": peer_port})
 
@@ -334,8 +334,12 @@ def main():
     status, login = request(client, "/api/auth/login", {"User": "sysop", "Password": virgin})
     assert status == 200 and login["mustChange"]
     password = secrets.token_hex(24)
-    status, enroll = request(client, "/api/auth/password", password)
-    assert status == 200 and enroll["mustVerify"]
+    status, changed = request(client, "/api/auth/password", password)
+    assert status == 200 and not changed.get("mustChange") and not changed.get("mustVerify"), changed
+    assert request(client, "/api/factor-settings") == (200, {"Enabled": False})
+    assert request(client, "/api/factor-settings", {"Enabled": True, "Password": password}, method="PUT") == (204, None)
+    status, enroll = request(client, "/api/auth")
+    assert status == 200 and enroll.get("mustVerify") and enroll.get("enrollmentKey"), "Missing explicit TOTP enrollment"
     assert request(client, "/api/setup", config)[0] == 401
     first_code = totp(enroll["enrollmentKey"])
     assert request(client, "/api/auth/totp", first_code)[0] == 200
@@ -377,15 +381,8 @@ def main():
         assert request(client, "/api/visits") == (200, {"Views": 2})
         time.sleep(6)
         telnet_login(b"Q7QQQ", b"Profilo Linux")
-        # HTTP sessions are held in memory, so authenticate again after restarting.
-        assert request(client, "/api/auth/login", {"User": "Q1QQQ", "Password": password})[0] == 200
-
-        def next_code():
-            code = totp(enroll["enrollmentKey"])
-            return code if code != first_code else None
-
-        second_code = wait_for("next TOTP window", next_code)
-        assert request(client, "/api/auth/totp", second_code)[0] == 200
+        assert request(client, "/api/factor-settings") == (200, {"Enabled": True})
+        assert request(client, "/api/session-duration")[0] == 200
 
         def verify_upload(opener, content):
             upload = urllib.request.Request(
@@ -405,7 +402,7 @@ def main():
         if NATIVE:
             def fresh_code():
                 code = totp(enroll["enrollmentKey"])
-                return code if code != second_code else None
+                return code if code != first_code else None
 
             telnet_password = secrets.token_hex(18)
             code = wait_for("fresh TOTP for Telnet password change", fresh_code)
