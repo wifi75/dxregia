@@ -44,6 +44,7 @@ En `/admin`, el sysop puede consultar el estado de Telnet y del clúster, la dir
 - **Fácil de instalar** — un solo script en Debian o Ubuntu (systemd, amd64 o arm64), o Docker.
 
 - Guarda y compara vistas de spots, consulta DXCC e historiales por indicativo y configura alertas mientras el portal está abierto.
+- **Boletines y QSL** — el portal muestra anuncios y boletines WWV/WCY, recupera los spots del archivo tras una interrupción y filtra por LoTW y eQSL AG. El sysop puede editar las reglas de spots en Saltos y filtros.
 
 ## Inicio rápido
 

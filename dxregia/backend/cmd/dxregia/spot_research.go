@@ -140,7 +140,7 @@ func resumeArchivedSpots(root, cursor string, directory dxccDirectory, now time.
 	return rows, false
 }
 
-func registerSpotResearch(mux *http.ServeMux, root string, directory dxccDirectory) {
+func registerSpotResearch(mux *http.ServeMux, root string, directory dxccDirectory, qsl *qslDirectory) {
 	entities := make([]dxccEntry, 0, len(directory.entries))
 	for _, entry := range directory.entries {
 		entities = append(entities, entry)
@@ -159,6 +159,10 @@ func registerSpotResearch(mux *http.ServeMux, root string, directory dxccDirecto
 			return
 		}
 		rows, complete := resumeArchivedSpots(root, cursor, directory, time.Now().UTC())
+		membership := qsl.snapshot()
+		for i := range rows {
+			membership.enrich(&rows[i])
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")
 		_ = json.NewEncoder(w).Encode(struct {
@@ -203,11 +207,13 @@ func registerSpotResearch(mux *http.ServeMux, root string, directory dxccDirecto
 		rows := archive
 		mu.Unlock()
 
+		membership := qsl.snapshot()
 		results := make([]publicSpot, 0)
 		bands := make(map[string]int)
 		for _, spot := range rows {
 			if (call != "" && strings.EqualFold(spot.Call, call)) || (code != 0 && spot.DXCC == code) {
 				if len(results) < resultLimit {
+					membership.enrich(&spot)
 					results = append(results, spot)
 				}
 				if code != 0 {

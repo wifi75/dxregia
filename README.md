@@ -44,6 +44,7 @@ At `/admin`, sysops can see Telnet and cluster status, partner link direction, a
 - **Easy to install** — one script on Debian or Ubuntu (systemd, amd64 or arm64), or Docker.
 
 - Save and compare spot views, explore DXCC and callsign history, and set local radio alerts that run while the portal is open.
+- **Cluster bulletins and QSL** — the public portal shows announcements and WWV/WCY, recovers missed spots from the archive after a connection interruption, and filters by LoTW and eQSL AG. Admins can edit spot rules under Hop and filters.
 
 ## Quick start
 

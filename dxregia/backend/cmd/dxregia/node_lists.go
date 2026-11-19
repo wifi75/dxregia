@@ -27,7 +27,7 @@ var (
 	badWord       = regexp.MustCompile(`^[A-Z0-9]{2,30}$`)
 	badCall       = regexp.MustCompile(`^[A-Z0-9]{1,8}(?:[/-][A-Z0-9]{1,8}){0,2}$`)
 	filterSort    = map[string]bool{"ann": true, "route": true, "spots": true, "wcy": true, "wwv": true}
-	filterName    = regexp.MustCompile(`^(?:in_)?[A-Za-z0-9\-]{1,15}\.pl$`)
+	filterName    = regexp.MustCompile(`^(?:in_)?(?:[A-Za-z0-9\-]{1,15}|node_default|user_default)\.pl$`)
 	dumperEntry   = regexp.MustCompile(`'?([A-Z0-9/\-]{1,24})'? => ([0-9]{1,12})`)
 )
 
@@ -317,7 +317,101 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	// Filtri: elenco e rimozione. La scrittura resta ai comandi accept/reject della console DXSpider.
+	finishFilterChange := func(w http.ResponseWriter, sortName string) {
+		token, err := randomToken()
+		if err == nil {
+			err = writeNodeFile(filepath.Join(filterDir, sortName, ".dxregia-reload"), []byte(token))
+		}
+		if err != nil {
+			http.Error(w, "Modifica salvata. Il motore applicherà la regola al prossimo collegamento perché non è stato possibile richiedere il ricaricamento.", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	// Filtri nativi di DXSpider. L’editor modifica una sola regola spot per volta.
+	mux.HandleFunc("GET /api/filters/spot-options", func(w http.ResponseWriter, r *http.Request) {
+		if !guard(w, r, false) {
+			return
+		}
+		options := map[string][]string{}
+		for band, modes := range spotFilterOptions(root) {
+			options[band] = []string{}
+			for mode := range modes {
+				if mode != "band" {
+					options[band] = append(options[band], mode)
+				}
+			}
+			sort.Strings(options[band])
+		}
+		reply(w, options)
+	})
+	mux.HandleFunc("PUT /api/filters/spots/{name}/{number}", func(w http.ResponseWriter, r *http.Request) {
+		if !guard(w, r, true) {
+			return
+		}
+		name, number, ok := readSpotFilterChange(w, r)
+		if !ok {
+			return
+		}
+		if name == "in_user_default.pl" {
+			http.Error(w, "I filtri in ingresso si applicano ai nodi partner.", http.StatusBadRequest)
+			return
+		}
+		var change struct {
+			spotFilterRule
+			PreviousAction string
+		}
+		if !decode(w, r, &change) {
+			return
+		}
+		previous := change.PreviousAction
+		if previous != "" && previous != "reject" && previous != "accept" {
+			http.Error(w, "Azione precedente non valida.", http.StatusBadRequest)
+			return
+		}
+		side, err := change.spotFilterRule.build(spotFilterOptions(root), loadDXCC(root))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		lock.Lock()
+		defer lock.Unlock()
+		path := filepath.Join(filterDir, "spots", name)
+		if _, err := os.Stat(path); os.IsNotExist(err) && name != strings.ToLower(name) {
+			lowerName := strings.ToLower(name)
+			lowerPath := filepath.Join(filterDir, "spots", lowerName)
+			if _, err := os.Stat(lowerPath); err == nil {
+				path, name = lowerPath, lowerName
+			}
+		}
+		if err := changeSpotFilter(path, name, number, change.Action, previous, &side); err != nil {
+			http.Error(w, "Impossibile salvare la regola. "+err.Error(), http.StatusConflict)
+			return
+		}
+		finishFilterChange(w, "spots")
+	})
+	mux.HandleFunc("DELETE /api/filters/spots/{name}/{number}", func(w http.ResponseWriter, r *http.Request) {
+		if !guard(w, r, false) {
+			return
+		}
+		name, number, ok := readSpotFilterChange(w, r)
+		action := r.URL.Query().Get("action")
+		if !ok {
+			return
+		}
+		if action != "accept" && action != "reject" {
+			http.Error(w, "Azione del filtro non valida.", http.StatusBadRequest)
+			return
+		}
+		lock.Lock()
+		defer lock.Unlock()
+		if err := changeSpotFilter(filepath.Join(filterDir, "spots", name), name, number, action, "", nil); err != nil {
+			http.Error(w, "Impossibile eliminare la regola. "+err.Error(), http.StatusConflict)
+			return
+		}
+		finishFilterChange(w, "spots")
+	})
 	mux.HandleFunc("GET /api/filters", func(w http.ResponseWriter, r *http.Request) {
 		if !guard(w, r, false) {
 			return
@@ -325,6 +419,7 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 		type filterItem struct {
 			Sort, Name, Text string
 			Size             int64
+			Rules            []spotFilterSlot
 		}
 		items := []filterItem{}
 		lock.Lock()
@@ -340,10 +435,14 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 					continue
 				}
 				text := read(filepath.Join(filterDir, sortName, entry.Name()))
+				var rules []spotFilterSlot
+				if sortName == "spots" {
+					rules = readSpotFilterSlots([]byte(text))
+				}
 				if len(text) > 4000 {
 					text = text[:4000] + "…"
 				}
-				items = append(items, filterItem{sortName, entry.Name(), text, info.Size()})
+				items = append(items, filterItem{sortName, entry.Name(), text, info.Size(), rules})
 			}
 		}
 		sort.Slice(items, func(i, j int) bool {
@@ -369,7 +468,7 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 			http.Error(w, "Filtro non trovato.", http.StatusNotFound)
 			return
 		}
-		w.WriteHeader(http.StatusNoContent)
+		finishFilterChange(w, sortName)
 	})
 }
 

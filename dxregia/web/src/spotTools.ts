@@ -1,7 +1,9 @@
+export type SpotView = 'feed' | 'research' | 'alerts' | 'ann' | 'propagation'
+
 export type Spot = {
   Frequency: number; Call: string; At: number; Comment: string; Spotter: string; DXCC: number
   Cursor?: string; Entity?: string; Continent?: string; SpotterContinent?: string; CQ?: number; ITU?: number
-  Grids?: string[]; Special?: boolean
+  Grids?: string[]; Special?: boolean; LoTW?: boolean; EQSL?: boolean
 }
 
 export const bands = [

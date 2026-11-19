@@ -15,6 +15,7 @@ sub process {
     apply_telnet_options();
     apply_hops();
     reload_lists();
+    reload_filters();
     provision_users();
     provision_partners();
     test_partner_inbound($now);
@@ -154,6 +155,28 @@ sub reload_lists {
         next if $stamp eq $list_stamp{$path};
         $list_stamp{$path} = $stamp;
         eval { $jobs{$path}->(); 1 } or DXDebug::dbg("DXRegia list reload $path: $@");
+    }
+}
+
+# DXRegia writes a new revision after saving the native filter. A revision
+# detects multiple edits even on filesystems with one-second timestamps.
+my %filter_stamp;
+sub reload_filters {
+    for my $sort (qw(ann route spots wcy wwv)) {
+        my $path = "$main::root/filter/$sort/.dxregia-reload";
+        open(my $marker, '<:raw', $path) or next;
+        my $stamp = '';
+        read($marker, $stamp, 64);
+        close($marker);
+        next if !$stamp || (exists $filter_stamp{$sort} && $filter_stamp{$sort} eq $stamp);
+        $filter_stamp{$sort} = $stamp;
+        for my $channel (DXChannel::get_all()) {
+            next if $channel->call eq $main::mycall;
+            next unless $channel->is_user || $channel->is_node;
+            next if $sort eq 'route' && (!$channel->is_node || $channel->{isolate});
+            Filter::load_dxchan($channel, $sort, '');
+            Filter::load_dxchan($channel, $sort, 'in') if $channel->is_node;
+        }
     }
 }
 

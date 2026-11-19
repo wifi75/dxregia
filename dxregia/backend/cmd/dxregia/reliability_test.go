@@ -55,7 +55,7 @@ func TestWebSpotsConcurrentReadersAndRevalidation(t *testing.T) {
 	}
 	writeRows(100)
 	mux := http.NewServeMux()
-	snapshot := registerSpots(mux, root)
+	snapshot := registerSpots(mux, root, nil)
 	server := httptest.NewServer(mux)
 	defer server.Close()
 	client := &http.Client{Timeout: 10 * time.Second}

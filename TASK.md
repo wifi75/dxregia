@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Integrare le quattro proposte dal confronto con CC User. Editor regole spot DXSpider, recupero automatico su riconnessione, annunci e propagazione WWV/WCY, indicatori e filtro LoTW/eQSL AG.
+
 - [x] Mostrare il portale pubblico e la dashboard sysop nei README in sei lingue con schermate dimostrative della build web.
 
 - [x] Riutilizzare il JSON del feed spot per ogni versione dell’archivio. Il benchmark locale da 100 righe misura circa 137 → 59 µs per risposta completa e 34 → 9 allocazioni per richiesta.

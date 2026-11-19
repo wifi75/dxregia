@@ -38,7 +38,7 @@ func BenchmarkSpotFeed(b *testing.B) {
 		b.Fatal(err)
 	}
 	mux := http.NewServeMux()
-	registerSpots(mux, root)
+	registerSpots(mux, root, nil)
 	var response = spotBenchmarkWriter{headers: make(http.Header)}
 	initial := httptest.NewRequest(http.MethodGet, "/api/spots", nil)
 	mux.ServeHTTP(&response, initial)

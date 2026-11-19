@@ -1,5 +1,15 @@
 // Testi del portale pubblico in sei lingue. L'italiano è la lingua di riferimento: le altre devono avere le stesse chiavi.
 const it = {
+  navAnnouncements: "Annunci",
+  navPropagation: "Propagazione",
+  bulletinsUnavailable: "Archivio del cluster al momento non disponibile.",
+  bulletinsEmpty: "Nessun messaggio recente di questo tipo.",
+  spotAutoRecovered: "Connessione ripresa · {n} spot recuperati",
+  spotRestorePartial: "Alcuni spot dell’interruzione potrebbero mancare.",
+  qslService: "Servizio QSL",
+  qslDirectoryUnavailable: "L’elenco QSL selezionato non è ancora disponibile.",
+  lotwMember: "Nominativo presente nell’elenco LoTW di ARRL",
+  eqslMember: "Nominativo con stato Authenticity Guaranteed in eQSL",
   navSpots: 'Spot in diretta', navContact: 'Contatti', langLabel: 'Lingua',
   navStats: "Statistiche", statsDay: "Spot ricevuti dalle 00:00 UTC", statsUnavailable: "Statistiche del cluster non disponibili.",
   statsBandHour: "Attività per banda e ora", statsContinent: "Continente del DX", statsBands: "Attività per banda",
@@ -140,6 +150,16 @@ export type Key = keyof typeof it
 type Catalog = Record<Key, string>
 
 const en: Catalog = {
+  navAnnouncements: "Announcements",
+  navPropagation: "Propagation",
+  bulletinsUnavailable: "The cluster archive is currently unavailable.",
+  bulletinsEmpty: "No recent messages of this type.",
+  spotAutoRecovered: "Connection restored · {n} spots recovered",
+  spotRestorePartial: "Some spots from the interruption may be missing.",
+  qslService: "QSL service",
+  qslDirectoryUnavailable: "The selected QSL directory is not available yet.",
+  lotwMember: "Callsign listed by ARRL LoTW",
+  eqslMember: "Callsign with Authenticity Guaranteed status in eQSL",
   navSpots: 'Live spots', navContact: 'Contact', langLabel: 'Language',
   navStats: "Statistics", statsDay: "Spots received since 00:00 UTC", statsUnavailable: "Cluster statistics are unavailable.",
   statsBandHour: "Activity by band and hour", statsContinent: "DX continent", statsBands: "Band activity",
@@ -278,6 +298,16 @@ const en: Catalog = {
 }
 
 const es: Catalog = {
+  navAnnouncements: "Anuncios",
+  navPropagation: "Propagación",
+  bulletinsUnavailable: "El archivo del clúster no está disponible en este momento.",
+  bulletinsEmpty: "No hay mensajes recientes de este tipo.",
+  spotAutoRecovered: "Conexión restablecida · {n} spots recuperados",
+  spotRestorePartial: "Pueden faltar algunos spots de la interrupción.",
+  qslService: "Servicio QSL",
+  qslDirectoryUnavailable: "La lista QSL seleccionada aún no está disponible.",
+  lotwMember: "Indicativo incluido en la lista LoTW de ARRL",
+  eqslMember: "Indicativo con estado Authenticity Guaranteed en eQSL",
   navSpots: 'Spots en directo', navContact: 'Contacto', langLabel: 'Idioma',
   navStats: "Estadísticas", statsDay: "Spots recibidos desde las 00:00 UTC", statsUnavailable: "Estadísticas no disponibles.",
   statsBandHour: "Actividad por banda y hora", statsContinent: "Continente del DX", statsBands: "Actividad por banda",
@@ -416,6 +446,16 @@ const es: Catalog = {
 }
 
 const de: Catalog = {
+  navAnnouncements: "Ankündigungen",
+  navPropagation: "Ausbreitung",
+  bulletinsUnavailable: "Das Clusterarchiv ist derzeit nicht verfügbar.",
+  bulletinsEmpty: "Keine aktuellen Meldungen dieses Typs.",
+  spotAutoRecovered: "Verbindung wiederhergestellt · {n} Spots nachgeladen",
+  spotRestorePartial: "Einige Spots aus der Unterbrechung fehlen möglicherweise.",
+  qslService: "QSL-Dienst",
+  qslDirectoryUnavailable: "Das ausgewählte QSL-Verzeichnis ist noch nicht verfügbar.",
+  lotwMember: "Rufzeichen im LoTW-Verzeichnis der ARRL",
+  eqslMember: "Rufzeichen mit Authenticity-Guaranteed-Status in eQSL",
   navSpots: 'Live-Spots', navContact: 'Kontakt', langLabel: 'Sprache',
   navStats: "Statistik", statsDay: "Empfangene Spots seit 00:00 UTC", statsUnavailable: "Clusterstatistik nicht verfügbar.",
   statsBandHour: "Aktivität nach Band und Stunde", statsContinent: "DX-Kontinent", statsBands: "Bandaktivität",
@@ -554,6 +594,16 @@ const de: Catalog = {
 }
 
 const fr: Catalog = {
+  navAnnouncements: "Annonces",
+  navPropagation: "Propagation",
+  bulletinsUnavailable: "L’archive du cluster est actuellement indisponible.",
+  bulletinsEmpty: "Aucun message récent de ce type.",
+  spotAutoRecovered: "Connexion rétablie · {n} spots récupérés",
+  spotRestorePartial: "Certains spots de l’interruption peuvent manquer.",
+  qslService: "Service QSL",
+  qslDirectoryUnavailable: "La liste QSL sélectionnée est encore indisponible.",
+  lotwMember: "Indicatif répertorié dans le LoTW de l’ARRL",
+  eqslMember: "Indicatif avec le statut Authenticity Guaranteed dans eQSL",
   navSpots: 'Spots en direct', navContact: 'Contact', langLabel: 'Langue',
   navStats: "Statistiques", statsDay: "Spots reçus depuis 00:00 UTC", statsUnavailable: "Statistiques indisponibles.",
   statsBandHour: "Activité par bande et par heure", statsContinent: "Continent du DX", statsBands: "Activité par bande",
@@ -692,6 +742,16 @@ const fr: Catalog = {
 }
 
 const pt: Catalog = {
+  navAnnouncements: "Anúncios",
+  navPropagation: "Propagação",
+  bulletinsUnavailable: "O arquivo do cluster está indisponível de momento.",
+  bulletinsEmpty: "Não há mensagens recentes deste tipo.",
+  spotAutoRecovered: "Ligação restabelecida · {n} spots recuperados",
+  spotRestorePartial: "Podem faltar alguns spots da interrupção.",
+  qslService: "Serviço QSL",
+  qslDirectoryUnavailable: "A lista QSL selecionada ainda não está disponível.",
+  lotwMember: "Indicativo na lista LoTW da ARRL",
+  eqslMember: "Indicativo com estado Authenticity Guaranteed no eQSL",
   navSpots: 'Spots em direto', navContact: 'Contacto', langLabel: 'Idioma',
   navStats: "Estatísticas", statsDay: "Spots recebidos desde as 00:00 UTC", statsUnavailable: "Estatísticas indisponíveis.",
   statsBandHour: "Atividade por banda e hora", statsContinent: "Continente do DX", statsBands: "Atividade por banda",

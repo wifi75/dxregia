@@ -5,6 +5,28 @@
 export const adminLanguages = ['it', 'en', 'es', 'de', 'fr', 'pt'] as const
 
 export const adminRows: string[][] = [
+  // Editor dei filtri spot
+  ['Ingresso (solo nodi)', 'Inbound (nodes only)', 'Entrada (solo nodos)', 'Eingehend (nur Knoten)', 'Entrée (nœuds uniquement)', 'Entrada (apenas nós)'],
+  ['I filtri in ingresso si applicano ai nodi partner.', 'Inbound filters apply to partner nodes.', 'Los filtros de entrada se aplican a los nodos asociados.', 'Eingangsfilter gelten für Partnerknoten.', 'Les filtres entrants s’appliquent aux nœuds partenaires.', 'Os filtros de entrada aplicam-se aos nós parceiros.'],
+  ["Destinatario", "Target", "Destinatario", "Ziel", "Destinataire", "Destinatário"],
+  ["Regola", "Rule", "Regla", "Regel", "Règle", "Regra"],
+  ["Azione", "Action", "Acción", "Aktion", "Action", "Ação"],
+  ["Accetta", "Accept", "Aceptar", "Annehmen", "Accepter", "Aceitar"],
+  ["Rifiuta", "Reject", "Rechazar", "Ablehnen", "Rejeter", "Rejeitar"],
+  ["Banda", "Band", "Banda", "Band", "Bande", "Banda"],
+  ["Modo", "Mode", "Modo", "Betriebsart", "Mode", "Modo"],
+  ["Continente DX", "DX continent", "Continente DX", "DX-Kontinent", "Continent DX", "Continente DX"],
+  ["Nominativo DX esatto", "Exact DX callsign", "Indicativo DX exacto", "Genaues DX-Rufzeichen", "Indicatif DX exact", "Indicativo DX exato"],
+  ["Salva regola", "Save rule", "Guardar regla", "Regel speichern", "Enregistrer la règle", "Guardar regra"],
+  ["Elimina regola", "Delete rule", "Eliminar regla", "Regel löschen", "Supprimer la règle", "Eliminar regra"],
+  ["Modifica", "Edit", "Editar", "Bearbeiten", "Modifier", "Editar"],
+  ["Salva modifiche", "Save changes", "Guardar cambios", "Änderungen speichern", "Enregistrer les modifications", "Guardar alterações"],
+  ["Regola salvata. Si applica entro pochi secondi.", "Rule saved. It takes effect within a few seconds.", "Regla guardada. Se aplica en unos segundos.", "Regel gespeichert. Sie wird in wenigen Sekunden wirksam.", "Règle enregistrée. Elle s’appliquera dans quelques secondes.", "Regra guardada. Entra em vigor dentro de alguns segundos."],
+  ["Scegli il nodo o l’utente a cui applicare la regola.", "Choose the node or user the rule applies to.", "Elige el nodo o usuario al que se aplica la regla.", "Wähle den Knoten oder Benutzer für diese Regel.", "Choisissez le nœud ou l’utilisateur auquel appliquer la règle.", "Escolha o nó ou utilizador ao qual se aplica a regra."],
+  ["Usa {} per i nodi o {} per gli utenti che non hanno un filtro specifico.", "Use {} for nodes or {} for users without a specific filter.", "Usa {} para los nodos o {} para los usuarios sin filtro específico.", "Verwende {} für Knoten oder {} für Benutzer ohne eigenen Filter.", "Utilisez {} pour les nœuds ou {} pour les utilisateurs sans filtre spécifique.", "Use {} para nós ou {} para utilizadores sem um filtro específico."],
+  ["I criteri della stessa regola devono corrispondere insieme.", "All criteria in a rule must match.", "Deben cumplirse todos los criterios de una regla.", "Alle Kriterien einer Regel müssen zutreffen.", "Tous les critères d’une règle doivent correspondre.", "Todos os critérios de uma regra têm de corresponder."],
+  ["Il modo usa i segmenti di frequenza del piano DXSpider.", "Mode uses the frequency segments in the DXSpider band plan.", "El modo usa los segmentos de frecuencia del plan de bandas de DXSpider.", "Die Betriebsart nutzt die Frequenzabschnitte des DXSpider-Bandplans.", "Le mode utilise les segments de fréquence du plan de bandes DXSpider.", "O modo usa os segmentos de frequência do plano de bandas do DXSpider."],
+  ["Le regole create dalla console si possono consultare o eliminare qui.", "Rules created in the console can be viewed or deleted here.", "Aquí puedes consultar o eliminar las reglas creadas en la consola.", "In der Konsole erstellte Regeln lassen sich hier anzeigen oder löschen.", "Les règles créées depuis la console peuvent être consultées ou supprimées ici.", "Aqui pode consultar ou eliminar as regras criadas na consola."],
   // Diagnostica del nodo
   ['Diagnostica del nodo', 'Node diagnostics', 'Diagnóstico del nodo', 'Knotendiagnose', 'Diagnostic du nœud', 'Diagnóstico do nó'],
   ['Ritardo aggiornamento sessioni', 'Session refresh delay', 'Retraso de actualización de sesiones', 'Verzögerung beim Sitzungsupdate', 'Délai de mise à jour des sessions', 'Atraso na atualização das sessões'],

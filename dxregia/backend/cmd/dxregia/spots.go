@@ -34,14 +34,16 @@ type publicSpot struct {
 	Grids            []string `json:",omitempty"`
 	Special          bool     `json:",omitempty"`
 	Entity           string   `json:",omitempty"`
+	LoTW, EQSL       bool     `json:",omitempty"`
 }
 
 type spotSnapshot struct {
-	Available        bool
-	Spots            []publicSpot
-	Sequence         uint64
-	LatestAt         int64
-	ArchiveUpdatedAt int64
+	Available                    bool
+	Spots                        []publicSpot
+	Sequence                     uint64
+	LatestAt                     int64
+	ArchiveUpdatedAt             int64
+	LoTWAvailable, EQSLAvailable bool
 }
 
 func spotArchivePaths(root string, now time.Time) [2]string {
@@ -85,12 +87,13 @@ type spotFeed struct {
 	etag     string
 }
 
-func registerSpots(mux *http.ServeMux, root string) func() spotSnapshot {
+func registerSpots(mux *http.ServeMux, root string, qsl *qslDirectory) func() spotSnapshot {
 	directory := loadDXCC(root)
-	registerSpotResearch(mux, root, directory)
+	registerSpotResearch(mux, root, directory, qsl)
 	path := filepath.Join(root, "local_data", "spots")
 	var mu sync.Mutex
 	var previous [3]spotFileVersion
+	var previousQSL qslSnapshot
 	var paths [2]string
 	var archiveDay time.Time
 	var cached spotFeed
@@ -108,10 +111,12 @@ func registerSpots(mux *http.ServeMux, root string) func() spotSnapshot {
 		if root != "" {
 			current = [3]spotFileVersion{spotFileStat(path), spotFileStat(paths[0]), spotFileStat(paths[1])}
 		}
-		if !newDay && current == previous {
+		membership := qsl.snapshot()
+		if !newDay && current == previous && membership == previousQSL {
 			return cached
 		}
-		next := spotSnapshot{Spots: make([]publicSpot, 0, 100), Sequence: cached.snapshot.Sequence + 1}
+		next := spotSnapshot{Spots: make([]publicSpot, 0, 100), Sequence: cached.snapshot.Sequence + 1,
+			LoTWAvailable: membership.lotw != nil, EQSLAvailable: membership.eqsl != nil}
 		if current[0].directory {
 			next.Available = true
 			for _, file := range paths {
@@ -131,6 +136,7 @@ func registerSpots(mux *http.ServeMux, root string) func() spotSnapshot {
 				}
 				for i := range rows {
 					directory.enrich(&rows[i])
+					membership.enrich(&rows[i])
 					next.LatestAt = max(next.LatestAt, rows[i].At)
 				}
 				next.Spots = append(next.Spots, rows...)
@@ -141,7 +147,7 @@ func registerSpots(mux *http.ServeMux, root string) func() spotSnapshot {
 		if err == nil {
 			body = append(body, '\n')
 		}
-		previous, cached = current, spotFeed{snapshot: next, body: body, etag: fmt.Sprintf(`"%d-%d"`, epoch, next.Sequence)}
+		previous, previousQSL, cached = current, membership, spotFeed{snapshot: next, body: body, etag: fmt.Sprintf(`"%d-%d"`, epoch, next.Sequence)}
 		return cached
 	}
 	mux.HandleFunc("GET /api/spots", func(w http.ResponseWriter, r *http.Request) {

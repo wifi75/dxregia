@@ -44,6 +44,7 @@ Su `/admin`, il sysop vede lo stato di Telnet e del cluster, la direzione dei co
 - **Facile da installare** — un solo script su Debian o Ubuntu (systemd, amd64 o arm64), oppure Docker.
 
 - Salva e confronta le viste degli spot, consulta DXCC e cronologia per nominativo e imposta allarmi radio che funzionano mentre il portale è aperto.
+- **Bollettini e QSL** — il portale mostra annunci e bollettini WWV/WCY, recupera gli spot dall’archivio dopo un’interruzione e filtra per LoTW ed eQSL AG. Il sysop può modificare le regole spot in Hop e filtri.
 
 ## Avvio rapido
 

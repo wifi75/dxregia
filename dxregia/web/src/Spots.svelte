@@ -6,9 +6,11 @@
   import { soundOn, chirp, unlockAudio } from './sound.svelte'
 
   import SpotResearch from './SpotResearch.svelte'
-  import { alertStorageKey, bandFor, bands, localDay, migrateSpotSearch, spotMatcher, corroboratedSpots, groupOf, modeInfo, exportSpotCSV, spotKey, type Spot } from './spotTools'
+  import ClusterBulletins from './ClusterBulletins.svelte'
+  import { alertStorageKey, bandFor, bands, localDay, migrateSpotSearch, spotMatcher, corroboratedSpots, groupOf, modeInfo, exportSpotCSV, spotKey, type Spot, type SpotView } from './spotTools'
 
-  type SavedFilter = { name: string; bands: string[]; modes: string[]; noFt8: boolean; query: string; comment?: string; confirmed: boolean; expires?: string }
+  type QSLFilter = '' | 'lotw' | 'eqsl' | 'both'
+  type SavedFilter = { name: string; bands: string[]; modes: string[]; noFt8: boolean; query: string; comment?: string; confirmed: boolean; qsl?: QSLFilter; expires?: string }
   const filterKey = 'dxregia-spot-filters'
   let savedFilters = $state<SavedFilter[]>([])
   let selectedFilter = $state('')
@@ -16,7 +18,7 @@
   let saveExpiry = $state('')
   let showSave = $state(false)
   let saveError = $state(false)
-  let { activePage }: { activePage: 'feed' | 'research' | 'alerts' } = $props()
+  let { activePage }: { activePage: SpotView } = $props()
   let researchOpened = $state(false)
   let RadioAlerts = $state<typeof import('./RadioAlerts.svelte').default>()
   let alertsFailed = $state(false)
@@ -34,6 +36,10 @@
   let bandA = $state('20 m')
   let bandB = $state('15 m')
   let onlyConfirmed = $state(false)
+  let qslFilter = $state<QSLFilter>('')
+  let qslAvailable = $state({ LoTWAvailable: false, EQSLAvailable: false })
+  let qslUnavailable = $derived(((qslFilter === 'lotw' || qslFilter === 'both') && !qslAvailable.LoTWAvailable) ||
+    ((qslFilter === 'eqsl' || qslFilter === 'both') && !qslAvailable.EQSLAvailable))
   let highlight = $state(true)
   let paused = $state(false)
   let frozen = $state<Spot[]>([])
@@ -42,6 +48,12 @@
   let resuming = $state(false)
   let recovered = $state(0)
   let pauseGap = $state(false)
+  let automaticCount = $state(0)
+  let automaticPartial = $state(false)
+  let recoveryNeeded = false
+  let recoveryCursor: string | undefined
+  let pauseCursor: string | undefined
+  let retained: Spot[] = []
   let newEntityKeys = $state(new Set<string>())
   let seenEntities = new Set<number>()
   let entityDay = ''
@@ -61,7 +73,7 @@
     const name = saveName.trim()
     if (!name || (saveExpiry && saveExpiry < localDay(new Date()))) return
     const next = savedFilters.filter(filter => filter.name !== name).slice(-19)
-    next.push({ name, bands: [...bandSel], modes: [...modeSel], noFt8, query, confirmed: onlyConfirmed, expires: saveExpiry })
+    next.push({ name, bands: [...bandSel], modes: [...modeSel], noFt8, query, confirmed: onlyConfirmed, qsl: qslFilter, expires: saveExpiry })
     if (persistFilters(next)) { selectedFilter = name; showSave = false; saveName = ''; saveExpiry = '' }
   }
   function restoreFilter(name: string) {
@@ -70,10 +82,19 @@
     if (!filter || (filter.expires && filter.expires < localDay(new Date()))) return
     bandSel = [...filter.bands]; modeSel = [...filter.modes]; noFt8 = filter.noFt8
     query = migrateSpotSearch(filter.query, filter.comment ?? ''); onlyConfirmed = filter.confirmed
+    qslFilter = filter.qsl ?? ''
+  }
+  async function recoverArchive(cursor: string): Promise<{ Spots: Spot[]; Complete: boolean }> {
+    const response = await fetch('/api/spot-resume?' + new URLSearchParams({ after: cursor }), {
+      signal: AbortSignal.timeout(7000),
+    })
+    if (!response.ok) throw new Error()
+    return response.json()
   }
   async function togglePause() {
     if (!paused) {
       frozen = [...spots]
+      pauseCursor = recoveryCursor
       pending = []
       pauseGap = false
       recovered = 0
@@ -81,15 +102,11 @@
       return
     }
     resuming = true
-    const cursor = frozen.find(spot => spot.Cursor)?.Cursor
+    const cursor = pauseCursor
     let archived: Spot[] = []
     if (cursor) {
       try {
-        const response = await fetch('/api/spot-resume?' + new URLSearchParams({ after: cursor }), {
-          signal: AbortSignal.timeout(7000),
-        })
-        if (!response.ok) throw new Error()
-        const data: {Spots: Spot[]; Complete: boolean} = await response.json()
+        const data = await recoverArchive(cursor)
         archived = data.Spots
         pauseGap = !data.Complete
       } catch { pauseGap = true }
@@ -180,7 +197,9 @@
     (!bandSel.length || bandSel.includes(bandFor(spot.Frequency))) &&
     (!modeSel.length || modeSel.includes(groupOf(modeInfo(spot).mode))) &&
     (!noFt8 || modeInfo(spot).mode !== 'FT8') &&
-    (!onlyConfirmed || confirmedKeys.has(spotKey(spot))) && matchesSearch(spot)
+    (!onlyConfirmed || confirmedKeys.has(spotKey(spot))) &&
+    (!qslFilter || (qslFilter === 'lotw' ? spot.LoTW : qslFilter === 'eqsl' ? spot.EQSL : spot.LoTW && spot.EQSL)) &&
+    matchesSearch(spot)
   ))
 
   const comparisonBands = $derived(view === 'compare' ? [...new Set([bandA, bandB])] : view === 'band' ? [bandA] : [])
@@ -193,28 +212,53 @@
       const response = await fetch('/api/spots', { signal: AbortSignal.timeout(6000) })
       if (!response.ok) throw new Error()
       const data = await response.json()
-      const rows: Spot[] = data.Spots ?? []
-      const keys = new Set(rows.map(spotKey))
+      if (!data.Available) throw new Error()
+      qslAvailable = { LoTWAvailable: Boolean(data.LoTWAvailable), EQSLAvailable: Boolean(data.EQSLAvailable) }
+      const liveRows: Spot[] = data.Spots ?? []
+      const latestCursor = liveRows.find(spot => spot.Cursor)?.Cursor
+      const keys = new Set(liveRows.map(spotKey))
       const previousKeys = knownKeys
-      if (data.Available) {
-        const day = new Date().toISOString().slice(0, 10)
-        if (entityDay !== day) {
-          entityDay = day
-          seenEntities = new Set()
-          newEntityKeys = new Set()
-        }
-        const newEntities = new Set(newEntityKeys)
-        for (const spot of [...rows].reverse()) {
-          if (spot.DXCC <= 0 || spot.DXCC === 666 || seenEntities.has(spot.DXCC) || new Date(spot.At * 1000).toISOString().slice(0, 10) !== day) continue
-          seenEntities.add(spot.DXCC)
-          if (previousKeys && !previousKeys.has(spotKey(spot))) newEntities.add(spotKey(spot))
-        }
-        newEntityKeys = new Set([...newEntities].filter(key => keys.has(key)))
+      if (previousKeys?.size && liveRows.length >= 100 && !liveRows.some(spot => previousKeys.has(spotKey(spot)))) {
+        recoveryNeeded = true
       }
-      if (paused && data.Available) {
+      let rows = liveRows
+      if (recoveryNeeded && recoveryCursor && !paused) {
+        try {
+          const restored = await recoverArchive(recoveryCursor)
+          const archive = new Map([...retained, ...restored.Spots].map(spot => [spotKey(spot), spot]))
+          const seen = new Set(spots.map(spotKey))
+          automaticCount = new Set(restored.Spots.map(spotKey).filter(key => !seen.has(key))).size
+          automaticPartial = !restored.Complete
+          retained = [...archive.values()].filter(spot => !keys.has(spotKey(spot))).sort((a, b) => b.At - a.At).slice(0, limitPending - liveRows.length)
+          recoveryNeeded = false
+        } catch {
+          automaticPartial = true
+        }
+      } else if (!recoveryCursor) {
+        recoveryNeeded = false
+      }
+      if (retained.length) {
+        const merged = new Map([...retained, ...liveRows].map(spot => [spotKey(spot), spot]))
+        rows = [...merged.values()].sort((a, b) => b.At - a.At).slice(0, limitPending)
+      }
+      if (!recoveryNeeded && latestCursor) recoveryCursor = latestCursor
+      const day = new Date().toISOString().slice(0, 10)
+      if (entityDay !== day) {
+        entityDay = day
+        seenEntities = new Set()
+        newEntityKeys = new Set()
+      }
+      const newEntities = new Set(newEntityKeys)
+      for (const spot of [...rows].reverse()) {
+        if (spot.DXCC <= 0 || spot.DXCC === 666 || seenEntities.has(spot.DXCC) || new Date(spot.At * 1000).toISOString().slice(0, 10) !== day) continue
+        seenEntities.add(spot.DXCC)
+        if (previousKeys && !previousKeys.has(spotKey(spot))) newEntities.add(spotKey(spot))
+      }
+      newEntityKeys = new Set([...newEntities].filter(key => keys.has(key)))
+      if (paused) {
         const existing = new Set([...pending, ...frozen].map(spotKey))
-        const arrival = rows.filter(spot => !previousKeys?.has(spotKey(spot)) && !existing.has(spotKey(spot)))
-        if ((rows.length >= 100 && !rows.some(spot => previousKeys?.has(spotKey(spot)))) || pending.length + arrival.length > limitPending) pauseGap = true
+        const arrival = liveRows.filter(spot => !previousKeys?.has(spotKey(spot)) && !existing.has(spotKey(spot)))
+        if (recoveryNeeded || pending.length + arrival.length > limitPending) pauseGap = true
         pending = [...arrival, ...pending].slice(0, limitPending)
       }
       if (previousKeys) {
@@ -229,17 +273,15 @@
           if (!paused && !reviewing && soundOn()) for (let i = 0; i < Math.min(added.length, 4); i++) chirp(i * 0.16)
         }
       }
-      if (!data.Available && paused) pauseGap = true
-      knownKeys = data.Available ? keys : undefined
+      knownKeys = keys
       archiveUpdatedAt = data.ArchiveUpdatedAt ?? 0
       latestAt = data.LatestAt ?? rows.reduce((at, spot) => Math.max(at, spot.At), 0)
-      if (!data.Available) arrivalDelay = undefined
       spots = rows
-      available = data.Available
+      available = true
     } catch {
       available = false
       if (paused) pauseGap = true
-      knownKeys = undefined
+      recoveryNeeded = true
       arrivalDelay = undefined
     } finally {
       reading = false
@@ -283,9 +325,29 @@
     void fetch('/api/visits').then(async response => {
       if (response.ok) views = (await response.json()).Views
     }).catch(() => {})
+    const retry = () => { if (!document.hidden) void refresh() }
+    const offline = () => {
+      recoveryNeeded = true
+      available = false
+      if (paused) pauseGap = true
+    }
+    window.addEventListener('offline', offline)
+    window.addEventListener('online', retry)
+    document.addEventListener('visibilitychange', retry)
     const timer = setInterval(refresh, 5000)
     const clockTimer = setInterval(() => { spotClock = Date.now() }, 1000)
-    return () => { clearInterval(timer); clearInterval(adxoTimer); clearInterval(clockTimer); window.removeEventListener('storage', syncAlerts); window.removeEventListener('click', closePopup); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock) }
+    return () => {
+      clearInterval(timer)
+      clearInterval(adxoTimer)
+      clearInterval(clockTimer)
+      window.removeEventListener('offline', offline)
+      window.removeEventListener('online', retry)
+      document.removeEventListener('visibilitychange', retry)
+      window.removeEventListener('storage', syncAlerts)
+      window.removeEventListener('click', closePopup)
+      window.removeEventListener('pointerdown', unlock)
+      window.removeEventListener('keydown', unlock)
+    }
   })
 </script>
 
@@ -296,6 +358,7 @@
     {:else}<p role="status">{alertsFailed ? t('archiveDown') : t('loading')}</p>{/if}
   </div>
   {#if researchOpened}<div hidden={activePage !== 'research'}><SpotResearch {spots} /></div>{/if}
+  {#if activePage === 'ann' || activePage === 'propagation'}<ClusterBulletins view={activePage} />{/if}
   <div hidden={activePage !== 'feed'}>
   <section class="filters glass-panel glass-enter" aria-label={t('filters')}>
     <div class="chip-row">
@@ -390,8 +453,23 @@
         {/if}
       </form>
     {/if}
+    <label>{t('qslService')}
+      <select bind:value={qslFilter} aria-label={t('qslService')}>
+        <option value="">{t('allShort')}</option>
+        <option value="lotw">LoTW</option>
+        <option value="eqsl">eQSL AG</option>
+        <option value="both">LoTW + eQSL AG</option>
+      </select>
+    </label>
+    {#if qslUnavailable}<p role="status">{t('qslDirectoryUnavailable')}</p>{/if}
     {#if saveError}<p role="status">{t('spotStorageUnavailable')}</p>{/if}
   </div>
+  {#if !paused && !reviewing && (automaticCount || automaticPartial)}
+    <p class="spot-timing" role="status">
+      {#if automaticCount}{t('spotAutoRecovered', { n: automaticCount })}{/if}
+      {#if automaticPartial} {t('spotRestorePartial')}{/if}
+    </p>
+  {/if}
   {#if paused || reviewing}
     <p class="spot-timing" role="status">{paused ? t('spotWaiting', { n: pending.length }) : t('spotReviewing', { n: recovered })}</p>
     {#if pauseGap}<p class="spot-timing" role="status">{t('spotGap')}</p>{/if}
@@ -423,7 +501,14 @@
               <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Spotter} onclick={() => query = spot.Spotter}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>{spot.Spotter}</span></td>
               <td><strong class="frequency" style:--c={colors[bandFor(spot.Frequency)] || '#edf3f9'}>{khz.format(spot.Frequency)}</strong></td>
               <td data-empty={!m.mode || undefined}><span class="mode" data-mode={m.mode} data-inferred={m.inferred && m.mode ? '' : undefined} title={m.inferred && m.mode ? t('modeInferred') : undefined}>{m.mode || '—'}</span></td>
-              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><strong>{spot.Call}</strong>{#if confirmedKeys.has(id)}<span class="confirmed" role="img" aria-label={t('spotConfirmedHint')} title={t('spotConfirmedHint')}>✓</span>{/if}{#if adxoFor(spot.Call)}{@const entry = adxoFor(spot.Call)!}<button class="info" type="button" title={t('adxoTitle') + ': ' + entry.Entity} aria-label={t('adxoTitle') + ': ' + entry.Entity} onmouseenter={event => openInfo(event, entry)} onfocus={event => openInfo(event, entry)} onmouseleave={hideInfoSoon} onblur={hideInfoSoon} onclick={event => openInfo(event, entry)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg></button>{/if}</span></td>
+              <td><span class="callcell"><button class="lens" type="button" title={t('lens')} aria-label={t('lens') + ': ' + spot.Call} onclick={() => query = spot.Call}><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><span class="dx-call"><strong>{spot.Call}</strong>
+                {#if spot.LoTW || spot.EQSL}
+                  <span class="qsl-marks">
+                    {#if spot.LoTW}<span class="qsl-mark" title={t('lotwMember')}>LoTW</span>{/if}
+                    {#if spot.EQSL}<span class="qsl-mark" title={t('eqslMember')}>eQSL AG</span>{/if}
+                  </span>
+                {/if}
+              </span>{#if confirmedKeys.has(id)}<span class="confirmed" role="img" aria-label={t('spotConfirmedHint')} title={t('spotConfirmedHint')}>✓</span>{/if}{#if adxoFor(spot.Call)}{@const entry = adxoFor(spot.Call)!}<button class="info" type="button" title={t('adxoTitle') + ': ' + entry.Entity} aria-label={t('adxoTitle') + ': ' + entry.Entity} onmouseenter={event => openInfo(event, entry)} onfocus={event => openInfo(event, entry)} onmouseleave={hideInfoSoon} onblur={hideInfoSoon} onclick={event => openInfo(event, entry)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg></button>{/if}</span></td>
               <td>
                 {#if dxccFlags[spot.DXCC]}
                   <img src={'/flags/' + dxccFlags[spot.DXCC] + '.svg'} alt="" width="26" height="19" loading="lazy" />
@@ -542,6 +627,9 @@
   tbody tr:nth-child(even) { background: #d6e8f3; }
   tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: fresh 14s ease-out both; }
   @keyframes fresh { 0%, 71% { background: #fff1a0; box-shadow: inset 4px 0 #e0a020; } 100% { background: transparent; box-shadow: inset 4px 0 transparent; } }
+  .dx-call { display: inline-grid; gap: 2px; }
+  .qsl-marks { display: flex; flex-wrap: wrap; gap: 3px; }
+  .qsl-mark { border: 1px solid currentColor; border-radius: 4px; padding: 0 3px; font-size: .66rem; line-height: 1.25; }
   .callcell { display: inline-flex; align-items: center; gap: 6px; }
   .lens { display: inline-grid; place-items: center; width: 26px; min-height: 26px; padding: 0; border-radius: 6px; --button-face: transparent; --button-edge: transparent; --button-ink: #3d5a70; box-shadow: none; }
   .lens:hover:not(:disabled) { --button-ink: #175c82; --button-face: #e3eef6; transform: none; filter: none; }

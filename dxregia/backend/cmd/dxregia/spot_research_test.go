@@ -42,7 +42,7 @@ func TestSpotArchiveHistoryAndResume(t *testing.T) {
 	before := fmt.Sprintf("14040^JA1ABC^%d^CW^F1ABC^95^227^F1NODE^45^25\n", yesterday.Unix())
 	write(yesterday, before)
 	mux := http.NewServeMux()
-	snapshot := registerSpots(mux, root)
+	snapshot := registerSpots(mux, root, nil)
 	first := snapshot()
 	if len(first.Spots) != 1 || !spotCursor.MatchString(first.Spots[0].Cursor) {
 		t.Fatalf("pause cursor unavailable: %+v", first)

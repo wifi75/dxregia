@@ -14,14 +14,14 @@
   import ClusterStats from './ClusterStats.svelte'
   import Contact from './Contact.svelte'
   import { trackPortalPresence } from './portalPresence'
+  import type { SpotView } from './spotTools'
   const contactPage = window.location.pathname === '/contatti'
   const registerPage = window.location.pathname === '/registrazione'
   const confirmPage = window.location.pathname === '/registrazione/conferma'
   const statsPage = window.location.pathname === '/statistiche'
-  type SpotView = 'feed' | 'research' | 'alerts'
   function viewFromURL(): SpotView {
     const view = new URLSearchParams(location.search).get('view')
-    return view === 'research' || view === 'alerts' ? view : 'feed'
+    return view === 'research' || view === 'alerts' || view === 'ann' || view === 'propagation' ? view : 'feed'
   }
   let spotView = $state(viewFromURL())
   function openSpotView(event: MouseEvent, next: SpotView) {
@@ -39,7 +39,8 @@
   // Il pannello sysop è solo su /admin; ogni altra pagina è il portale pubblico.
   const publicPortal = !(window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'))
   if (publicPortal) trackPortalPresence()
-  const portalTitle = $derived(spotView === 'research' ? t('spotResearch') : spotView === 'alerts' ? t('radioAlerts') : t('spotsTitle'))
+  const titles = { feed: 'spotsTitle', research: 'spotResearch', alerts: 'radioAlerts', ann: 'navAnnouncements', propagation: 'navPropagation' } as const
+  const portalTitle = $derived(t(titles[spotView]))
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
   let status = $state<Status>()
@@ -94,6 +95,8 @@
     {#if publicPortal}
       <a href="/spots?view=research" aria-current={!toolPage && spotView === 'research' ? 'page' : undefined} onclick={event => openSpotView(event, 'research')}>{t('spotResearch')}</a>
       <a href="/spots?view=alerts" aria-current={!toolPage && spotView === 'alerts' ? 'page' : undefined} onclick={event => openSpotView(event, 'alerts')}>{t('radioAlerts')}</a>
+      <a href="/spots?view=ann" aria-current={!toolPage && spotView === 'ann' ? 'page' : undefined} onclick={event => openSpotView(event, 'ann')}>{t('navAnnouncements')}</a>
+      <a href="/spots?view=propagation" aria-current={!toolPage && spotView === 'propagation' ? 'page' : undefined} onclick={event => openSpotView(event, 'propagation')}>{t('navPropagation')}</a>
     {/if}
     {#if publicPortal}<a class="stats-link" href="/statistiche" aria-current={statsPage ? 'page' : undefined}>{t('navStats')}</a>{/if}
     <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>{publicPortal ? t('navContact') : 'Contatti'}</a>
