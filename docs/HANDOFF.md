@@ -319,3 +319,7 @@ I README e le guide di installazione in sei lingue documentano la configurazione
 La console resta montata nella sessione di amministrazione. Passare a Stato e sessioni lascia aperto il collegamento Telnet e conserva cronologia e output. Il riquadro Radioamatori collegati deve mostrare la sessione come Telnet dopo il successivo aggiornamento della presenza. La verifica su un nodo installato resta aperta.
 
 La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva in ingresso. La conferma SMTP resta da verificare nello storico. Le diciture del pannello usano DXSpider e i messaggi di salvataggio Telnet indicano direttamente l’esito.
+
+## Inventario licenze e distribuzione
+
+`docs/LICENSING.md` registra la base e le modifiche di DXSpider, distingue i due testi di licenza upstream, documenta i componenti presenti nelle build e le verifiche ancora aperte. Gli avvisi Go e web sono inclusi nel bundle distribuito. Restano da formalizzare la licenza DXRegia separata, i termini dei dati radio e l’inventario dell’immagine finale.

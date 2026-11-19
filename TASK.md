@@ -31,7 +31,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 - [x] Proposta 33 — Completamento dei comandi supportati con Tab, spiegazione degli argomenti ed esempi.
 - [x] Collaudare installazione da sorgente su Linux, backup offline, login Telnet e riavvio con volume persistente.
 - [ ] Distribuire OCI amd64/arm64 e realizzare lo [script di installazione Linux](dxregia/deploy/README.md) con URL del pannello, password temporanea e cambio obbligatorio al primo accesso. Verificare avvio, riavvio e riesecuzione su Linux.
-- [ ] Chiarire l'applicabilità di COPYING e LICENSE e censire le dipendenze prima della prima distribuzione.
+- [x] Verificare la provenienza di COPYING e LICENSE, censire le dipendenze Go e web distribuite e includere gli avvisi nel pacchetto. Vedi [Licenze](docs/LICENSING.md).
+- [ ] Formalizzare la licenza del codice DXRegia originale, verificare i termini dei dati AD1C e ADXO e controllare i pacchetti Debian e gli avvisi dell’immagine OCI finale.
 
 - [ ] Implementare monitoraggio dei nodi partner, registro eventi per categoria, revisioni della configurazione e backup con ripristino verificato. Vedi [Operazioni del sysop](docs/OPERATIONS.md).
 

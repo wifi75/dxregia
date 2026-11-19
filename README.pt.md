@@ -65,3 +65,5 @@ O DXRegia está em desenvolvimento ativo (versão 0.4.0). A instalação, o prim
 ## Origem e licença
 
 O DXRegia é um projeto independente baseado no DXSpider Mojo de Dirk Koopman G1TLH e dos seus contribuidores (o [espelho EA3CV](https://github.com/EA3CV/dxspider/tree/mojo)). O repositório mantém os ficheiros originais [COPYING](COPYING) e [LICENSE](LICENSE) (Artistic License 2.0). As operações DX anunciadas vêm do [NG3K ADXO](https://www.ng3k.com/Misc/adxo.html); as bandeiras do [flag-icons](https://github.com/lipis/flag-icons) (MIT).
+
+[Licenças e avisos de terceiros](docs/LICENSING.md)
