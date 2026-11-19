@@ -1,5 +1,7 @@
 # Piano di lavoro DXRegia
 
+[Proposte numerate per le prossime versioni](docs/PROPOSTE.md)
+
 ## Prossimo passo
 
 Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazioni dopo il primo avvio. Estendere i collaudi Linux a due nodi, feed DX e aggiornamento da release. La procedura è in dxregia/deploy/README.md.
