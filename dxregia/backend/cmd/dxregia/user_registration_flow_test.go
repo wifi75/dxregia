@@ -178,20 +178,32 @@ func decodedMessage(t *testing.T, raw string) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	reader := multipart.NewReader(message.Body, params["boundary"])
+	return decodedTextParts(t, multipart.NewReader(message.Body, params["boundary"]))
+}
+
+func decodedTextParts(t *testing.T, reader *multipart.Reader) string {
+	t.Helper()
 	var out strings.Builder
 	for {
 		part, err := reader.NextPart()
-		if err != nil {
+		if err == io.EOF {
 			break
 		}
-		body, _ := io.ReadAll(part)
-		decoded, err := base64.StdEncoding.DecodeString(strings.Join(strings.Fields(string(body)), ""))
 		if err != nil {
 			t.Fatal(err)
 		}
-		out.Write(decoded)
-		out.WriteString("\n")
+		mediaType, params, err := mime.ParseMediaType(part.Header.Get("Content-Type"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.HasPrefix(mediaType, "multipart/") {
+			out.WriteString(decodedTextParts(t, multipart.NewReader(part, params["boundary"])))
+		} else if strings.HasPrefix(mediaType, "text/") {
+			if _, err := io.Copy(&out, base64.NewDecoder(base64.StdEncoding, part)); err != nil {
+				t.Fatal(err)
+			}
+			out.WriteByte('\n')
+		}
 	}
 	return out.String()
 }

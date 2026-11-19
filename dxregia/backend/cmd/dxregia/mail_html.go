@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/base64"
 	"fmt"
 	"html"
@@ -35,11 +36,18 @@ type mailBlocks struct {
 }
 
 const (
-	colInk   = "#143a60"
-	colText  = "#26384a"
-	colMuted = "#5b6e80"
-	colLine  = "#d9e3ec"
+	colInk         = "#143a60"
+	colText        = "#26384a"
+	colMuted       = "#5b6e80"
+	colLine        = "#d9e3ec"
+	mailProjectURL = "https://github.com/wifi75/dxregia"
+	mailPortalURL  = "https://dxregia.iu3wjq.com/"
+	mailAuthor     = "Tiziano Cassone · IU3WJQ"
+	mailIconID     = "dxregia-icon@iu3wjq.com"
 )
+
+//go:embed mail-icon.png
+var mailIcon []byte
 
 func toneColors(tone string) (accent, soft string) {
 	switch tone {
@@ -68,7 +76,7 @@ func renderMail(subject string, b mailBlocks) mailContent {
 	h.WriteString(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef3f8;"><tr><td align="center" style="padding:24px 12px;">`)
 	h.WriteString(`<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid ` + colLine + `;">`)
 	// Intestazione
-	fmt.Fprintf(&h, `<tr><td style="background:%s;padding:22px 28px;"><span style="font-size:22px;font-weight:800;letter-spacing:.3px;color:#ffffff;">DX<span style="color:#7fd1ae;">Regia</span></span><span style="float:right;font-size:12px;color:#b9cfe3;padding-top:7px;">%s</span></td></tr>`, colInk, esc(b.Footer))
+	fmt.Fprintf(&h, `<tr><td style="background:%s;padding:22px 28px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:12px;"><img src="cid:%s" width="40" height="40" alt="" style="display:block;border:0;border-radius:8px;"></td><td><span style="font-size:22px;font-weight:800;letter-spacing:.3px;color:#ffffff;">DX<span style="color:#7fd1ae;">Regia</span></span><br><span style="font-size:12px;color:#b9cfe3;">%s</span></td></tr></table></td></tr>`, colInk, mailIconID, esc(b.Footer))
 	fmt.Fprintf(&h, `<tr><td style="height:5px;background:%s;font-size:0;line-height:0;">&nbsp;</td></tr>`, accent)
 	// Titolo e introduzione
 	fmt.Fprintf(&h, `<tr><td style="padding:30px 28px 6px;"><h1 style="margin:0 0 14px;font-size:24px;line-height:1.25;color:%s;">%s</h1>`, colInk, esc(b.Title))
@@ -141,9 +149,9 @@ func renderMail(subject string, b mailBlocks) mailContent {
 		t.WriteString(b.AfterTitle + "\n" + b.After + "\n\n")
 	}
 	// Piè di pagina
-	fmt.Fprintf(&h, `<tr><td style="padding:26px 28px 28px;"><p style="margin:0;padding-top:16px;border-top:1px solid %s;font-size:12.5px;line-height:1.55;color:%s;">%s</p></td></tr>`, colLine, colMuted, esc(b.Auto))
+	fmt.Fprintf(&h, `<tr><td style="padding:26px 28px 28px;"><p style="margin:0;padding-top:16px;border-top:1px solid %s;font-size:12.5px;line-height:1.55;color:%s;">%s</p><p style="margin:10px 0 0;font-size:13px;line-height:1.6;color:%s;"><a href="%s" style="color:%s;">DXRegia · GitHub</a><br><a href="%s" style="color:%s;">IU3WJQ-7 · DX Cluster</a><br>%s</p></td></tr>`, colLine, colMuted, esc(b.Auto), colMuted, mailProjectURL, colInk, mailPortalURL, colInk, esc(mailAuthor))
 	h.WriteString(`</table></td></tr></table></body></html>`)
-	t.WriteString("--\n" + b.Auto + "\n" + b.Footer + "\n")
+	t.WriteString("--\n" + b.Auto + "\n" + b.Footer + "\nDXRegia · GitHub: " + mailProjectURL + "\nIU3WJQ-7 · DX Cluster: " + mailPortalURL + "\n" + mailAuthor + "\n")
 	return mailContent{Subject: subject, Text: t.String(), HTML: h.String()}
 }
 
@@ -156,7 +164,7 @@ func wrap76(s string) string {
 	return out.String() + s + "\r\n"
 }
 
-// buildMessage produce un messaggio MIME multipart/alternative (testo + HTML) con corpo in base64.
+// buildMessage produce le alternative testo e HTML, con l'icona incorporata nella parte HTML.
 func buildMessage(from, to, replyTo string, c mailContent) string {
 	boundary := "dxregia-" + fmt.Sprintf("%x", len(c.HTML)*31+len(c.Text))
 	var m strings.Builder
@@ -165,9 +173,12 @@ func buildMessage(from, to, replyTo string, c mailContent) string {
 		fmt.Fprintf(&m, "Reply-To: %s\r\n", replyTo)
 	}
 	fmt.Fprintf(&m, "Subject: %s\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary=\"%s\"\r\n\r\n", mime.QEncoding.Encode("utf-8", c.Subject), boundary)
-	for _, part := range [][2]string{{"text/plain", c.Text}, {"text/html", c.HTML}} {
-		fmt.Fprintf(&m, "--%s\r\nContent-Type: %s; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n%s\r\n", boundary, part[0], wrap76(base64.StdEncoding.EncodeToString([]byte(part[1]))))
-	}
+	fmt.Fprintf(&m, "--%s\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n%s", boundary, wrap76(base64.StdEncoding.EncodeToString([]byte(c.Text))))
+	related := boundary + "-related"
+	fmt.Fprintf(&m, "--%s\r\nContent-Type: multipart/related; type=\"text/html\"; boundary=\"%s\"\r\n\r\n", boundary, related)
+	fmt.Fprintf(&m, "--%s\r\nContent-Type: text/html; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n%s", related, wrap76(base64.StdEncoding.EncodeToString([]byte(c.HTML))))
+	fmt.Fprintf(&m, "--%s\r\nContent-Type: image/png; name=\"dxregia.png\"\r\nContent-ID: <%s>\r\nContent-Disposition: inline; filename=\"dxregia.png\"\r\nContent-Transfer-Encoding: base64\r\n\r\n%s", related, mailIconID, wrap76(base64.StdEncoding.EncodeToString(mailIcon)))
+	fmt.Fprintf(&m, "--%s--\r\n", related)
 	fmt.Fprintf(&m, "--%s--\r\n", boundary)
 	return m.String()
 }

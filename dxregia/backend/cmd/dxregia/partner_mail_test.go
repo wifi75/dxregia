@@ -1,6 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"encoding/base64"
+	"io"
+	"mime"
+	"mime/multipart"
+	"net/mail"
 	"os"
 	"path/filepath"
 	"strings"
@@ -78,5 +84,42 @@ func TestMailMessageIsMultipart(t *testing.T) {
 	}
 	if strings.Contains(c.HTML, "<b>x</b>") {
 		t.Fatal("dynamic values must be HTML-escaped")
+	}
+	for _, value := range []string{mailProjectURL, mailPortalURL, mailAuthor} {
+		if !strings.Contains(c.Text, value) || !strings.Contains(c.HTML, value) {
+			t.Errorf("missing %q in one of the mail formats", value)
+		}
+	}
+	parsed, err := mail.ReadMessage(strings.NewReader(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, params, err := mime.ParseMediaType(parsed.Header.Get("Content-Type"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	alternatives := multipart.NewReader(parsed.Body, params["boundary"])
+	if _, err := alternatives.NextPart(); err != nil {
+		t.Fatal(err)
+	}
+	htmlAlternative, err := alternatives.NextPart()
+	if err != nil {
+		t.Fatal(err)
+	}
+	mediaType, params, err := mime.ParseMediaType(htmlAlternative.Header.Get("Content-Type"))
+	if err != nil || mediaType != "multipart/related" {
+		t.Fatal("HTML must be grouped with its inline resources")
+	}
+	related := multipart.NewReader(htmlAlternative, params["boundary"])
+	if _, err := related.NextPart(); err != nil {
+		t.Fatal(err)
+	}
+	icon, err := related.NextPart()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding, icon))
+	if err != nil || !bytes.Equal(data, mailIcon) || icon.Header.Get("Content-ID") != "<"+mailIconID+">" || !strings.Contains(c.HTML, "cid:"+mailIconID) {
+		t.Fatal("HTML icon does not match the embedded PNG")
 	}
 }
