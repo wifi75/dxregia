@@ -448,14 +448,14 @@
         <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
         <tbody>
           {#each partners.toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
-            {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in Mojo' : partner.Connection || 'Stato in attesa'}
+            {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in Mojo' : partner.InboundTestUntil && partner.Connection !== 'Attivo' ? 'Prova in ingresso' : partner.Connection || 'Stato in attesa'}
             <tr class:current={selected?.Call === partner.Call}>
               <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
               <td>{partner.Name || '—'}</td>
               <td>{partner.Contact || '—'}</td>
               <td>
                 <span class="observed-state">
-                  <span class="led" data-tone={statusError ? 'neutral' : partner.Locked ? 'red' : connectionTone(partner.Connection)}
+                  <span class="led" data-tone={statusError ? 'neutral' : partner.Locked ? 'red' : state === 'Prova in ingresso' ? 'amber' : connectionTone(partner.Connection)}
                     title={state} aria-hidden="true"></span>
                   {state}
                 </span>
@@ -475,6 +475,7 @@
     {@const inboundByIP = Boolean(selected?.CanSetInboundIP && selected?.InboundIP)}
     {@const inbound = inboundInfo(selected?.Locked ? 'Nodo bloccato in Mojo' : inboundByIP ? 'Abilitato in Mojo' : selected?.Provisioning)}
     {@const incoming = incomingInfo(selected)}
+    {@const inboundTestWaiting = Boolean(selected?.InboundTestUntil && selected.Connection !== 'Attivo')}
     {@const lockedInMojo = Boolean(selected?.Locked)}
     {@const canEnableInbound = selected && !lockedInMojo && !['In attesa di Mojo', 'Abilitato in Mojo'].includes(selected.Provisioning || '') && !selected.Provisioning?.includes('verificare')}
     {@const outgoingReady = selected?.OutgoingReady ?? (selected?.Provisioning === 'Abilitato in Mojo' || selected?.Provisioning === 'Pronto in uscita')}
@@ -483,8 +484,8 @@
         <h3 id="partner-draft" tabindex="-1">{selected ? selected.Call : 'Nuovo nodo partner'}</h3>
         {#if selected}
           <p class="observed-state">
-            <span class="led" data-tone={connectionTone(selected.Connection)} aria-hidden="true"></span>
-            {selected.Connection || 'Stato in attesa'}
+            <span class="led" data-tone={inboundTestWaiting ? 'amber' : connectionTone(selected.Connection)} aria-hidden="true"></span>
+            {inboundTestWaiting ? 'Prova in ingresso' : selected.Connection || 'Stato in attesa'}
             {#if selected.Direction}<span class="muted">· {directionLabel(selected.Direction)}</span>{/if}
             <span class="muted">· Prima connessione: {selected.FirstConnectedAt ? date.format(new Date(selected.FirstConnectedAt)) : 'non ancora rilevata'}</span>
           </p>
@@ -501,12 +502,12 @@
             <h4><span class="step">1</span> Il tuo nodo si collega a {selected.Call}</h4>
             <p class="hint">Usa questa sezione per collegarti tu al nodo del partner (ad esempio per ricevere i suoi spot).</p>
             <p class="observed-state" role="status">
-              <span class="led" data-tone={connectionTone(selected.Connection)} aria-hidden="true"></span>
-              {selected.Connection || 'Stato in attesa'}
+              <span class="led" data-tone={inboundTestWaiting ? 'amber' : connectionTone(selected.Connection)} aria-hidden="true"></span>
+              {inboundTestWaiting ? 'Uscita sospesa durante la prova in ingresso' : selected.Connection || 'Stato in attesa'}
             </p>
-            {#if selected.Connection === 'Collegamento in corso' && selected.Direction === 'Uscita'}
+            {#if !inboundTestWaiting && selected.Connection === 'Collegamento in corso' && selected.Direction === 'Uscita'}
               <p class="hint">In attesa della risposta del nodo remoto. Se l’attesa continua, chiedi al referente di verificare che il tuo indicativo completo, SSID incluso, sia configurato come nodo partner e che la richiesta di password corrisponda.</p>
-            {:else if selected.Connection === 'Collegamento non confermato'}
+            {:else if !inboundTestWaiting && selected.Connection === 'Collegamento non confermato'}
               <p class="hint">La sessione tra i nodi non è stata confermata. Cerca l’indicativo nel Log DXSpider per vedere a quale fase si è fermato il tentativo.</p>
             {/if}
             {#if selected.Reconnect}
@@ -516,6 +517,20 @@
               </p>
             {/if}
             <form onsubmit={connect}>
+              <div class="actions">
+                {#if lockedInMojo}
+                  {#if selected.CanUnlock}
+                    <button class="unlock-node" type="button" disabled={enabling || busy} onclick={() => enable(true, false, true)}>Sblocca questo nodo</button>
+                  {/if}
+                  <span class="hint">Mojo ha un blocco locale per questo indicativo. Può essere stato impostato dal sysop o applicato quando Mojo ha scoperto il nodo in rete.</span>
+                {:else if selected.Connection !== 'Attivo' && outgoingReady}
+                  <button disabled={enabling || busy || inboundTestWaiting || selected.Connection === "In coda" || selected.Connection === "Collegamento in corso"}>Connetti ora</button>
+                {:else if selected.Connection !== 'Attivo'}
+                  <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
+                    onclick={() => enable(true)}>Prepara il collegamento</button>
+                  <span class="hint">Prima va preparato l’account sul tuo nodo; poi compare «Connetti ora».</span>
+                {/if}
+              </div>
               <label>Il nodo remoto richiede una password?
                 <select bind:value={remoteAuth} disabled={enabling || busy}>
                   <option value="none">No, senza password</option>
@@ -531,20 +546,6 @@
                 const input = event.currentTarget
                 void updateReconnect(input.checked).finally(() => { input.checked = autoReconnect })
               }} disabled={enabling || busy || checkingStatus || loadingCredential} /> Riprova da solo se il collegamento cade</label>
-              <div class="actions">
-                {#if lockedInMojo}
-                  {#if selected.CanUnlock}
-                    <button class="unlock-node" type="button" disabled={enabling || busy} onclick={() => enable(true, false, true)}>Sblocca questo nodo</button>
-                  {/if}
-                  <span class="hint">Mojo ha un blocco locale per questo indicativo. Può essere stato impostato dal sysop o applicato quando Mojo ha scoperto il nodo in rete.</span>
-                {:else if selected.Connection !== 'Attivo' && outgoingReady}
-                  <button disabled={enabling || busy || selected.Connection === "In coda" || selected.Connection === "Collegamento in corso"}>Connetti ora</button>
-                {:else if selected.Connection !== 'Attivo'}
-                  <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
-                    onclick={() => enable(true)}>Prepara il collegamento</button>
-                  <span class="hint">Prima va preparato l’account sul tuo nodo; poi compare «Connetti ora».</span>
-                {/if}
-              </div>
             </form>
             <details class="script-preview">
               <summary>Mostra lo script di connessione</summary>
@@ -620,7 +621,7 @@
                 <span><strong>Email con dati pubblici</strong> · Accettata da SMTP il {date.format(new Date(selected.PublicMailAcceptedAt))}.</span>
               </div>
             {/if}
-            {#if selected.MailStatus || emailStatus}
+            {#if !inboundByIP && (selected.MailStatus || emailStatus)}
               {@const tone = mailTone(selected.MailStatus || emailStatus, selected.MailRetryAt)}
               <div class="mail-notice" data-tone={tone} role="status">
                 <span class="led" data-tone={tone} aria-hidden="true"></span>
@@ -629,14 +630,14 @@
                 </span>
               </div>
             {/if}
-            {#if peerPassword && selected.Provisioning === 'Abilitato in Mojo'}
+            {#if !inboundByIP && peerPassword && selected.Provisioning === 'Abilitato in Mojo'}
               <p>Password del partner:</p>
               <code>{peerPassword}</code>
               <div class="actions">
                 <button class="secondary" type="button" onclick={copyPassword}>Copia</button>
                 <button class="secondary" type="button" onclick={() => { peerPassword = '' }}>Nascondi</button>
               </div>
-            {:else if selected.Provisioning === 'Abilitato in Mojo' && selected.CanResend}
+            {:else if !inboundByIP && selected.Provisioning === 'Abilitato in Mojo' && selected.CanResend}
               <div class="actions"><button class="secondary" type="button" onclick={revealPassword}>Mostra la password del partner</button></div>
             {/if}
             <div class="actions">

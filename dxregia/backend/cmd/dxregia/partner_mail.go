@@ -97,6 +97,16 @@ func retryPartnerMail(job *partnerMail, err error, failed string, now time.Time)
 }
 
 func advancePartnerMail(dir string, send func(string, string, mailContent) error, snapshot presence, job *partnerMail) bool {
+	// Switching to IP authorization retires any previous password email workflow.
+	if !job.SwitchFromIP && validPartnerIPCall(job.Call) && (job.Password != "" || !job.WatchUntil.IsZero()) {
+		if _, err := os.Stat(filepath.Join(dir, job.Call+".inbound-ip")); err == nil {
+			job.Password = ""
+			job.Attempts = 0
+			job.VerifyAfter, job.WatchUntil, job.RetryAt = time.Time{}, time.Time{}, time.Time{}
+			job.Status = "Istruzioni con password annullate: accesso per IP attivo."
+			return true
+		}
+	}
 	now := time.Now()
 	if now.Before(job.RetryAt) {
 		return false
