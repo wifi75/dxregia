@@ -57,6 +57,14 @@
   .modes li { padding: 1px 9px; border-radius: 999px; border: 1px solid #ffffff55; background: #ffffff1f; font-size: .72rem; font-weight: 700; }
   .burst { flex: none; display: grid; place-items: center; width: 78px; height: 78px; background: #f6c33a; color: #3a2a00; font-weight: 800; font-size: .72rem; line-height: 1.1; text-align: center; text-transform: uppercase; transform: rotate(-12deg); clip-path: polygon(50% 0, 60% 12%, 75% 6%, 78% 22%, 94% 25%, 88% 40%, 100% 50%, 88% 60%, 94% 75%, 78% 78%, 75% 94%, 60% 88%, 50% 100%, 40% 88%, 25% 94%, 22% 78%, 6% 75%, 12% 60%, 0 50%, 12% 40%, 6% 25%, 22% 22%, 25% 6%, 40% 12%); }
   .burst span { max-width: 52px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .burst { animation: aurora-wave 5s ease-in-out 1s infinite; }
+    @keyframes aurora-wave {
+      0%, 30%, 100% { transform: rotate(-12deg) scale(1); }
+      9% { transform: rotate(-5deg) scale(1.08); }
+      18% { transform: rotate(-16deg) scale(1.03); }
+    }
+  }
   .get { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 999px; background: #fff; color: #0b3a4a; font-weight: 800; text-decoration: none; box-shadow: 0 3px 10px #0004; }
   .get:hover { background: #f1fbf7; }
   .close { position: absolute; top: 10px; right: 12px; display: grid; place-items: center; width: 30px; height: 30px; min-height: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: none; color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; }

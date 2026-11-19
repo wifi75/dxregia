@@ -304,3 +304,4 @@ Versione 0.4.0 (tag v0.4.0, 2026-11-18): impostazioni di DXSpider nel pannello (
 - 2FA opzionale in Gestione > Password; le configurazioni 2FA esistenti restano attive. Cambio iniziale della password sempre obbligatorio. Login senza fattore aggiuntivo e sessione persistente verificati nei test Go; build web passata. Commento desktop 10 px a sinistra.
 - Dashboard: stato e ora della sessione partner sulla stessa riga, con separatore. Build verificata.
 - Messaggio e pianificazione: selettore con bandiera, banner predefinito in issue e traduzioni in issue.<lingua>. Il cambio di lingua al collegamento resta da implementare. Test Go e build web passati.
+- Il bollino Nuova app di Aurora oscilla brevemente con una pausa tra i cicli. Build Vite passata.
