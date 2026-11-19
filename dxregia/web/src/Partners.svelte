@@ -55,8 +55,8 @@
     autoReconnect = partner?.Reconnect === 'Abilitata'
     emailStatus = ''
     selected = partner
-    inboundIP = partner?.InboundIP ?? ''
-    inboundMode = inboundIP ? 'ip' : 'password'
+    inboundIP = partner?.InboundIP || partner?.Host || ''
+    inboundMode = partner?.InboundIP ? 'ip' : 'password'
     ipMailStatus = undefined
     form = partner
       ? { Call: partner.Call, Name: partner.Name, Contact: partner.Contact, Email: partner.Email, Host: partner.Host, Port: partner.Port, Lang: partner.Lang ?? '', Person: partner.Person ?? '' }
@@ -576,7 +576,7 @@
               <select bind:value={inboundMode} disabled={enabling || busy}>
                 <option value="password">Con password</option>
                 {#if selected.CanSetInboundIP || selected.InboundIP}
-                  <option value="ip">Senza password · IP autorizzato</option>
+                  <option value="ip">Senza password · IP o nome host autorizzato</option>
                 {/if}
               </select>
             </label>
@@ -585,10 +585,10 @@
                 event.preventDefault()
                 void saveInboundIP((event.submitter as HTMLButtonElement)?.value === 'send')
               }}>
-                <label>IP pubblico del partner
-                  <input bind:value={inboundIP} required maxlength="45" spellcheck="false" autocomplete="off" disabled={!selected.CanSetInboundIP || enabling} />
+                <label>IP pubblico o nome host del partner
+                  <input bind:value={inboundIP} required maxlength="253" spellcheck="false" autocomplete="off" disabled={!selected.CanSetInboundIP || enabling} />
                 </label>
-                <p class="hint">Il partner potrà collegarsi con il suo indicativo soltanto da questo indirizzo.</p>
+                <p class="hint">Il campo riprende l’host salvato nella scheda del nodo. Verifica che punti all’IP pubblico da cui esce il partner. Gli indirizzi del nome host si aggiornano automaticamente.</p>
                 <div class="actions">
                   {#if selected.Email}
                     <button type="submit" value="send" disabled={enabling || busy || !selected.CanSetInboundIP}>Salva e invia senza password</button>

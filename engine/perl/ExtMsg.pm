@@ -38,15 +38,31 @@ sub dxregia_peer_ip_match
 		($user->priv || 0) <= 1 && $call ne $main::mycall && $call ne $main::myalias;
 	open(my $file, '<:raw', $path) or return 0;
 	my $data = '';
-	read($file, $data, 80);
+	read($file, $data, 260);
 	close $file;
 	my $trusted = eval { JSON::decode_json($data) };
 	my $source = eval { $conn->{sock}->handle->peerhost };
 	return 0 unless defined($trusted) && !ref($trusted) && defined($source);
 	$source =~ s/^::ffff://i;
-	my $family = $trusted =~ /:/ ? Socket::AF_INET6() : Socket::AF_INET();
-	my ($expected, $actual) = eval { map { Socket::inet_pton($family, $_) } ($trusted, $source) };
-	return defined($expected) && defined($actual) && $expected eq $actual;
+	my @addresses = ($trusted);
+	if ($trusted !~ /:/ && $trusted !~ /\A(?:[0-9]{1,3}[.]){3}[0-9]{1,3}\z/) {
+		my $cache = "$main::local_data/dxregia-partners/$call.inbound-dns";
+		open(my $dns, '<:raw', $cache) or return 0;
+		my $json = '';
+		read($dns, $json, 2048);
+		close $dns;
+		my $resolved = eval { JSON::decode_json($json) };
+		return 0 unless ref($resolved) eq 'HASH' && ($resolved->{Host} // '') eq $trusted &&
+			($resolved->{Expires} // 0) > time && ref($resolved->{Addresses}) eq 'ARRAY';
+		@addresses = @{$resolved->{Addresses}};
+	}
+	for my $address (@addresses) {
+		next if !defined($address) || ref($address);
+		my $family = $address =~ /:/ ? Socket::AF_INET6() : Socket::AF_INET();
+		my ($expected, $actual) = eval { map { Socket::inet_pton($family, $_) } ($address, $source) };
+		return 1 if defined($expected) && defined($actual) && $expected eq $actual;
+	}
+	return 0;
 }
 
 use vars qw(@ISA $deftimeout);

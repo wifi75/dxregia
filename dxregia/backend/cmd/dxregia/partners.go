@@ -119,6 +119,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 	}
 	var lock sync.Mutex
 	readProvisioningResults(root, path, partners)
+	go refreshInboundDNS(ctx, root)
 	go func() {
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
@@ -581,15 +582,16 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			}
 		} else {
 			var address string
-			decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 128))
+			decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 512))
 			if decoder.Decode(&address) != nil || decoder.Decode(new(any)) != io.EOF {
 				http.Error(w, "Indirizzo IP non valido.", http.StatusBadRequest)
 				return
 			}
-			ip, parseErr := netip.ParseAddr(strings.TrimSpace(address))
-			ip = ip.Unmap()
-			if parseErr != nil || ip.Zone() != "" || !ip.IsGlobalUnicast() || ip.IsPrivate() {
-				http.Error(w, "Inserisci l’indirizzo IP pubblico del partner.", http.StatusBadRequest)
+			address = strings.ToLower(strings.TrimSuffix(strings.TrimSpace(address), "."))
+			ip, parseErr := netip.ParseAddr(address)
+			host := parseErr != nil && validInboundDNSHost(address)
+			if !host && (parseErr != nil || !publicPartnerIP(ip.Unmap())) {
+				http.Error(w, "Inserisci un IP pubblico o un nome host del partner.", http.StatusBadRequest)
 				return
 			}
 			snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
@@ -618,7 +620,19 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				}
 			}
 			if err = os.MkdirAll(filepath.Dir(path), 0700); err == nil {
-				err = writePrivateJSON(path, ip.String())
+				if host {
+					resolved, resolveErr := resolveInboundDNS(r.Context(), address, net.DefaultResolver.LookupNetIP)
+					if resolveErr != nil {
+						http.Error(w, "Il nome host non risolve a un indirizzo IP pubblico.", http.StatusBadRequest)
+						return
+					}
+					err = writePrivateJSON(inboundDNSPath(path), resolved)
+				} else {
+					address = ip.Unmap().String()
+				}
+				if err == nil {
+					err = writePrivateJSON(path, address)
+				}
 			}
 		}
 		if err != nil {
