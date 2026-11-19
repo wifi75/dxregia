@@ -30,16 +30,16 @@ Elenco ricostruito. I numeri 31–33 corrispondono alle proposte originali recup
 
 ## Allarmi radio
 
-- [ ] **21.** Lista nominativi da seguire
-- [ ] **22.** Avvisi per nuove entità DXCC
-- [ ] **23.** Avvisi per banda e modo
-- [ ] **24.** Avvisi per frequenza esatta
-- [ ] **25.** Notifiche browser su richiesta
-- [ ] **26.** Riepilogo giornaliero
-- [ ] **27.** Ore di silenzio
-- [ ] **28.** Raggruppamento avvisi ripetuti
-- [ ] **29.** Scadenza delle ricerche salvate
-- [ ] **30.** Avvisi per attività portatile
+- [x] **21.** Lista nominativi da seguire
+- [x] **22.** Avvisi per nuove entità DXCC
+- [x] **23.** Avvisi per banda e modo
+- [x] **24.** Avvisi per frequenza esatta
+- [x] **25.** Notifiche browser su richiesta
+- [x] **26.** Riepilogo giornaliero
+- [x] **27.** Ore di silenzio
+- [x] **28.** Raggruppamento avvisi ripetuti
+- [x] **29.** Scadenza delle ricerche salvate
+- [x] **30.** Avvisi per attività portatile
 
 ## Telnet e console web
 

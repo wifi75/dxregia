@@ -13,6 +13,7 @@
 - Apri [la pagina degli spot](https://dxregia.iu3wjq.com/spots) oppure l’indirizzo del tuo nodo. Usa i filtri per banda, modo o nominativo.
 - In **Spot in diretta** salva i filtri nel browser, confronta due bande o metti il feed in pausa. **Riprendi dalla pausa** mostra quanto è arrivato nel frattempo. **Esporta CSV** usa i risultati della vista attiva.
 - In **Ricerca e DXCC** filtra gli spot recenti per continente, CQ, ITU o locator citato. Apri un nominativo per la cronologia e un’entità del catalogo per vedere le bande osservate nell’archivio disponibile.
+- In **Allarmi radio** salva una regola per nominativo, banda, modo, frequenza, nuova entità DXCC o attività portatile e mobile. Tieni aperto il portale per rilevare i nuovi spot. Puoi attivare le notifiche del browser e configurare ore di silenzio. Il registro continua a raccogliere gli avvisi durante il silenzio.
 - Per un logger o un client Telnet usa host e porta pubblicati dal sysop. Al prompt usa il tuo indicativo. Se il nodo richiede registrazione, segui il modulo **Registrati** e conferma l’indirizzo email quando il servizio è attivo.
 - Prova i comandi HELP e SHOW/DX 10. Se il nodo ti autorizza a pubblicare spot, un esempio di sintassi è DX 14025 JA1ABC CW. Invia uno spot solo per un ascolto o un collegamento reale.
 - Usa l’indicativo con SSID indicato dal sysop soltanto quando configuri un collegamento tra nodi. Per un accesso da operatore usa il tuo nominativo personale.
