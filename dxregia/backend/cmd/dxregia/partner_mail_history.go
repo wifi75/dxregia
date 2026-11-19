@@ -99,6 +99,19 @@ func registerPartnerMailHistory(mux *http.ServeMux, root string, auth *sysopAuth
 			items = append(items, record)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"Items": items, "Next": next})
+		type latestStatus struct{ Call, Recipient, Status string }
+		latest := make([]latestStatus, 0)
+		if before == "" {
+			paths, _ := filepath.Glob(filepath.Join(root, "local_data", "dxregia-partners", "*.mail.json"))
+			for _, path := range paths {
+				var job partnerMail
+				data, err := os.ReadFile(path)
+				if err == nil && json.Unmarshal(data, &job) == nil && job.Status != "" &&
+					strings.Contains(strings.ToLower(job.Call+" "+job.Recipient+" "+job.Status), query) {
+					latest = append(latest, latestStatus{job.Call, job.Recipient, job.Status})
+				}
+			}
+		}
+		json.NewEncoder(w).Encode(map[string]any{"Items": items, "Next": next, "Latest": latest})
 	})
 }

@@ -113,11 +113,6 @@
   {/each}
 </section>
 
-<section class="counters" aria-label="Numeri">
-  <div class="glass-panel counter">{#key sessions.length}<strong class="pop">{sessions.length}</strong>{/key}<span>Radioamatori collegati</span></div>
-  <div class="glass-panel counter">{#key nodes.length}<strong class="pop">{nodes.length}</strong>{/key}<span>Nodi con sessione aperta</span></div>
-</section>
-
 <div class="columns">
   <article class="glass-panel box partners">
     <header class="box-head"><h2>Nodi partner</h2><span class="count">{[...new Set([...partnerCalls, ...nodes.map(node => node.Call)])].length}</span></header>
@@ -126,19 +121,24 @@
       <p class="blocked" role="status">Nodi bloccati in Mojo · {lockedCalls.join(', ')}. <a href="#partner">Apri Nodi partner</a></p>
     {/if}
     {#if partnerCalls.length || nodes.length}
-      <ul class="rows">
-        {#each [...new Set([...partnerCalls, ...nodes.map(node => node.Call)])] as call (call)}
-          {@const node = nodes.find(item => item.Call === call)}
-          {@const tone = !node ? 'red' : node.State === 'normal' ? 'green' : 'amber'}
-          <li>
-            <span class="led" data-tone={tone} aria-hidden="true"></span>
-            <strong>{call}</strong>
-            <span class="muted">{directory[call]?.Name || ''}</span>
-            {#if node}<span class="tag" title="Chi ha avviato il collegamento">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{/if}
-            <span class="state">{directory[call]?.Locked ? 'Nodo bloccato in Mojo' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo dalle ' + time.format(new Date(node.Since * 1000)) : 'Sessione aperta'}</span>
-          </li>
-        {/each}
-      </ul>
+      <div class="partner-table">
+        <table>
+          <thead><tr><th scope="col">Nodo</th><th scope="col">Stato</th><th scope="col">Direzione</th></tr></thead>
+          <tbody>
+            {#each [...new Set([...partnerCalls, ...nodes.map(node => node.Call)])] as call (call)}
+              {@const node = nodes.find(item => item.Call === call)}
+              {@const locked = directory[call]?.Locked}
+              {@const tone = locked || !node ? 'red' : node.State === 'normal' ? 'green' : 'amber'}
+              <tr>
+                <td><strong>{call}</strong>{#if directory[call]?.Name && directory[call].Name !== call}<small>{directory[call].Name}</small>{/if}</td>
+                <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in Mojo' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}</span>
+                  {#if node?.State === 'normal'}<small>{'Dalle ' + time.format(new Date(node.Since * 1000))}</small>{/if}</td>
+                <td>{#if node}<span class="tag">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{:else}—{/if}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
     {:else}
       <p class="muted">Nessun nodo partner registrato.</p>
     {/if}
@@ -182,17 +182,21 @@
   .led[data-tone=green] { background: #1fa86b; box-shadow: 0 0 0 4px #1fa86b33, 0 0 10px #1fa86b88; }
   .led[data-tone=red] { background: #d0343f; box-shadow: 0 0 0 4px #d0343f33, 0 0 10px #d0343f88; }
   .led[data-tone=amber] { background: #e08a1a; box-shadow: 0 0 0 4px #e08a1a33, 0 0 10px #e08a1a88; }
-  .counters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 14px; margin-top: 14px; }
-  .counter { display: grid; padding: 12px 16px; }
-  .counter strong { font-size: 1.9rem; line-height: 1.1; color: #143a60; font-variant-numeric: tabular-nums; }
-  .counter span { color: #485b6d; font-size: .9rem; }
   .box-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .box-head h2 { margin: 0; }
   .count { min-width: 1.8em; padding: 2px 10px; border-radius: 999px; background: #e3eef6; color: #143a60; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
-  .partners { border-top: 4px solid #3a82c0; }
+  .partners { border-top: 3px solid #3a82c0; }
+  .partner-table { overflow-x: auto; }
+  .partner-table table { width: 100%; border-collapse: collapse; text-align: left; }
+  .partner-table th, .partner-table td { padding: .65rem .55rem; border-bottom: 1px solid #cfdee7; }
+  .partner-table th { color: #3f5c71; background: #e8f1f7; font-size: .8rem; }
+  .partner-table small { display: block; color: #506678; margin-top: .18rem; }
+  .partner-state { display: inline-flex; align-items: center; gap: .55rem; }
+  .partner-state .led { width: 8px; height: 8px; flex-basis: 8px; }
+  .partner-table .tag { white-space: nowrap; }
   .users { border-top: 4px solid #2fa36b; }
   .sub { margin: 4px 0 10px; color: #5b6e80; font-size: .88rem; }
-  .columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; margin-top: 14px; align-items: start; }
+  .columns { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
   @media (max-width: 1000px) { .columns { grid-template-columns: minmax(0, 1fr); } }
   .box { padding: 16px; }
   h2 { margin: 0 0 8px; font-size: 1.05rem; }
@@ -210,7 +214,5 @@
   .live[data-state=reconnecting] .pulse { background: #e08a1a; }
   .live[data-state=polling] .pulse { background: #708391; animation: none; }
   @keyframes beat { 0% { box-shadow: 0 0 0 0 #1fa86b88; } 70%, 100% { box-shadow: 0 0 0 9px #1fa86b00; } }
-  .pop { animation: pop .5s ease-out; }
-  @keyframes pop { 0% { transform: scale(1.35); color: #1fa86b; } 100% { transform: scale(1); } }
-  @media (prefers-reduced-motion: reduce) { .pulse, .pop { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
 </style>

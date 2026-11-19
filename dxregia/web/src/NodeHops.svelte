@@ -12,6 +12,7 @@
   let filterStatus = $state('')
   let busy = $state(false)
   const kinds: Record<string, string> = { ann: 'Annunci', route: 'Instradamento', spots: 'Spot', wcy: 'WCY', wwv: 'WWV' }
+  const packetTypes: Record<string, string> = { '16': 'Utente collegato a un nodo', '17': 'Utente scollegato da un nodo', '19': 'Nodo annunciato nella rete', '21': 'Nodo rimosso dalle rotte' }
 
   async function loadFilters() {
     const response = await fetch('/api/filters')
@@ -53,6 +54,10 @@
 
 <section class="glass-panel" aria-labelledby="hops-title">
   <h1 id="hops-title">Hop<Hint text="L'hop count limita quanti nodi può attraversare un'informazione prima di essere scartata. Valori bassi evitano che spot e annunci girino all'infinito; valori alti li fanno arrivare più lontano." /></h1>
+  <div class="guide">
+    <p>Un <strong>hop</strong> è un passaggio da un nodo DX Cluster al successivo. Il valore indica quanti passaggi può ancora fare un messaggio del protocollo. Quando si esaurisce, il messaggio smette di essere inoltrato.</p>
+    <p><strong>Hop predefiniti</strong> è il valore generale. Ogni eccezione lo sostituisce per un tipo di pacchetto <strong>PC</strong>. Ad esempio, con valore generale 30 e PC16 a 15, gli aggiornamenti PC16 hanno un limite di 15 passaggi. Rimuovere una riga con ✕ fa tornare quel tipo al valore generale dopo il salvataggio.</p>
+  </div>
   <form onsubmit={save}>
     <label>Hop predefiniti<Hint text="Valore usato per ogni tipo di messaggio che non ha una riga propria qui sotto. Da 1 a 99; DXSpider usa 30." />
       <input type="number" min="1" max="99" bind:value={fallback} disabled={busy} />
@@ -63,6 +68,7 @@
         <label class="small">PC<input aria-label="Numero PC" title="Numero del pacchetto, da 1 a 999" bind:value={row.pc} disabled={busy} /></label>
         <label class="small">Hop<input aria-label="Hop" type="number" min="1" max="99" bind:value={row.hops} disabled={busy} /></label>
         <button type="button" class="ghost" aria-label="Elimina la riga" onclick={() => rows.splice(i, 1)}>✕</button>
+        <span class="packet-type">{packetTypes[row.pc.trim()] ?? 'Altro tipo di pacchetto DXSpider'}</span>
       </div>
     {/each}
     <div class="actions">
@@ -74,6 +80,7 @@
   {#if status}<p class="note" role="status">{status}</p>{/if}
 
   <h2>Filtri<Hint text="Un filtro decide quali spot, annunci o bollettini passano verso un nodo o un utente. Si creano con i comandi accept e reject della Console Telnet; qui si controllano e si eliminano." /></h2>
+  <p class="note">Gli hop limitano la distanza di inoltro. I filtri decidono quali informazioni lasciar passare. Ad esempio, un filtro spot può limitare le segnalazioni per banda. Qui puoi aprire le regole esistenti per leggerle o eliminarle.</p>
   {#if filters.length}
     <ul class="filters">
       {#each filters as filter}
@@ -101,7 +108,10 @@
   form p, .note { margin: 0; color: #465e70; }
   .note { margin-top: .6rem; }
   label { display: grid; gap: .35rem; font-weight: 650; width: min(100%, 220px); }
-  .row { display: flex; gap: .6rem; align-items: end; }
+  .guide { max-width: 74ch; border-inline-start: 3px solid #3279ac; padding-inline-start: .85rem; margin-bottom: 1.15rem; }
+  .guide p { margin: 0 0 .5rem; }
+  .row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: end; }
+  .packet-type { align-self: center; color: #465e70; font-size: .88rem; }
   .small { width: 7rem; }
   input { min-height: 40px; box-sizing: border-box; border: 1px solid #a4bbc9; border-radius: 6px; padding: .45rem .65rem; font: inherit; width: 100%; }
   .actions { display: flex; gap: .6rem; flex-wrap: wrap; }

@@ -9,6 +9,7 @@
   const date = $derived(new Intl.DateTimeFormat(lang(), { dateStyle: 'short', timeStyle: 'medium', timeZone: 'UTC' }))
 
   let items = $state<Message[]>([])
+  let latest = $state<{ Call: string; Recipient: string; Status: string }[]>([])
   let selected = $state<Message>()
   let next = $state('')
   let query = $state('')
@@ -26,11 +27,12 @@
     try {
       const response = await fetch('/api/partners/mail-history?' + params, { cache: 'no-store', signal: AbortSignal.timeout(8000) })
       if (!response.ok) throw new Error()
-      const data: { Items: Message[]; Next: string } = await response.json()
+      const data: { Items: Message[]; Next: string; Latest?: typeof latest } = await response.json()
       items = more ? [...items, ...data.Items] : data.Items
       next = data.Next
       activeQuery = search
       if (!more) selected = items.find(item => item.ID === selected?.ID)
+      if (!more) latest = data.Latest ?? []
     } catch {
       error = 'Impossibile leggere lo storico email.'
     } finally {
@@ -48,6 +50,7 @@
     <label>Nominativo, destinatario o oggetto <input type="search" bind:value={query} /></label>
     <button disabled={busy}>Cerca</button>
     <button class="secondary" type="button" disabled={busy} onclick={() => load()}>Aggiorna</button>
+    {#if query}<button class="secondary" type="button" disabled={busy} onclick={() => { query = ''; void load() }}>Mostra tutte</button>{/if}
   </form>
 
   {#if error}<p role="alert">{error}</p>{/if}
@@ -75,7 +78,14 @@
   {:else if busy}
     <p role="status">Caricamento…</p>
   {:else if !error}
-    <p role="status">{activeQuery ? 'Nessuna email corrisponde alla ricerca.' : 'Nessuna email archiviata. Lo storico inizia con il primo invio dopo l’aggiornamento.'}</p>
+    <p role="status">{latest.length ? 'Per questi esiti non è disponibile una copia del messaggio.' : activeQuery ? 'Nessuna email corrisponde alla ricerca.' : 'Nessuna email archiviata.'}</p>
+  {/if}
+  {#if latest.length}
+    <h2>Ultimo esito per nodo</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Nodo</th><th scope="col">Destinatario</th><th scope="col">Ultimo esito registrato</th></tr></thead>
+      <tbody>{#each latest as row}<tr><td>{row.Call}</td><td>{row.Recipient}</td><td>{row.Status}</td></tr>{/each}</tbody>
+    </table></div>
   {/if}
 </section>
 
