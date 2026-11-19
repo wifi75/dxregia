@@ -211,7 +211,7 @@
     if (provisioning === 'Abilitato in Mojo') return { tone: 'green', text: 'Abilitato: il partner può collegarsi al tuo nodo.' }
     if (provisioning === 'In attesa di Mojo') return { tone: 'amber', text: 'Operazione in corso: attendi qualche secondo.' }
     if (provisioning === 'Nodo bloccato in Mojo') return { tone: 'red', text: 'Nodo bloccato in Mojo' }
-    if (provisioning?.includes('verificare')) return { tone: 'red', text: 'Esiste già un account con questo indicativo: va verificato prima di abilitare.' }
+    if (provisioning?.includes('verificare')) return { tone: 'red', text: 'Accesso in ingresso da verificare: esiste già un account Mojo per questo indicativo.' }
     return { tone: 'neutral', text: 'Non abilitato: il partner non può collegarsi al tuo nodo.' }
   }
 
@@ -219,7 +219,7 @@
   function incomingInfo(partner?: Partner) {
     if (!partner) return { tone: 'neutral', text: '' }
     if (partner.Connection === 'Attivo' && partner.Direction === 'Ingresso') return { tone: 'green', text: 'Il partner è collegato al tuo nodo adesso.' }
-    if (partner.Connection === 'Attivo') return { tone: 'amber', text: 'Il collegamento attivo l’hai aperto tu: il partner non ha ancora una connessione sua verso di te.' }
+    if (partner.Connection === 'Attivo') return { tone: 'neutral', text: '' }
     return { tone: 'neutral', text: 'Il partner non è collegato al tuo nodo in questo momento.' }
   }
 
@@ -423,9 +423,9 @@
                     <button class="unlock-node" type="button" disabled={enabling || busy} onclick={() => enable(true, false, true)}>Sblocca questo nodo</button>
                   {/if}
                   <span class="hint">Mojo ha un blocco locale per questo indicativo. Può essere stato impostato dal sysop o applicato quando Mojo ha scoperto il nodo in rete.</span>
-                {:else if outgoingReady}
+                {:else if selected.Connection !== 'Attivo' && outgoingReady}
                   <button disabled={enabling || busy}>Connetti ora</button>
-                {:else}
+                {:else if selected.Connection !== 'Attivo'}
                   <button type="button" disabled={enabling || busy || selected.Provisioning === 'In attesa di Mojo'}
                     onclick={() => enable(true)}>Prepara il collegamento</button>
                   <span class="hint">Prima va preparato l’account sul tuo nodo; poi compare «Connetti ora».</span>
@@ -451,11 +451,13 @@
               <span class="led" data-tone={inbound.tone} aria-hidden="true"></span>
               {inbound.text}
             </p>
-            <p class="observed-state" role="status">
-              <span class="led" data-tone={incoming.tone} aria-hidden="true"></span>
-              {incoming.text}
-              <span class="muted">· Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</span>
-            </p>
+            {#if incoming.text}
+              <p class="observed-state" role="status">
+                <span class="led" data-tone={incoming.tone} aria-hidden="true"></span>
+                {incoming.text}
+                <span class="muted">· Prima connessione in ingresso: {selected.FirstInboundAt ? date.format(new Date(selected.FirstInboundAt)) : 'non ancora rilevata'}</span>
+              </p>
+            {/if}
             {#if selected.MailStatus || emailStatus}<p class="muted">Email: {selected.MailStatus || emailStatus}</p>{/if}
             {#if peerPassword && selected.Provisioning === 'Abilitato in Mojo'}
               <p>Password del partner:</p>
@@ -472,8 +474,6 @@
                 <button type="button" disabled={!canEnableInbound || enabling || busy} onclick={() => enable(false, true)}>Abilita e invia l’email a {selected.Email}</button>
                 {#if canEnableInbound}
                   <button class="secondary" type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita senza email</button>
-                {:else}
-                  <span class="hint">{inbound.text}</span>
                 {/if}
               {:else if canEnableInbound}
                 <button type="button" disabled={enabling || busy} onclick={() => enable()}>Abilita l’accesso</button>
