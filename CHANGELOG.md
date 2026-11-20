@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-20
+
+### Changed
+
+- Show up to 40 connected radio amateurs in a ten-column, four-row grid on wide screens. Each station retains its DXCC flag, callsign, connection type and start time.
+
 ## [0.6.0] - 2026-11-20
 
 ### Added

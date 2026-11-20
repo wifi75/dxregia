@@ -391,3 +391,7 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 - Il tag v0.6.0 comprende la nuova pagina Propagazione, la griglia delle sessioni radioamatori, l’editor dei filtri spot e la guida Telnet per logger. Il changelog elenca le modifiche e le guide nelle sei lingue puntano alla nuova versione.
 - Nella dashboard ogni radioamatore occupa una riga con bandiera, nominativo, tipo di accesso e orario. I nodi partner sono paginati a gruppi di otto. L’aggiornamento riconosce l’hash del Local.pm distribuito con v0.5.0 e installa l’hook con i dati DXCC.
 - La procedura di pubblicazione usa i pacchetti Linux amd64 e arm64 del workflow Linux del commit di release, con i relativi checksum SHA-256.
+
+## 2026-11-20 — Release 0.6.1
+
+- La griglia dei radioamatori mostra quattro righe per pagina e dieci colonne su desktop ampio. Su schermi più stretti riduce le colonne in base allo spazio disponibile.

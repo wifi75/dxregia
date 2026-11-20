@@ -15,8 +15,8 @@
 **Vorgefertigtes Paket.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.0/dxregia/deploy/install-release.sh
-sh install-release.sh v0.6.0
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.1/dxregia/deploy/install-release.sh
+sh install-release.sh v0.6.1
 ```
 
 Das Skript prüft die SHA-256-Prüfsumme, installiert die Laufzeitabhängigkeiten und startet den Dienst. Es zeigt die Adresse des Panels und ein temporäres Passwort für die erste Anmeldung an.
@@ -153,8 +153,8 @@ Das Engine-Log findest du auch unter Knoten → DXSpider-Log (Log DXSpider).
 - [Sysop-Betrieb](OPERATIONS.md) (Italienisch)
 - [Änderungsprotokoll](../CHANGELOG.md) (Englisch)
 
-## DXRegia 0.6.0
+## DXRegia 0.6.1
 
 Die Seite zur Ausbreitung zeigt HamQSL-Solarindizes, HF-Bedingungen für Tag und Nacht, VHF-Aktivität, die MUF-Karte von KC2G und die in DX-Spots beobachtete Aktivität. Die öffentliche Registrierung erklärt die Telnet-Einrichtung für sieben Logbuchprogramme. Die Sysop-Übersicht zeigt verbundene Funkamateure mit DXCC-Flaggen und Seitenaufteilung.
 
-[DXRegia 0.6.0](https://github.com/wifi75/dxregia/releases/tag/v0.6.0)
+[DXRegia 0.6.1](https://github.com/wifi75/dxregia/releases/tag/v0.6.1)

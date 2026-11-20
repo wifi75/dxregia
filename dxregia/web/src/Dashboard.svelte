@@ -52,6 +52,7 @@
   }
 
   const time = new Intl.DateTimeFormat('it-IT', { timeStyle: 'medium' })
+  const shortTime = new Intl.DateTimeFormat('it-IT', { timeStyle: 'short' })
 
   let fresh = $derived(Boolean(snapshot?.At) && now / 1000 - (snapshot?.At ?? 0) < 20)
   let channels = $derived(fresh ? snapshot?.Channels ?? [] : [])
@@ -61,7 +62,8 @@
     .sort((a, b) => a.Call.localeCompare(b.Call) || a.Kind.localeCompare(b.Kind)))
   let sessionsWidth = $state(0)
   let sessionPage = $state(1)
-  const pageSize = $derived(sessionsWidth < 560 ? 12 : sessionsWidth < 960 ? 20 : 30)
+  const sessionColumns = $derived(Math.min(10, Math.max(1, Math.floor((sessionsWidth - 24 + 4) / (113 + 4)))))
+  const pageSize = $derived(sessionColumns * 4)
   const pageCount = $derived(Math.max(1, Math.ceil(sessions.length / pageSize)))
   const currentPage = $derived(Math.min(sessionPage, pageCount))
   const visibleSessions = $derived(sessions.slice((currentPage - 1) * pageSize, currentPage * pageSize))
@@ -224,25 +226,25 @@
 
 <article class="glass-panel box users" aria-labelledby="active-users-title" bind:clientWidth={sessionsWidth}>
   <header class="box-head"><h2 id="active-users-title">Radioamatori collegati al tuo nodo</h2><span class="count">{fresh ? sessions.length : '—'}</span></header>
-  <p class="sub">Utenti connessi in questo momento via Telnet o dal web.</p>
   {#if !fresh}
     <p class="muted">Stato delle sessioni non disponibile.</p>
   {:else if visibleSessions.length}
-    <ul class="session-grid">
+    <p class="sub session-legend">T · Telnet <span aria-hidden="true">/</span> W · Web</p>
+    <ul class="session-grid" style:--session-columns={sessionColumns}>
       {#each visibleSessions as session (session.Call + ':' + session.Kind)}
         {@const flag = dxccFlags[session.DXCC ?? 0]}
         <li>
           <div class="session-call">
-            <span class="led" data-tone="green" aria-hidden="true"></span>
             {#if flag}
               {@const country = regionNames.of(flag.slice(0, 2).toUpperCase()) ?? flag.toUpperCase()}
-              <img src={'/flags/' + flag + '.svg'} alt={country} title={country} width="22" height="16" loading="lazy" />
+              <img src={'/flags/' + flag + '.svg'} alt={country} title={country} width="14" height="11" loading="lazy" />
             {/if}
             <strong title={session.Call}>{session.Call}</strong>
           </div>
-          <span class="tag" title={session.Kind === 'telnet' ? 'Telnet' : 'Web DXSpider'}>{session.Kind === 'telnet' ? 'Telnet' : 'Web'}</span>
+          <abbr class="tag" title={session.Kind === 'telnet' ? 'Telnet' : 'Web DXSpider'}>{session.Kind === 'telnet' ? 'T' : 'W'}</abbr>
           {#if session.Since > 0}
-            <time datetime={new Date(session.Since * 1000).toISOString()}>{time.format(new Date(session.Since * 1000))}</time>
+            {@const started = new Date(session.Since * 1000)}
+            <time datetime={started.toISOString()} title={time.format(started)}>{shortTime.format(started)}</time>
           {/if}
         </li>
       {/each}
@@ -355,14 +357,15 @@
   .partner-table .tag { white-space: nowrap; }
   .inbound { border-top: 3px solid #167b50; }
   .users { margin-top: 14px; border-top: 4px solid #2fa36b; }
-  .session-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 204px), 1fr)); gap: 4px 6px; padding: 0; margin: 0; list-style: none; }
-  .session-grid li { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 7px; border: 1px solid #cfdee7; border-radius: 6px; background: #ffffff60; white-space: nowrap; }
-  .session-call { display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; }
-  .session-call strong { overflow: hidden; text-overflow: ellipsis; font-size: .86rem; }
-  .session-call .led, .inbound .led { width: 7px; height: 7px; flex-basis: 7px; }
-  .session-call img { width: 18px; height: 13px; flex: none; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
-  .session-grid .tag { padding: 1px 5px; font-size: .73rem; }
-  .session-grid time { color: #485b6d; font-size: .73rem; font-variant-numeric: tabular-nums; }
+  .session-grid { display: grid; grid-template-columns: repeat(var(--session-columns), minmax(0, 1fr)); gap: 3px 4px; padding: 0; margin: 0; list-style: none; }
+  .session-grid li { display: flex; align-items: center; gap: 3px; min-width: 0; padding: 2px 2px; border: 1px solid #cfdee7; border-radius: 4px; background: #ffffff60; white-space: nowrap; }
+  .session-call { display: flex; align-items: center; gap: 3px; flex: 1; min-width: 0; }
+  .session-call strong { overflow: hidden; text-overflow: ellipsis; font-size: .75rem; }
+  .inbound .led { width: 7px; height: 7px; flex-basis: 7px; }
+  .session-call img { flex: none; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
+  .session-grid .tag { padding: 0 2px; font-size: .65rem; text-decoration: none; }
+  .session-grid time { color: #485b6d; font-size: .65rem; font-variant-numeric: tabular-nums; }
+  .session-legend { font-size: .72rem; margin: 2px 0 5px; }
   .pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: end; margin-top: 7px; font-size: .8rem; }
   .pagination button { min-height: 28px; padding: 2px 8px; }
 

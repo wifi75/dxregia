@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Preparare DXRegia 0.6.1 con dieci colonne e quattro righe per i radioamatori collegati su desktop.
+
 - [x] Preparare DXRegia 0.6.0 con il changelog e l’installazione aggiornata nelle sei lingue. Compattare la dashboard, mostrare fino a 30 sessioni per pagina su desktop, paginare i nodi partner e ripristinare le bandiere DXCC dopo l’aggiornamento dalla 0.5.0.
 
 - [x] Organizzare Propagazione con indici solari, condizioni HF giorno/notte e VHF di HamQSL e mappa MUF di KC2G a tutta larghezza.
