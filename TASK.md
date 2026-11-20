@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Organizzare Propagazione con indici solari, condizioni HF giorno/notte e VHF di HamQSL e mappa MUF di KC2G a tutta larghezza.
+
 - [x] Disporre le sessioni dei radioamatori in una griglia a tutta larghezza, con paginazione e bandiera DXCC del nominativo.
 
 - [x] Mostrare la propagazione osservata per area e banda. Aggiungere alla registrazione le istruzioni Telnet per sette logger in sei lingue. Rendere più compatta la tabella con colonna QSL e rimuovere Annunci, il filtro QSL e l’evidenziazione delle nuove entità.

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { t, locale } from './i18n.svelte'
   import PropagationMap from './PropagationMap.svelte'
+  import SolarConditions from './SolarConditions.svelte'
 
   type Bulletin = {
     At: number; Call: string; Text: string
@@ -14,6 +15,7 @@
     timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short',
   }))
   let request: AbortController | undefined
+  let showObserved = $state(false)
 
   async function refresh() {
     if (request) return
@@ -67,7 +69,11 @@
   </section>
 {/snippet}
 
-<PropagationMap />
+<SolarConditions />
+<details class="glass-panel solar observed-spots" bind:open={showObserved}>
+  <summary>{t('propTitle')}</summary>
+  {#if showObserved}<PropagationMap />{/if}
+</details>
 <details class="glass-panel solar">
   <summary>{t('propSolarBulletins')}</summary>
   <p class="intro">{t('propSolarIntro')}</p>
@@ -81,6 +87,8 @@
   .propagation { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 370px), 1fr)); align-items: start; gap: 12px; }
   .bulletins { padding: 16px; margin-bottom: 12px; }
   .solar { padding: 15px; }
+  .observed-spots { margin-bottom: 12px; }
+  .observed-spots summary { margin-bottom: 4px; }
   summary { cursor: pointer; font-weight: 750; color: #153a59; }
   .intro { margin: 0 0 12px; color: #456074; }
   .solar .intro { margin-top: 8px; }

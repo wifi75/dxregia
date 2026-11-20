@@ -379,3 +379,9 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 
 - In **Stato e sessioni** il riquadro dei radioamatori occupa tutta la larghezza sotto i nodi. L’elenco è ordinato per nominativo e paginato con 6 schede sulle larghezze ridotte e 12 alle larghezze maggiori. Ogni scheda conserva modalità e ora di collegamento. La bandiera usa il DXCC del nominativo ricavato da DXSpider e compare quando esiste nel catalogo.
 - La presenza continua a leggere le istantanee precedenti prive di DXCC. La migrazione aggiorna il modulo locale distribuito nella versione precedente. Verificati il mapping DXCC con il modulo Prefix di DXSpider, la build e i test Go. Provate in Edge griglia, bandiere, cambio pagina e layout a 390 e 1440 px con 15 sessioni dimostrative.
+
+## Condizioni solari e mappa MUF
+
+- **Propagazione** apre con gli indici solari, le condizioni HF giorno/notte e le condizioni VHF di HamQSL. DXRegia aggiorna il feed XML al massimo una volta all’ora, mantiene l’ultima copia valida e mostra l’ora UTC del fornitore. `DXREGIA_HAMQSL=off` disattiva il prelievo. [HamQSL, N0NBH](https://www.hamqsl.com/solar.html)
+- La mappa MUF a tutta larghezza usa il rendering originale di KC2G, caricato dal browser direttamente dalla fonte con crediti visibili. La mappa degli spot osservati e i bollettini WWV/WCY si aprono nelle due sezioni sotto la mappa MUF. [Descrizione e attribuzioni KC2G](https://prop.kc2g.com/about/)
+- Verificati parser e API con il feed reale, build Svelte e test Go. In Edge provati i due prospetti, la mappa KC2G reale, la vista a 390 e 1440 px e le due sezioni espandibili.

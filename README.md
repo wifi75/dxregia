@@ -44,7 +44,7 @@ At `/admin`, sysops can see Telnet and cluster status, partner link direction, a
 - **Easy to install** — one script on Debian or Ubuntu (systemd, amd64 or arm64), or Docker.
 
 - Save and compare spot views, explore DXCC and callsign history, and set local radio alerts that run while the portal is open.
-- **Observed propagation and QSL** — the public map shows recent spot activity by region and band, with WWV/WCY bulletins below. Live spots have a QSL column for LoTW and eQSL AG. The registration page explains how to connect by Telnet from seven documented loggers. Sysops can edit spot rules under Hop and filters.
+- **Propagation and QSL** — see HamQSL solar indices and HF day/night and VHF conditions, the KC2G MUF map, recent cluster spots by region and band, and WWV/WCY bulletins. Live spots have a QSL column for LoTW and eQSL AG. The registration page explains how to connect by Telnet from seven documented loggers. Sysops can edit spot rules under Hop and filters.
 
 ## Quick start
 

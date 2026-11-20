@@ -44,7 +44,7 @@ Unter `/admin` sehen Sysops den Status von Telnet und Cluster, die Richtung der 
 - **Einfach zu installieren** — ein Skript auf Debian oder Ubuntu (systemd, amd64 oder arm64) oder Docker.
 
 - Speichere und vergleiche Spot-Ansichten, nutze das DXCC-Verzeichnis und den Rufzeichenverlauf und richte Alarme bei geöffnetem Portal ein.
-- **Beobachtete Ausbreitung und QSL** — die öffentliche Karte zeigt aktuelle Spots nach Region und Band sowie WWV/WCY-Berichte. Die Spot-Tabelle hat eine QSL-Spalte für LoTW und eQSL AG. Die Registrierungsseite erklärt die Telnet-Verbindung mit sieben dokumentierten Loggern. Sysops bearbeiten Spot-Regeln unter Hops und Filter.
+- **Ausbreitung und QSL** — Sonnenindizes und HF-Tag/Nacht- und VHF-Bedingungen von HamQSL, die MUF-Karte von KC2G, aktuelle Spots nach Region und Band sowie WWV/WCY-Berichte. Die Spot-Tabelle hat eine QSL-Spalte für LoTW und eQSL AG. Die Registrierungsseite erklärt die Telnet-Verbindung mit sieben dokumentierten Loggern. Sysops bearbeiten Spot-Regeln unter Hops und Filter.
 
 ## Schnellstart
 

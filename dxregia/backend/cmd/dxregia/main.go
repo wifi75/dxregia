@@ -109,6 +109,7 @@ func main() {
 	registerTelnetOptions(mux, auth, *setupRoot)
 	spots := registerSpots(mux, *setupRoot, loadQSLDirectory(service, *setupRoot))
 	registerBulletins(mux, *setupRoot)
+	registerSolarConditions(service, mux, *setupRoot)
 	registerNodeHealth(service, mux, *setupRoot, auth, spots)
 	registerADXO(service, mux, *setupRoot)
 	registerEngineVersion(mux, *setupRoot)

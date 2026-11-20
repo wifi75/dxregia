@@ -44,7 +44,7 @@ Su `/admin`, il sysop vede lo stato di Telnet e del cluster, la direzione dei co
 - **Facile da installare** — un solo script su Debian o Ubuntu (systemd, amd64 o arm64), oppure Docker.
 
 - Salva e confronta le viste degli spot, consulta DXCC e cronologia per nominativo e imposta allarmi radio che funzionano mentre il portale è aperto.
-- **Propagazione osservata e QSL** — la mappa pubblica mostra gli spot recenti per area e banda, con i bollettini WWV/WCY sotto. La tabella spot ha una colonna QSL per LoTW ed eQSL AG. La registrazione spiega il collegamento Telnet da sette logger documentati. Il sysop modifica le regole spot in Hop e filtri.
+- **Propagazione e QSL** — consulta gli indici solari e le condizioni HF giorno/notte e VHF di HamQSL, la mappa MUF di KC2G, gli spot recenti per area e banda e i bollettini WWV/WCY. La tabella spot ha una colonna QSL per LoTW ed eQSL AG. La registrazione spiega il collegamento Telnet da sette logger documentati. Il sysop modifica le regole spot in Hop e filtri.
 
 ## Avvio rapido
 
