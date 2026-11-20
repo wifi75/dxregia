@@ -424,3 +424,4 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 ## 2026-11-20 — Paesi dei partner e degli spot RBN
 
 - La colonna Paese dei partner mostra bandiera e nome in base al DXCC del nominativo completo, anche senza una sessione attiva. La tabella RBN affianca bandiera e nome nella colonna DXCC come la tabella Spot. La pagina spiega il ruolo dello skimmer e la lettura di SNR e Q.
+- L’entità speciale ITU HQ (4U1ITU) è identificata con il simbolo ONU già presente negli asset e conserva il proprio nome DXCC.

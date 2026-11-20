@@ -233,7 +233,7 @@
         <li class:at-edge={(index + 1) % sessionColumns === 0}>
           <div class="session-call">
             {#if flag}
-              {@const country = dxccFlagName(flag, regionNames)}
+              {@const country = dxccFlagName(flag, regionNames, session.DXCC)}
               <span class="session-flag">
                 <img src={'/flags/' + flag + '.svg'} alt={country} width="17" height="12" loading="lazy" />
                 <span class="flag-name" aria-hidden="true">{country}</span>

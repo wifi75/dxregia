@@ -470,7 +470,7 @@
           <tbody>
             {#each (onlyInbound ? inboundPartners : sortedPartners) as partner (partner.Call)}
               {@const flag = dxccFlags[partner.DXCC ?? 0]}
-              {@const country = flag ? dxccFlagName(flag, regionNames) : '—'}
+              {@const country = flag ? dxccFlagName(flag, regionNames, partner.DXCC) : '—'}
               {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in DXSpider' : partner.InboundTestUntil && partner.Connection !== 'Attivo' ? 'Prova in ingresso' : connectionLabel(partner.Connection)}
               <tr class:current={selected?.Call === partner.Call}>
                 <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>

@@ -1,4 +1,4 @@
-// Bandiera (codice flag-icons, MIT) per ogni entità DXCC. Le entità senza paese (ITU, ONU, ecc.) non hanno bandiera.
+// Bandiere delle entità DXCC (flag-icons, MIT). Per la sede ITU si usa il simbolo ONU.
 export const dxccFlags: Record<number, string> = {
   1: 'bw',
   2: 'to',
@@ -268,6 +268,7 @@ export const dxccFlags: Record<number, string> = {
   280: 'gn',
   281: 'bv',
   282: 'lk',
+  283: 'un',
   284: 'un',
   286: 'il',
   287: 'ly',
@@ -341,6 +342,7 @@ const ukFlagNames: Record<string, string> = {
   'gb-eng': 'Inghilterra', 'gb-nir': 'Irlanda del Nord', 'gb-sct': 'Scozia', 'gb-wls': 'Galles',
 }
 
-export function dxccFlagName(flag: string, regionNames: Intl.DisplayNames) {
+export function dxccFlagName(flag: string, regionNames: Intl.DisplayNames, dxcc?: number) {
+  if (dxcc === 283) return 'ITU HQ'
   return ukFlagNames[flag] ?? regionNames.of(flag.toUpperCase()) ?? flag.toUpperCase()
 }

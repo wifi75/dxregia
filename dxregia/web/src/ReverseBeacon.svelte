@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { bandFor } from './spotTools'
   import { locale, t } from './i18n.svelte'
-  import { dxccFlags } from './dxccFlags'
+  import { dxccFlags, dxccFlagName } from './dxccFlags'
 
   type Spot = { Call: string; Skimmer: string; Mode: 'CW' | 'RTTY'; Frequency: number; At: number; SNR: number; Quality: number; DXCC?: number }
   type Feed = { Enabled: boolean; State: 'disabled' | 'waiting' | 'connecting' | 'connected' | 'conflict' | 'error'; Spots: Spot[] }
@@ -91,7 +91,7 @@
           <tbody>
             {#each spots as spot}
               {@const flag = dxccFlags[spot.DXCC ?? 0]}
-              {@const country = flag ? regionNames.of(flag.slice(0, 2).toUpperCase()) : undefined}
+              {@const country = flag ? dxccFlagName(flag.slice(0, 2), regionNames, spot.DXCC) : undefined}
               {@const band = bandFor(spot.Frequency)}
               <tr>
                 <td><time datetime={new Date(spot.At * 1000).toISOString()}>{stamp.format(spot.At * 1000)}</time></td>
