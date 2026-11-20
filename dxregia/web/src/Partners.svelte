@@ -466,7 +466,7 @@
     {:else}
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Indicativo</th><th scope="col">Bandiera</th><th scope="col">Paese</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
+          <thead><tr><th>Indicativo</th><th scope="col">Paese</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
           <tbody>
             {#each (onlyInbound ? inboundPartners : sortedPartners) as partner (partner.Call)}
               {@const flag = dxccFlags[partner.DXCC ?? 0]}
@@ -474,8 +474,10 @@
               {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in DXSpider' : partner.InboundTestUntil && partner.Connection !== 'Attivo' ? 'Prova in ingresso' : connectionLabel(partner.Connection)}
               <tr class:current={selected?.Call === partner.Call}>
                 <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
-                <td>{#if flag}<img class="partner-flag" src={'/flags/' + flag + '.svg'} alt="" title={country} width="22" height="16" loading="lazy" />{:else}—{/if}</td>
-                <td>{country}</td>
+                <td><span class="partner-country">
+                  {#if flag}<img src={'/flags/' + flag + '.svg'} alt="" width="22" height="16" loading="lazy" />{/if}
+                  <span>{country}</span>
+                </span></td>
                 <td>{partner.Name || '—'}</td>
                 <td>{partner.Contact || '—'}</td>
                 <td>
@@ -822,7 +824,8 @@
   table { width: 100%; text-align: left; border-collapse: collapse; white-space: nowrap; }
   th, td { padding: 5px 8px; border-bottom: 1px solid #d7dfe7; }
   th { background: #edf3f9; }
-  .partner-flag { display: block; object-fit: cover; border: 1px solid #17384c26; border-radius: 2px; }
+  .partner-country { display: inline-flex; align-items: center; gap: 8px; }
+  .partner-country img { flex: none; object-fit: cover; border: 1px solid #17384c26; border-radius: 2px; }
   tr.current td { background: #e4eef7; }
   .detail { margin-top: 18px; display: grid; gap: 14px; }
   .detail-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; }

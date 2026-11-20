@@ -423,4 +423,4 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 
 ## 2026-11-20 — Paesi dei partner e degli spot RBN
 
-- Le colonne Bandiera e Paese dei partner usano il DXCC del nominativo completo, anche senza una sessione attiva. La tabella RBN mostra il prefisso DXCC, la bandiera e il paese della stazione rilevata. La pagina spiega il ruolo dello skimmer e la lettura di SNR e Q.
+- La colonna Paese dei partner mostra bandiera e nome in base al DXCC del nominativo completo, anche senza una sessione attiva. La tabella RBN mostra il prefisso DXCC, la bandiera e il paese della stazione rilevata. La pagina spiega il ruolo dello skimmer e la lettura di SNR e Q.
