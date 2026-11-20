@@ -6,9 +6,8 @@
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
   type Channel = { Call: string; Kind: string; State: string; Since: number; Outbound?: boolean; DXCC?: number }
   type Snapshot = { At: number; Channels: Channel[] | null }
-  type ResourcePoint = { At: number; DiskUsed: number; DiskTotal: number; MemoryUsed: number; MemoryTotal: number }
   type NodeHealth = {
-    MemoryFreeBytes: number; MemoryTotalBytes: number; MemoryAvailable: boolean; Resources?: ResourcePoint[]
+    MemoryFreeBytes: number; MemoryTotalBytes: number; MemoryAvailable: boolean
 
     LogBytes: number; FreeBytes: number; TotalBytes: number; GrowthBytes: number
     GrowthIntervalSeconds: number; DiskAvailable: boolean; LogsAvailable: boolean
@@ -32,15 +31,6 @@
   function size(bytes: number) {
     const unit = Math.abs(bytes) >= 1024 ** 3 ? 3 : Math.abs(bytes) >= 1024 ** 2 ? 2 : Math.abs(bytes) >= 1024 ? 1 : 0
     return number.format(bytes / 1024 ** unit) + ' ' + ['B', 'KiB', 'MiB', 'GiB'][unit]
-  }
-  const diskHistory = $derived((nodeHealth?.Resources ?? []).filter(point => point.DiskTotal > 0))
-  const memoryHistory = $derived((nodeHealth?.Resources ?? []).filter(point => point.MemoryTotal > 0))
-  const percent = (used: number, total: number) => total > 0 ? Math.min(100, Math.max(0, used / total * 100)) : 0
-  function series(history: ResourcePoint[], kind: 'Disk' | 'Memory') {
-    const start = history[0]?.At ?? 0
-    const elapsed = Math.max(1, (history.at(-1)?.At ?? start) - start)
-    return history.map(point => ((point.At - start) / elapsed * 480).toFixed(1) + ',' +
-      (64 - percent(point[kind + 'Used' as 'DiskUsed' | 'MemoryUsed'], point[kind + 'Total' as 'DiskTotal' | 'MemoryTotal']) * .60).toFixed(1)).join(' ')
   }
   const since = (at: number, current: number) => at > 0 && at <= current / 1000
     ? Math.floor(current / 1000 - at) + ' s' : '—'
@@ -260,32 +250,29 @@
   {/if}
 {/snippet}
 
-<section class="server-resources" aria-label="Risorse del server">
-  {#snippet resource(title: string, free: number, total: number, history: ResourcePoint[], kind: 'Disk' | 'Memory')}
-    <article class="glass-panel box resource">
-      <h2>{title}</h2>
+<section class="glass-panel server-resources" aria-label="Risorse del server">
+  {#snippet resource(title: string, free: number, total: number, kind: 'disk' | 'memory')}
+    {@const used = Math.max(0, total - free)}
+    {@const usage = total > 0 ? Math.min(100, used / total * 100) : 0}
+    <article class="resource" data-kind={kind}>
       {#if total > 0}
-        {@const used = Math.max(0, total - free)}
-        <div class="usage-head"><strong>{number.format(percent(used, total))}%</strong><span>{size(used)} / {size(total)}</span></div>
-        <meter aria-label={title} min="0" max={total} value={used}></meter>
-        <p>{size(free)} <span>disponibili</span></p>
-        {#if history.length > 1}
-          <svg viewBox="0 0 480 68" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0 4H480 M0 34H480 M0 64H480" class="guides" />
-            <polyline points={series(history, kind)} vector-effect="non-scaling-stroke" />
-          </svg>
-          <div class="usage-range"><time datetime={new Date(history[0].At * 1000).toISOString()}>{time.format(new Date(history[0].At * 1000))}</time>
-            <time datetime={new Date(history.at(-1)!.At * 1000).toISOString()}>{time.format(new Date(history.at(-1)!.At * 1000))}</time></div>
-        {:else}
-          <small>Il grafico si aggiorna ogni 30 secondi.</small>
-        {/if}
-      {:else}
-        <p>Misura non disponibile.</p>
+        <div class="resource-ring" role="meter" aria-label={title} aria-valuemin={0} aria-valuemax={100}
+          aria-valuenow={usage} aria-valuetext={number.format(usage) + '%'} style:--usage={usage + '%'}>
+          <strong>{number.format(usage)}%</strong>
+        </div>
       {/if}
+      <div class="resource-details">
+        <h2>{title}</h2>
+        {#if total > 0}
+          <p><strong>{size(used)} / {size(total)}</strong><span class="resource-free">{size(free)} <span>disponibili</span></span></p>
+        {:else}
+          <p>Misura non disponibile.</p>
+        {/if}
+      </div>
     </article>
   {/snippet}
-  {@render resource('Disco · volume dati', nodeHealth?.FreeBytes ?? 0, nodeHealth?.DiskAvailable ? nodeHealth.TotalBytes : 0, diskHistory, 'Disk')}
-  {@render resource('Memoria RAM', nodeHealth?.MemoryFreeBytes ?? 0, nodeHealth?.MemoryAvailable ? nodeHealth.MemoryTotalBytes : 0, memoryHistory, 'Memory')}
+  {@render resource('Disco · volume dati', nodeHealth?.FreeBytes ?? 0, nodeHealth?.DiskAvailable ? nodeHealth.TotalBytes : 0, 'disk')}
+  {@render resource('Memoria RAM', nodeHealth?.MemoryFreeBytes ?? 0, nodeHealth?.MemoryAvailable ? nodeHealth.MemoryTotalBytes : 0, 'memory')}
 </section>
 
 <article class="glass-panel box diagnostics">
@@ -306,20 +293,23 @@
 </article>
 
 <style>
-  .server-resources { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 14px; margin-top: 14px; }
-  .usage-head, .usage-range { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .usage-head strong { font-size: 1.45rem; font-variant-numeric: tabular-nums; }
-  .resource p { margin: .35rem 0 .6rem; }
-  meter { display: block; width: 100%; height: .65rem; accent-color: #227392; }
-  .resource svg { display: block; width: 100%; height: 68px; color: #227392; }
-  .resource svg > * { stroke: currentColor; fill: none; stroke-width: 2; }
-  .resource svg .guides { opacity: .24; stroke-width: 1; }
-  .usage-range, .resource small { font-size: .8rem; }
-  .diagnostics { margin-top: 14px; }
-  .diagnostics dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 14px; margin: 12px 0 0; }
-  .diagnostics dt { color: #485b6d; font-size: .86rem; }
-  .diagnostics dd { margin: 4px 0 0; font-weight: 700; }
-  .diagnostics small { display: block; font-weight: 400; }
+  .server-resources { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; padding: 7px 12px; }
+  .resource { display: flex; align-items: center; min-height: 50px; gap: 9px; min-width: 0; --resource-accent: #2674a3; }
+  .resource[data-kind=memory] { --resource-accent: #15815a; border-inline-start: 1px solid var(--glass-line); padding-inline-start: 12px; }
+  .resource-ring { position: relative; display: grid; place-items: center; flex: 0 0 50px; aspect-ratio: 1; font-size: .75rem; font-variant-numeric: tabular-nums; }
+  .resource-ring::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--resource-accent) var(--usage), #c6dbe6 0); mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px)); }
+  .resource h2, .diagnostics h2 { margin: 0 0 3px; font-size: .95rem; }
+  .resource p { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 9px; margin: 0; font-size: .81rem; }
+  .resource-free { color: #485b6d; }
+  .diagnostics.box { margin-top: 10px; padding: 7px 12px; }
+  .diagnostics dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 145px), 1fr)); gap: 5px 10px; margin: 5px 0 0; }
+  .diagnostics dt { color: #485b6d; font-size: .79rem; }
+  .diagnostics dd { margin: 1px 0 0; font-size: .82rem; font-weight: 700; }
+  .diagnostics small { display: inline-block; margin-inline-start: 4px; font-weight: 400; }
+  @media (max-width: 650px) {
+    .server-resources { grid-template-columns: 1fr; gap: 6px; }
+    .resource[data-kind=memory] { border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--glass-line); padding-top: 6px; }
+  }
 
   .blocked, .blocked a { color: #9d2027; font-weight: 700; }
   .heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }

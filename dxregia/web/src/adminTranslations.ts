@@ -29,6 +29,11 @@ export const adminRows: string[][] = [
   ["Le regole create dalla console si possono consultare o eliminare qui.", "Rules created in the console can be viewed or deleted here.", "Aquí puedes consultar o eliminar las reglas creadas en la consola.", "In der Konsole erstellte Regeln lassen sich hier anzeigen oder löschen.", "Les règles créées depuis la console peuvent être consultées ou supprimées ici.", "Aqui pode consultar ou eliminar as regras criadas na consola."],
   // Diagnostica del nodo
   ['Diagnostica del nodo', 'Node diagnostics', 'Diagnóstico del nodo', 'Knotendiagnose', 'Diagnostic du nœud', 'Diagnóstico do nó'],
+  ['Risorse del server', 'Server resources', 'Recursos del servidor', 'Serverressourcen', 'Ressources du serveur', 'Recursos do servidor'],
+  ['Disco · volume dati', 'Disk · data volume', 'Disco · volumen de datos', 'Datenträger · Datenvolume', 'Disque · volume de données', 'Disco · volume de dados'],
+  ['Memoria RAM', 'RAM', 'Memoria RAM', 'Arbeitsspeicher', 'Mémoire vive', 'Memória RAM'],
+  ['disponibili', 'available', 'disponibles', 'verfügbar', 'disponibles', 'disponíveis'],
+  ['Misura non disponibile.', 'Measurement unavailable.', 'Medición no disponible.', 'Messwert nicht verfügbar.', 'Mesure indisponible.', 'Medição indisponível.'],
   ['Ritardo aggiornamento sessioni', 'Session refresh delay', 'Retraso de actualización de sesiones', 'Verzögerung beim Sitzungsupdate', 'Délai de mise à jour des sessions', 'Atraso na atualização das sessões'],
   ['Spazio libero sul volume dati', 'Free space on the data volume', 'Espacio libre en el volumen de datos', 'Freier Speicher auf dem Datenvolume', 'Espace libre sur le volume de données', 'Espaço livre no volume de dados'],
   ['Log e storico email', 'Logs and email history', 'Registros e historial de correo', 'Protokolle und E-Mail-Verlauf', 'Journaux et historique des e-mails', 'Registos e histórico de e-mail'],

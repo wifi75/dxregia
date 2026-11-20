@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-11-20
+
+### Changed
+
+- Combine disk and RAM usage into one compact row on the node dashboard. Each resource has a ring chart for current usage and shows used, total and available space. Reduce the height of the diagnostics panel.
+
 ## [0.6.2] - 2026-11-20
 
 ### Changed
