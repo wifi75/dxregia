@@ -15,8 +15,8 @@
 **Pacote pré-compilado.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.1/dxregia/deploy/install-release.sh
-sh install-release.sh v0.6.1
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.2/dxregia/deploy/install-release.sh
+sh install-release.sh v0.6.2
 ```
 
 O script verifica a soma SHA-256, instala as dependências e inicia o serviço. Mostra o endereço do painel e uma palavra-passe temporária para o primeiro acesso.
@@ -153,8 +153,8 @@ O registo do motor também está em Nó → Registo DXSpider (Log DXSpider).
 - [Operações do sysop](OPERATIONS.md) (em italiano)
 - [Registo de alterações](../CHANGELOG.md) (em inglês)
 
-## DXRegia 0.6.1
+## DXRegia 0.6.2
 
-A página de propagação mostra os índices solares do HamQSL, as condições HF diurnas e noturnas, a atividade VHF, o mapa MUF do KC2G e a atividade observada nos spots DX. O registo público explica como configurar o Telnet em sete programas de log. O painel do sysop mostra os radioamadores ligados com bandeiras DXCC e paginação.
+A página de propagação mostra os índices solares do HamQSL em cartões quadrados e coloridos, as condições HF diurnas e noturnas, a atividade VHF e o mapa MUF do KC2G. O registo público explica como configurar o Telnet em sete programas de log. O painel do sysop mostra até 40 radioamadores ligados por página em ecrãs largos, com bandeiras DXCC.
 
-[DXRegia 0.6.1](https://github.com/wifi75/dxregia/releases/tag/v0.6.1)
+[DXRegia 0.6.2](https://github.com/wifi75/dxregia/releases/tag/v0.6.2)

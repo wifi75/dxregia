@@ -333,12 +333,12 @@
   </div>
   {#if researchOpened}<div hidden={activePage !== 'research'}><SpotResearch {spots} /></div>{/if}
   {#if activePage === 'propagation'}
-    {#await import('./ClusterBulletins.svelte')}
+    {#await import('./SolarConditions.svelte')}
       <p role="status">{t('loading')}</p>
     {:then section}
       <section.default />
     {:catch}
-      <p role="status">{t('bulletinsUnavailable')}</p>
+      <p role="status">{t('solarUnavailable')}</p>
     {/await}
   {/if}
   <div hidden={activePage !== 'feed'}>

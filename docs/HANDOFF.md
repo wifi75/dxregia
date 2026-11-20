@@ -395,3 +395,8 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 ## 2026-11-20 — Release 0.6.1
 
 - La griglia dei radioamatori mostra quattro righe per pagina e dieci colonne su desktop ampio. Su schermi più stretti riduce le colonne in base allo spazio disponibile.
+
+## 2026-11-20 — Release 0.6.2
+
+- Il riquadro dei radioamatori conserva la bandiera e il tipo di accesso. I nominativi sono più grandi e il tema scuro usa testo bianco. L’orario resta disponibile negli altri riquadri delle sessioni.
+- La pagina Propagazione mostra le schede quadrate e colorate di HamQSL, le previsioni HF e VHF e la mappa MUF di KC2G. I riquadri Bollettini e Propagazione osservata sono stati rimossi dalla vista pubblica.

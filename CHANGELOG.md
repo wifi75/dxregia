@@ -4,6 +4,13 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-11-20
+
+### Changed
+
+- Make the connected radio amateurs grid easier to read with larger callsigns and DXCC flags, white text in dark mode and no per-station clock. The desktop grid retains ten columns and four rows per page.
+- Show the solar and radio indices on square, color-coded cards. The public Propagation page focuses on solar conditions, HF forecasts, VHF and the real-time MUF map.
+
 ## [0.6.1] - 2026-11-20
 
 ### Changed

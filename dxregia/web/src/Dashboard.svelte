@@ -52,7 +52,6 @@
   }
 
   const time = new Intl.DateTimeFormat('it-IT', { timeStyle: 'medium' })
-  const shortTime = new Intl.DateTimeFormat('it-IT', { timeStyle: 'short' })
 
   let fresh = $derived(Boolean(snapshot?.At) && now / 1000 - (snapshot?.At ?? 0) < 20)
   let channels = $derived(fresh ? snapshot?.Channels ?? [] : [])
@@ -237,15 +236,11 @@
           <div class="session-call">
             {#if flag}
               {@const country = regionNames.of(flag.slice(0, 2).toUpperCase()) ?? flag.toUpperCase()}
-              <img src={'/flags/' + flag + '.svg'} alt={country} title={country} width="14" height="11" loading="lazy" />
+              <img src={'/flags/' + flag + '.svg'} alt={country} title={country} width="17" height="12" loading="lazy" />
             {/if}
             <strong title={session.Call}>{session.Call}</strong>
           </div>
           <abbr class="tag" title={session.Kind === 'telnet' ? 'Telnet' : 'Web DXSpider'}>{session.Kind === 'telnet' ? 'T' : 'W'}</abbr>
-          {#if session.Since > 0}
-            {@const started = new Date(session.Since * 1000)}
-            <time datetime={started.toISOString()} title={time.format(started)}>{shortTime.format(started)}</time>
-          {/if}
         </li>
       {/each}
     </ul>
@@ -356,16 +351,25 @@
   .partner-state .led { width: 8px; height: 8px; flex-basis: 8px; }
   .partner-table .tag { white-space: nowrap; }
   .inbound { border-top: 3px solid #167b50; }
-  .users { margin-top: 14px; border-top: 4px solid #2fa36b; }
+  .users { margin-top: 14px; border-top: 4px solid #2fa36b; container-type: inline-size; }
   .session-grid { display: grid; grid-template-columns: repeat(var(--session-columns), minmax(0, 1fr)); gap: 3px 4px; padding: 0; margin: 0; list-style: none; }
-  .session-grid li { display: flex; align-items: center; gap: 3px; min-width: 0; padding: 2px 2px; border: 1px solid #cfdee7; border-radius: 4px; background: #ffffff60; white-space: nowrap; }
-  .session-call { display: flex; align-items: center; gap: 3px; flex: 1; min-width: 0; }
-  .session-call strong { overflow: hidden; text-overflow: ellipsis; font-size: .75rem; }
+  .session-grid li { display: flex; align-items: center; gap: 4px; min-width: 0; min-height: 29px; padding: 3px 4px; border: 1px solid #b9d0df; border-radius: 5px; background: #f6fbfe; white-space: nowrap; }
+  .session-call { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
+  .session-call strong { overflow: hidden; text-overflow: ellipsis; font-size: .875rem; }
   .inbound .led { width: 7px; height: 7px; flex-basis: 7px; }
   .session-call img { flex: none; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
-  .session-grid .tag { padding: 0 2px; font-size: .65rem; text-decoration: none; }
-  .session-grid time { color: #485b6d; font-size: .65rem; font-variant-numeric: tabular-nums; }
-  .session-legend { font-size: .72rem; margin: 2px 0 5px; }
+  .session-grid .tag { padding: 0 3px; font-size: .75rem; text-decoration: none; }
+  .session-legend { font-size: .78rem; margin: 2px 0 6px; }
+  /* The global dark theme inverts these colors after compositing. */
+  :global(html[data-theme=dark]) .users { color: #000; }
+  :global(html[data-theme=dark]) .session-grid li { background: #e1edf4; border-color: #98b3c7; }
+  :global(html[data-theme=dark]) .session-grid .tag { color: #000; background: #c7dfef; }
+  :global(html[data-theme=dark]) .session-legend { color: #000; }
+  @container (min-width: 1320px) {
+    .session-grid li { min-height: 31px; padding-inline: 6px; }
+    .session-call strong { font-size: .9375rem; }
+    .session-call img { width: 19px; height: 14px; }
+  }
   .pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: end; margin-top: 7px; font-size: .8rem; }
   .pagination button { min-height: 28px; padding: 2px 8px; }
 

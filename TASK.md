@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Preparare DXRegia 0.6.2 con nominativi più grandi, testo bianco nel tema scuro e griglia dei radioamatori senza orari. Rendere quadrate e colorate le schede delle condizioni solari e rimuovere i riquadri Bollettini e Propagazione osservata dalla vista pubblica.
+
 - [x] Preparare DXRegia 0.6.1 con dieci colonne e quattro righe per i radioamatori collegati su desktop.
 
 - [x] Preparare DXRegia 0.6.0 con il changelog e l’installazione aggiornata nelle sei lingue. Compattare la dashboard, mostrare fino a 30 sessioni per pagina su desktop, paginare i nodi partner e ripristinare le bandiere DXCC dopo l’aggiornamento dalla 0.5.0.

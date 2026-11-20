@@ -15,8 +15,8 @@
 **Prebuilt release.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.1/dxregia/deploy/install-release.sh
-sh install-release.sh v0.6.1
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.2/dxregia/deploy/install-release.sh
+sh install-release.sh v0.6.2
 ```
 
 The script verifies the SHA-256 checksum, installs runtime dependencies and starts the service. It prints the panel address and a temporary password for the first sign-in.
@@ -153,8 +153,8 @@ The engine log is also in Node → DXSpider log (Log DXSpider).
 - [Sysop operations](OPERATIONS.md) (Italian)
 - [Changelog](../CHANGELOG.md)
 
-## DXRegia 0.6.1
+## DXRegia 0.6.2
 
-Propagation shows HamQSL solar indices, daytime and nighttime HF conditions, VHF activity, the KC2G MUF map and activity observed in DX spots. The public registration page explains Telnet setup for seven loggers. The sysop dashboard shows connected radio amateurs with DXCC flags and pagination.
+Propagation shows HamQSL solar indices on square, color-coded cards, daytime and nighttime HF conditions, VHF activity and the KC2G MUF map. The public registration page explains Telnet setup for seven loggers. The sysop dashboard shows up to 40 connected radio amateurs per page on wide screens, with DXCC flags.
 
-[DXRegia 0.6.1](https://github.com/wifi75/dxregia/releases/tag/v0.6.1)
+[DXRegia 0.6.2](https://github.com/wifi75/dxregia/releases/tag/v0.6.2)

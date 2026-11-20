@@ -15,8 +15,8 @@
 **Paquet précompilé.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.1/dxregia/deploy/install-release.sh
-sh install-release.sh v0.6.1
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.2/dxregia/deploy/install-release.sh
+sh install-release.sh v0.6.2
 ```
 
 Le script vérifie la somme SHA-256, installe les dépendances et démarre le service. Il affiche l’adresse du panneau et un mot de passe temporaire pour la première connexion.
@@ -153,8 +153,8 @@ Le journal du moteur est aussi dans Nœud → Journal DXSpider (Log DXSpider).
 - [Opérations du sysop](OPERATIONS.md) (en italien)
 - [Journal des modifications](../CHANGELOG.md) (en anglais)
 
-## DXRegia 0.6.1
+## DXRegia 0.6.2
 
-La page Propagation affiche les indices solaires de HamQSL, les conditions HF de jour et de nuit, l’activité VHF, la carte MUF de KC2G et l’activité observée dans les spots DX. L’inscription publique explique comment configurer Telnet dans sept logiciels de carnet de trafic. Le tableau de bord sysop affiche les radioamateurs connectés avec leurs drapeaux DXCC et une pagination.
+La page Propagation affiche les indices solaires de HamQSL dans des cartes carrées et colorées, les conditions HF de jour et de nuit, l’activité VHF et la carte MUF de KC2G. L’inscription publique explique comment configurer Telnet dans sept logiciels de carnet de trafic. Le tableau de bord sysop affiche jusqu’à 40 radioamateurs connectés par page sur les grands écrans, avec leurs drapeaux DXCC.
 
-[DXRegia 0.6.1](https://github.com/wifi75/dxregia/releases/tag/v0.6.1)
+[DXRegia 0.6.2](https://github.com/wifi75/dxregia/releases/tag/v0.6.2)

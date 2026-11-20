@@ -156,14 +156,26 @@
   footer { border-top: 1px solid #c4d8e3; margin-top: 12px; padding-top: 8px; }
   a { color: #175c82; font-weight: 650; }
   .overview-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-  .metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,118px),1fr)); gap: 8px; margin: 0; }
-  .metrics > div { display: flex; flex-direction: column; min-height: 78px; padding: 9px 10px; border: 1px solid #c5d9e5; border-top: 3px solid #32759b; border-radius: 8px; background: #f9fcffbb; }
-  .metrics > div[data-group=solar] { border-top-color: #bd821e; }
-  .metrics > div[data-group=geo] { border-top-color: #2c766d; }
-  .metrics > div[data-group=vhf] { border-top-color: #934c87; }
-  dt { color: #456074; font-size: .77rem; }
-  dd { order: -1; margin: 0 0 2px; color: #163c53; font-size: 1.3rem; font-weight: 800; overflow-wrap: anywhere; }
-  dd.text-reading { font-size: 1.02rem; line-height: 1.35; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 100px), 1fr)); gap: 8px; margin: 0; }
+  .metrics > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    aspect-ratio: 1;
+    padding: 8px;
+    border-radius: 4px;
+    background: #21618c;
+    color: #fff;
+    box-shadow: inset 0 0 0 1px #0002;
+  }
+  .metrics > div[data-group=solar] { background: #ffcd66; color: #33200b; }
+  .metrics > div[data-group=geo] { background: #146951; }
+  .metrics > div[data-group=vhf] { background: #8a3e70; }
+  :global(html[data-theme=dark]) .metrics > div { filter: invert(1) hue-rotate(180deg); }
+  dt { font-size: .77rem; line-height: 1.25; overflow-wrap: anywhere; }
+  dd { order: -1; margin: 0 0 4px; font-size: 1.3rem; line-height: 1.15; font-weight: 800; overflow-wrap: anywhere; }
+  dd.text-reading { font-size: .94rem; }
   dd small { font-size: .72rem; font-weight: 600; }
   .conditions { display: grid; gap: 12px; min-width: 0; }
   table { width: 100%; border-collapse: collapse; font-size: .85rem; }
@@ -177,8 +189,10 @@
   .reading[data-tone=poor] { background: #f8dddd; color: #832d33; }
   .map-link, img { display: block; width: 100%; height: auto; border-radius: 8px; }
   @media (min-width: 1100px) {
-    .overview-grid { align-items: stretch; }
-    .metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: 1fr; }
+    .metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   }
   @media (max-width: 900px) { .overview-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) {
+    .metrics { grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); }
+  }
 </style>
