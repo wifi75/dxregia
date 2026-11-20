@@ -62,7 +62,11 @@
   }
   $effect(() => { if (fresh && sessionPage > pageCount) sessionPage = pageCount })
   let partnerCalls = $derived(Object.keys(directory).sort())
-  const partnerRows = $derived([...new Set([...partnerCalls, ...nodes.map(node => node.Call)])].sort())
+  const activeNodeCalls = $derived(new Set(nodes
+    .filter(node => node.State === 'normal' && !directory[node.Call]?.Locked)
+    .map(node => node.Call)))
+  const partnerRows = $derived([...new Set([...partnerCalls, ...nodes.map(node => node.Call)])]
+    .sort((a, b) => Number(activeNodeCalls.has(b)) - Number(activeNodeCalls.has(a)) || a.localeCompare(b)))
   let partnerPage = $state(1)
   const partnersPerPage = 8
   const partnerPageCount = $derived(Math.max(1, Math.ceil(partnerRows.length / partnersPerPage)))
@@ -70,7 +74,7 @@
   const visiblePartners = $derived(partnerRows.slice((currentPartnerPage - 1) * partnersPerPage, currentPartnerPage * partnersPerPage))
   $effect(() => { if (fresh && partnerPage > partnerPageCount) partnerPage = partnerPageCount })
   let lockedCalls = $derived(partnerCalls.filter(call => directory[call].Locked))
-  let connected = $derived(partnerCalls.filter(call => nodes.some(node => node.Call === call && node.State === 'normal')))
+  let connected = $derived(partnerCalls.filter(call => activeNodeCalls.has(call)))
   let listener = $derived<{ tone: Tone; title: string; detail: string }>(
     failed ? { tone: 'red', title: 'Non verificabile', detail: 'Il pannello non risponde.' }
       : !status ? { tone: 'neutral', title: 'Verifica…', detail: 'Interrogazione in corso.' }
