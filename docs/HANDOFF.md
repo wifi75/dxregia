@@ -419,3 +419,4 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 - La dashboard spiega che DXSpider può creare già bloccati gli account locali per i nodi appresi dalla rete. Il sysop verifica il blocco dalla scheda del partner prima di preparare l’uscita.
 - La scelta di accesso senza password tramite IP o DNS è disponibile anche per i partner DXSpider preparati. Un account bloccato o senza credenziale locale per DXSpider deve essere preparato prima. L’invio dei soli dati pubblici è disponibile a parte.
 - Verificati il salvataggio via API, il rifiuto di account non idonei e di indirizzi diversi da quello autorizzato, e il percorso del pulsante di invio con SMTP simulato in Chromium.
+- La tabella Nodi partner mostra prima i collegamenti attivi e ordina i gruppi per indicativo. L’ordinamento si aggiorna insieme allo stato delle sessioni.

@@ -10,8 +10,11 @@
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   let partners = $state<Partner[]>([])
+  const isOnline = (partner: Partner) => !partner.Locked && partner.Connection === 'Attivo'
+  const sortedPartners = $derived(partners.toSorted((a, b) =>
+    Number(isOnline(b)) - Number(isOnline(a)) || a.Call.localeCompare(b.Call)))
   let onlyInbound = $state(false)
-  let inboundPartners = $derived(partners.filter(partner => partner.Connection === 'Attivo' && partner.Direction === 'Ingresso'))
+  let inboundPartners = $derived(sortedPartners.filter(partner => isOnline(partner) && partner.Direction === 'Ingresso'))
   let selected = $state<Partner>()
   let form = $state<Details>(empty())
   let editing = $state(false)
@@ -462,7 +465,7 @@
         <table>
           <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
           <tbody>
-            {#each (onlyInbound ? inboundPartners : partners).toSorted((a, b) => a.Call.localeCompare(b.Call)) as partner (partner.Call)}
+            {#each (onlyInbound ? inboundPartners : sortedPartners) as partner (partner.Call)}
               {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in DXSpider' : partner.InboundTestUntil && partner.Connection !== 'Attivo' ? 'Prova in ingresso' : connectionLabel(partner.Connection)}
               <tr class:current={selected?.Call === partner.Call}>
                 <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>

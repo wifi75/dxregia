@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Ordinare automaticamente la tabella Nodi partner con i nodi attivi in cima e ordine alfabetico per indicativo dentro ciascun gruppo.
+
 - [x] Offrire ai partner DXSpider già preparati e sbloccati la scelta di accesso in ingresso senza password tramite IP o DNS autorizzato e l’invio delle relative istruzioni.
 
 - [x] Chiarire nella dashboard che gli account locali dei partner possono essere già bloccati da DXSpider quando il nodo viene appreso dalla rete.
