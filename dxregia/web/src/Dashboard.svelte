@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { dxccFlags } from './dxccFlags'
+  import { lang } from './i18n.svelte'
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
-  type Channel = { Call: string; Kind: string; State: string; Since: number; Outbound?: boolean }
+  type Channel = { Call: string; Kind: string; State: string; Since: number; Outbound?: boolean; DXCC?: number }
   type Snapshot = { At: number; Channels: Channel[] | null }
   type ResourcePoint = { At: number; DiskUsed: number; DiskTotal: number; MemoryUsed: number; MemoryTotal: number }
   type NodeHealth = {
@@ -55,7 +57,16 @@
   let channels = $derived(fresh ? snapshot?.Channels ?? [] : [])
   let nodes = $derived(channels.filter(channel => channel.Kind === 'node'))
   let inboundNodes = $derived(nodes.filter(node => node.State === 'normal' && node.Outbound === false))
-  let sessions = $derived(channels.filter(channel => channel.Kind === 'telnet' || channel.Kind === 'web'))
+  let sessions = $derived(channels.filter(channel => channel.Kind === 'telnet' || channel.Kind === 'web')
+    .sort((a, b) => a.Call.localeCompare(b.Call) || a.Kind.localeCompare(b.Kind)))
+  let sessionsWidth = $state(0)
+  let sessionPage = $state(1)
+  const pageSize = $derived(sessionsWidth < 560 ? 6 : 12)
+  const pageCount = $derived(Math.max(1, Math.ceil(sessions.length / pageSize)))
+  const currentPage = $derived(Math.min(sessionPage, pageCount))
+  const visibleSessions = $derived(sessions.slice((currentPage - 1) * pageSize, currentPage * pageSize))
+  const regionNames = $derived(new Intl.DisplayNames([lang()], { type: 'region' }))
+  $effect(() => { if (fresh && sessionPage > pageCount) sessionPage = pageCount })
   let partnerCalls = $derived(Object.keys(directory).sort())
   let lockedCalls = $derived(partnerCalls.filter(call => directory[call].Locked))
   let connected = $derived(partnerCalls.filter(call => nodes.some(node => node.Call === call && node.State === 'normal')))
@@ -181,49 +192,66 @@
     {/if}
   </article>
 
-  <div class="side-boxes">
-    <article class="glass-panel box inbound">
-      <header class="box-head"><h2>Nodi collegati in ingresso</h2><span class="count">{fresh ? inboundNodes.length : '—'}</span></header>
-      <p class="sub">Nodi che hanno avviato una sessione verso il tuo cluster.</p>
-      {#if !fresh}
-        <p class="muted">Stato delle sessioni non disponibile.</p>
-      {:else if inboundNodes.length}
-        <ul class="rows">
-          {#each inboundNodes as node (node.Call)}
-            <li>
-              <span class="led" data-tone="green" aria-hidden="true"></span>
-              <strong>{node.Call}</strong>
-              {#if directory[node.Call]?.Name && directory[node.Call].Name !== node.Call}
-                <span class="muted">{directory[node.Call].Name}</span>
-              {/if}
-              {#if node.Since > 0}<span class="state">dalle {time.format(new Date(node.Since * 1000))}</span>{/if}
-            </li>
-          {/each}
-        </ul>
-      {:else}
-        <p class="muted">Nessun nodo collegato in ingresso.</p>
-      {/if}
-    </article>
-    <article class="glass-panel box users">
-      <header class="box-head"><h2>Radioamatori collegati al tuo nodo</h2><span class="count">{sessions.length}</span></header>
-      <p class="sub">Utenti connessi in questo momento via Telnet o dal web.</p>
-      {#if sessions.length}
-        <ul class="rows">
-          {#each sessions as session (session.Call + session.Kind)}
-            <li>
-              <span class="led" data-tone="green" aria-hidden="true"></span>
-              <strong>{session.Call}</strong>
-              <span class="muted">{session.Kind === 'telnet' ? 'Telnet' : 'Web DXSpider'}</span>
-              <span class="state">dalle {time.format(new Date(session.Since * 1000))}</span>
-            </li>
-          {/each}
-        </ul>
-      {:else}
-        <p class="muted">Nessuna sessione Telnet o Web DXSpider attiva.</p>
-      {/if}
-    </article>
-  </div>
+  <article class="glass-panel box inbound">
+    <header class="box-head"><h2>Nodi collegati in ingresso</h2><span class="count">{fresh ? inboundNodes.length : '—'}</span></header>
+    <p class="sub">Nodi che hanno avviato una sessione verso il tuo cluster.</p>
+    {#if !fresh}
+      <p class="muted">Stato delle sessioni non disponibile.</p>
+    {:else if inboundNodes.length}
+      <ul class="rows">
+        {#each inboundNodes as node (node.Call)}
+          <li>
+            <span class="led" data-tone="green" aria-hidden="true"></span>
+            <strong>{node.Call}</strong>
+            {#if directory[node.Call]?.Name && directory[node.Call].Name !== node.Call}
+              <span class="muted">{directory[node.Call].Name}</span>
+            {/if}
+            {#if node.Since > 0}<span class="state">dalle {time.format(new Date(node.Since * 1000))}</span>{/if}
+          </li>
+        {/each}
+      </ul>
+    {:else}
+      <p class="muted">Nessun nodo collegato in ingresso.</p>
+    {/if}
+  </article>
 </div>
+
+<article class="glass-panel box users" aria-labelledby="active-users-title" bind:clientWidth={sessionsWidth}>
+  <header class="box-head"><h2 id="active-users-title">Radioamatori collegati al tuo nodo</h2><span class="count">{fresh ? sessions.length : '—'}</span></header>
+  <p class="sub">Utenti connessi in questo momento via Telnet o dal web.</p>
+  {#if !fresh}
+    <p class="muted">Stato delle sessioni non disponibile.</p>
+  {:else if visibleSessions.length}
+    <ul class="session-grid">
+      {#each visibleSessions as session (session.Call + ':' + session.Kind)}
+        {@const flag = dxccFlags[session.DXCC ?? 0]}
+        <li>
+          <div class="session-call">
+            <span class="led" data-tone="green" aria-hidden="true"></span>
+            {#if flag}
+              {@const country = regionNames.of(flag.slice(0, 2).toUpperCase()) ?? flag.toUpperCase()}
+              <img src={'/flags/' + flag + '.svg'} alt={country} title={country} width="22" height="16" loading="lazy" />
+            {/if}
+            <strong>{session.Call}</strong>
+          </div>
+          <div class="session-meta">
+            <span class="tag">{session.Kind === 'telnet' ? 'Telnet' : 'Web DXSpider'}</span>
+            {#if session.Since > 0}<span>{'dalle ' + time.format(new Date(session.Since * 1000))}</span>{/if}
+          </div>
+        </li>
+      {/each}
+    </ul>
+    {#if pageCount > 1}
+      <nav class="session-pages" aria-label="Pagine delle sessioni">
+        <button type="button" onclick={() => sessionPage = currentPage - 1} disabled={currentPage === 1}>Precedente</button>
+        <span aria-live="polite">{'Pagina ' + currentPage + ' di ' + pageCount}</span>
+        <button type="button" onclick={() => sessionPage = currentPage + 1} disabled={currentPage === pageCount}>Successiva</button>
+      </nav>
+    {/if}
+  {:else}
+    <p class="muted">Nessuna sessione Telnet o Web DXSpider attiva.</p>
+  {/if}
+</article>
 
 <section class="server-resources" aria-label="Risorse del server">
   {#snippet resource(title: string, free: number, total: number, history: ResourcePoint[], kind: 'Disk' | 'Memory')}
@@ -315,9 +343,18 @@
   .partner-state small { margin: 0; white-space: nowrap; }
   .partner-state .led { width: 8px; height: 8px; flex-basis: 8px; }
   .partner-table .tag { white-space: nowrap; }
-  .side-boxes { display: grid; gap: 14px; min-width: 0; }
   .inbound { border-top: 3px solid #167b50; }
-  .users { border-top: 4px solid #2fa36b; }
+  .users { margin-top: 14px; border-top: 4px solid #2fa36b; }
+  .session-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; padding: 0; margin: 0; list-style: none; }
+  .session-grid li { display: grid; gap: 4px; min-width: 0; padding: 7px 10px; border: 1px solid #cfdee7; border-radius: 8px; background: #ffffff60; }
+  .session-call, .session-meta { display: flex; align-items: center; gap: 7px; }
+  .session-call strong { overflow-wrap: anywhere; }
+  .session-call .led { width: 8px; height: 8px; flex-basis: 8px; }
+  .session-call img { flex: none; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
+  .session-meta { flex-wrap: wrap; justify-content: space-between; color: #485b6d; font-size: .82rem; font-variant-numeric: tabular-nums; }
+  .session-pages { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: end; margin-top: 12px; font-size: .85rem; }
+  .session-pages button { min-height: 32px; padding: 3px 9px; }
+
   .sub { margin: 4px 0 10px; color: #5b6e80; font-size: .88rem; }
   .columns { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
   @media (max-width: 1000px) { .columns { grid-template-columns: minmax(0, 1fr); } }

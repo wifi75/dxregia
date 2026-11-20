@@ -31,11 +31,13 @@ sub process {
                  : $connection->isa('ExtMsg') && $channel->is_user ? 'telnet'
                  : '';
         next unless $kind;
+        my ($dxcc) = $kind eq 'node' ? () : Prefix::cty_data($channel->call);
         push @channels, {
             Call => "" . $channel->call,
             Kind => $kind,
             State => "" . ($channel->state // ""),
             Since => int($channel->startt || 0),
+            ($dxcc && $dxcc != 666 ? (DXCC => int($dxcc)) : ()),
             Outbound => ($kind eq 'node' && $channel->{outbound}) ? JSON::true : JSON::false,
         };
     }

@@ -374,3 +374,8 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 - La registrazione e la conferma riuscita mostrano una guida Telnet con i valori pubblici configurati dal sysop, sette logger documentati e i link ai manuali ufficiali. I testi sono in italiano, inglese, spagnolo, tedesco, francese e portoghese.
 - L’API pubblica degli annunci e la scheda **Annunci** sono state rimosse. Nella tabella **Spot in diretta** compare la colonna QSL con i badge accanto alle altre colonne. Sono stati rimossi anche il menu Servizio QSL e l’opzione Evidenzia nuove entità.
 - Collaudi Go per aggregazione a cavallo della mezzanotte UTC, disponibilità dei bollettini e dati pubblici della registrazione. In Edge con dati di prova, verificati mappa, filtri, colonna QSL a 375 e 1280 px, lingue della guida e conferma.
+
+## Radioamatori connessi nella dashboard
+
+- In **Stato e sessioni** il riquadro dei radioamatori occupa tutta la larghezza sotto i nodi. L’elenco è ordinato per nominativo e paginato con 6 schede sulle larghezze ridotte e 12 alle larghezze maggiori. Ogni scheda conserva modalità e ora di collegamento. La bandiera usa il DXCC del nominativo ricavato da DXSpider e compare quando esiste nel catalogo.
+- La presenza continua a leggere le istantanee precedenti prive di DXCC. La migrazione aggiorna il modulo locale distribuito nella versione precedente. Verificati il mapping DXCC con il modulo Prefix di DXSpider, la build e i test Go. Provate in Edge griglia, bandiere, cambio pagina e layout a 390 e 1440 px con 15 sessioni dimostrative.

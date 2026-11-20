@@ -21,6 +21,7 @@ type presenceChannel struct {
 	State    string
 	Since    int64
 	Outbound bool
+	DXCC     int `json:",omitempty"`
 }
 
 type presence struct {
@@ -107,7 +108,9 @@ func installPresenceHook(local string) error {
 			digest != "f64bf04fcdd96f99d9354273fb6aa28b3c0edf139e39f7fbcac102db61d72634" &&
 			digest != "94659275ad298ad2dfc0de4715c472e2fc422f129e5f4aec518e42f4ca0add80" &&
 			digest != "de0d112718c83db95d082db353bd99f9be7db5db43cba7af90ba5bd7537da67e" &&
-			digest != "78973167a73ab3b5b9e52b5d6f4d9091bbde3ea45ce6436d2beaca05c4e62777" {
+			digest != "78973167a73ab3b5b9e52b5d6f4d9091bbde3ea45ce6436d2beaca05c4e62777" &&
+			digest != "11d0544784e421be82910117822ad02abaf3e55fb102a6225c5db1a7d93ff4ac" &&
+			digest != "4846cf7c7af1fa255226849712421e64aa24e4576ee8e504d51a448472f6ca32" {
 			return nil
 		}
 		return upgradePresenceHook(local, path)
