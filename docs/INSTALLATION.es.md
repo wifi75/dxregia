@@ -15,8 +15,8 @@
 **Paquete precompilado.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
-sh install-release.sh v0.5.0
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.6.0
 ```
 
 El script verifica la suma SHA-256, instala las dependencias e inicia el servicio. Muestra la dirección del panel y una contraseña temporal para el primer acceso.
@@ -153,8 +153,8 @@ El registro del motor también está en Nodo → Registro DXSpider.
 - [Operaciones del sysop](OPERATIONS.md) (en italiano)
 - [Registro de cambios](../CHANGELOG.md) (en inglés)
 
-## DXRegia 0.5.0
+## DXRegia 0.6.0
 
-El menú público reúne Spots en directo, Búsqueda y DXCC y Alertas de radio. El panel de estado muestra gráficos de disco y RAM. El mensaje de Telnet usa la traducción guardada para el país de la conexión o el idioma del nodo en la red local.
+La página de propagación muestra los índices solares de HamQSL, las condiciones HF diurnas y nocturnas, la actividad VHF, el mapa MUF de KC2G y la actividad observada en los spots DX. El registro público explica cómo configurar Telnet en siete programas de log. El panel del sysop muestra los radioaficionados conectados con banderas DXCC y paginación.
 
-[DXRegia 0.5.0](https://github.com/wifi75/dxregia/releases/tag/v0.5.0)
+[DXRegia 0.6.0](https://github.com/wifi75/dxregia/releases/tag/v0.6.0)

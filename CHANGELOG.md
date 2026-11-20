@@ -4,6 +4,26 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-20
+
+### Added
+
+- Propagation overview with HamQSL solar indices, HF conditions by day and night, VHF phenomena, the KC2G MUF map and observed activity by band and region.
+- Graphical editor for DXSpider spot filters in the sysop panel.
+- Telnet setup guide for seven loggers on the public registration page, in all six portal languages.
+- Public portal and sysop dashboard screenshots in all six README translations.
+
+### Changed
+
+- The node dashboard has compact status cards, paginated partner nodes and a full-width grid with up to 30 connected radio amateurs per page on desktop. Callsign, DXCC flag, connection type and time share one line.
+- Live spots use a compact table with a dedicated LoTW and eQSL AG column and a consolidated toolbar. Removed the Announcements page, the QSL service selector and new-entity highlighting.
+- Reuse encoded JSON spot snapshots across requests until the archive changes.
+
+### Fixed
+
+- Recover missed spots from the archive after the live feed reconnects.
+- Refresh the DXRegia-managed presence hook when upgrading from 0.5.0 so existing nodes report DXCC values for Telnet sessions.
+
 ## [0.5.0] - 2026-11-19
 
 ### Added

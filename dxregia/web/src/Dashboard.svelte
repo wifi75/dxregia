@@ -61,13 +61,20 @@
     .sort((a, b) => a.Call.localeCompare(b.Call) || a.Kind.localeCompare(b.Kind)))
   let sessionsWidth = $state(0)
   let sessionPage = $state(1)
-  const pageSize = $derived(sessionsWidth < 560 ? 6 : 12)
+  const pageSize = $derived(sessionsWidth < 560 ? 12 : sessionsWidth < 960 ? 20 : 30)
   const pageCount = $derived(Math.max(1, Math.ceil(sessions.length / pageSize)))
   const currentPage = $derived(Math.min(sessionPage, pageCount))
   const visibleSessions = $derived(sessions.slice((currentPage - 1) * pageSize, currentPage * pageSize))
   const regionNames = $derived(new Intl.DisplayNames([lang()], { type: 'region' }))
   $effect(() => { if (fresh && sessionPage > pageCount) sessionPage = pageCount })
   let partnerCalls = $derived(Object.keys(directory).sort())
+  const partnerRows = $derived([...new Set([...partnerCalls, ...nodes.map(node => node.Call)])].sort())
+  let partnerPage = $state(1)
+  const partnersPerPage = 8
+  const partnerPageCount = $derived(Math.max(1, Math.ceil(partnerRows.length / partnersPerPage)))
+  const currentPartnerPage = $derived(Math.min(partnerPage, partnerPageCount))
+  const visiblePartners = $derived(partnerRows.slice((currentPartnerPage - 1) * partnersPerPage, currentPartnerPage * partnersPerPage))
+  $effect(() => { if (fresh && partnerPage > partnerPageCount) partnerPage = partnerPageCount })
   let lockedCalls = $derived(partnerCalls.filter(call => directory[call].Locked))
   let connected = $derived(partnerCalls.filter(call => nodes.some(node => node.Call === call && node.State === 'normal')))
   let listener = $derived<{ tone: Tone; title: string; detail: string }>(
@@ -163,22 +170,21 @@
 
 <div class="columns">
   <article class="glass-panel box partners">
-    <header class="box-head"><h2>Nodi partner</h2><span class="count">{[...new Set([...partnerCalls, ...nodes.map(node => node.Call)])].length}</span></header>
-    <p class="sub">Altri cluster collegati al tuo come partner.</p>
+    <header class="box-head"><h2>Nodi partner</h2><span class="count">{partnerRows.length}</span></header>
     {#if lockedCalls.length}
       <p class="blocked" role="status">Nodi bloccati in DXSpider · {lockedCalls.join(', ')}. <a href="#partner">Apri Nodi partner</a></p>
     {/if}
-    {#if partnerCalls.length || nodes.length}
+    {#if partnerRows.length}
       <div class="partner-table">
         <table>
           <thead><tr><th scope="col">Nodo</th><th scope="col">Stato</th><th scope="col">Direzione</th></tr></thead>
           <tbody>
-            {#each [...new Set([...partnerCalls, ...nodes.map(node => node.Call)])] as call (call)}
+            {#each visiblePartners as call (call)}
               {@const node = nodes.find(item => item.Call === call)}
               {@const locked = directory[call]?.Locked}
               {@const tone = locked || !node ? 'red' : node.State === 'normal' ? 'green' : 'amber'}
               <tr>
-                <td><strong>{call}</strong>{#if directory[call]?.Name && directory[call].Name !== call}<small>{directory[call].Name}</small>{/if}</td>
+                <td><strong title={directory[call]?.Name || undefined}>{call}</strong></td>
                 <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in DXSpider' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}
                   {#if !locked && node?.State === 'normal'}<small>· dalle {time.format(new Date(node.Since * 1000))}</small>{/if}</span></td>
                 <td>{#if node}<span class="tag">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{:else}—{/if}</td>
@@ -187,6 +193,7 @@
           </tbody>
         </table>
       </div>
+      {@render pagination('Pagine dei nodi partner', currentPartnerPage, partnerPageCount, page => partnerPage = page)}
     {:else}
       <p class="muted">Nessun nodo partner registrato.</p>
     {/if}
@@ -194,7 +201,6 @@
 
   <article class="glass-panel box inbound">
     <header class="box-head"><h2>Nodi collegati in ingresso</h2><span class="count">{fresh ? inboundNodes.length : '—'}</span></header>
-    <p class="sub">Nodi che hanno avviato una sessione verso il tuo cluster.</p>
     {#if !fresh}
       <p class="muted">Stato delle sessioni non disponibile.</p>
     {:else if inboundNodes.length}
@@ -232,26 +238,30 @@
               {@const country = regionNames.of(flag.slice(0, 2).toUpperCase()) ?? flag.toUpperCase()}
               <img src={'/flags/' + flag + '.svg'} alt={country} title={country} width="22" height="16" loading="lazy" />
             {/if}
-            <strong>{session.Call}</strong>
+            <strong title={session.Call}>{session.Call}</strong>
           </div>
-          <div class="session-meta">
-            <span class="tag">{session.Kind === 'telnet' ? 'Telnet' : 'Web DXSpider'}</span>
-            {#if session.Since > 0}<span>{'dalle ' + time.format(new Date(session.Since * 1000))}</span>{/if}
-          </div>
+          <span class="tag" title={session.Kind === 'telnet' ? 'Telnet' : 'Web DXSpider'}>{session.Kind === 'telnet' ? 'Telnet' : 'Web'}</span>
+          {#if session.Since > 0}
+            <time datetime={new Date(session.Since * 1000).toISOString()}>{time.format(new Date(session.Since * 1000))}</time>
+          {/if}
         </li>
       {/each}
     </ul>
-    {#if pageCount > 1}
-      <nav class="session-pages" aria-label="Pagine delle sessioni">
-        <button type="button" onclick={() => sessionPage = currentPage - 1} disabled={currentPage === 1}>Precedente</button>
-        <span aria-live="polite">{'Pagina ' + currentPage + ' di ' + pageCount}</span>
-        <button type="button" onclick={() => sessionPage = currentPage + 1} disabled={currentPage === pageCount}>Successiva</button>
-      </nav>
-    {/if}
+    {@render pagination('Pagine delle sessioni', currentPage, pageCount, page => sessionPage = page)}
   {:else}
     <p class="muted">Nessuna sessione Telnet o Web DXSpider attiva.</p>
   {/if}
 </article>
+
+{#snippet pagination(label: string, current: number, total: number, go: (page: number) => void)}
+  {#if total > 1}
+    <nav class="pagination" aria-label={label}>
+      <button type="button" onclick={() => go(current - 1)} disabled={current === 1}>Precedente</button>
+      <span aria-live="polite">{'Pagina ' + current + ' di ' + total}</span>
+      <button type="button" onclick={() => go(current + 1)} disabled={current === total}>Successiva</button>
+    </nav>
+  {/if}
+{/snippet}
 
 <section class="server-resources" aria-label="Risorse del server">
   {#snippet resource(title: string, free: number, total: number, history: ResourcePoint[], kind: 'Disk' | 'Memory')}
@@ -317,15 +327,16 @@
   .blocked, .blocked a { color: #9d2027; font-weight: 700; }
   .heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
   h1 { margin: 0; font-size: 1.65rem; line-height: 1.2; }
-  .health { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; margin-top: 8px; }
-  .tile { padding: 14px 16px; border-left: 5px solid #708391; }
+  .health { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 216px), 1fr)); gap: 10px; margin-top: 6px; }
+  .tile { padding: 8px 12px; border-left: 4px solid #708391; }
   .tile[data-tone=green] { border-left-color: #167b50; }
   .tile[data-tone=amber] { border-left-color: #ad6a10; }
   .tile[data-tone=red] { border-left-color: #b32731; }
   .tile p { margin: 0; }
   .label { display: flex; align-items: center; gap: 9px; color: #485b6d; font-size: .88rem; font-weight: 650; text-transform: uppercase; letter-spacing: .03em; }
-  .value { margin-top: 6px !important; font-size: 1.3rem; font-weight: 750; color: #143a60; line-height: 1.2; }
-  .detail { margin-top: 4px !important; color: #485b6d; font-size: .9rem; overflow-wrap: anywhere; }
+  .tile .led { width: 8px; height: 8px; flex-basis: 8px; }
+  .value { margin-top: 3px !important; font-size: 1.08rem; font-weight: 750; color: #143a60; line-height: 1.2; }
+  .detail { margin-top: 2px !important; color: #485b6d; font-size: .81rem; overflow-wrap: anywhere; }
   .led { width: 13px; height: 13px; flex: 0 0 13px; border-radius: 50%; background: #708391; box-shadow: 0 0 0 4px #70839126; }
   .led[data-tone=green] { background: #1fa86b; box-shadow: 0 0 0 4px #1fa86b33, 0 0 10px #1fa86b88; }
   .led[data-tone=red] { background: #d0343f; box-shadow: 0 0 0 4px #d0343f33, 0 0 10px #d0343f88; }
@@ -334,36 +345,37 @@
   .box-head h2 { margin: 0; }
   .count { min-width: 1.8em; padding: 2px 10px; border-radius: 999px; background: #e3eef6; color: #143a60; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
   .partners { border-top: 3px solid #3a82c0; }
-  .partner-table { overflow-x: auto; }
+  .partner-table { margin-top: 7px; overflow-x: auto; }
   .partner-table table { width: 100%; border-collapse: collapse; text-align: left; }
-  .partner-table th, .partner-table td { padding: .65rem .55rem; border-bottom: 1px solid #cfdee7; }
+  .partner-table th, .partner-table td { padding: .32rem .5rem; border-bottom: 1px solid #cfdee7; }
   .partner-table th { color: #3f5c71; background: #e8f1f7; font-size: .8rem; }
-  .partner-table small { display: block; color: #506678; margin-top: .18rem; }
-  .partner-state { display: inline-flex; align-items: center; gap: .55rem; }
-  .partner-state small { margin: 0; white-space: nowrap; }
+  .partner-state { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .2rem .45rem; }
+  .partner-state small { color: #506678; white-space: nowrap; }
   .partner-state .led { width: 8px; height: 8px; flex-basis: 8px; }
   .partner-table .tag { white-space: nowrap; }
   .inbound { border-top: 3px solid #167b50; }
   .users { margin-top: 14px; border-top: 4px solid #2fa36b; }
-  .session-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; padding: 0; margin: 0; list-style: none; }
-  .session-grid li { display: grid; gap: 4px; min-width: 0; padding: 7px 10px; border: 1px solid #cfdee7; border-radius: 8px; background: #ffffff60; }
-  .session-call, .session-meta { display: flex; align-items: center; gap: 7px; }
-  .session-call strong { overflow-wrap: anywhere; }
-  .session-call .led { width: 8px; height: 8px; flex-basis: 8px; }
-  .session-call img { flex: none; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
-  .session-meta { flex-wrap: wrap; justify-content: space-between; color: #485b6d; font-size: .82rem; font-variant-numeric: tabular-nums; }
-  .session-pages { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: end; margin-top: 12px; font-size: .85rem; }
-  .session-pages button { min-height: 32px; padding: 3px 9px; }
+  .session-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 204px), 1fr)); gap: 4px 6px; padding: 0; margin: 0; list-style: none; }
+  .session-grid li { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 7px; border: 1px solid #cfdee7; border-radius: 6px; background: #ffffff60; white-space: nowrap; }
+  .session-call { display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; }
+  .session-call strong { overflow: hidden; text-overflow: ellipsis; font-size: .86rem; }
+  .session-call .led, .inbound .led { width: 7px; height: 7px; flex-basis: 7px; }
+  .session-call img { width: 18px; height: 13px; flex: none; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
+  .session-grid .tag { padding: 1px 5px; font-size: .73rem; }
+  .session-grid time { color: #485b6d; font-size: .73rem; font-variant-numeric: tabular-nums; }
+  .pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: end; margin-top: 7px; font-size: .8rem; }
+  .pagination button { min-height: 28px; padding: 2px 8px; }
 
   .sub { margin: 4px 0 10px; color: #5b6e80; font-size: .88rem; }
-  .columns { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
+  .columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 10px; margin-top: 10px; align-items: start; }
   @media (max-width: 1000px) { .columns { grid-template-columns: minmax(0, 1fr); } }
   .box { padding: 16px; }
+  .partners, .inbound, .users { padding: 10px 12px; }
   h2 { margin: 0 0 8px; font-size: 1.05rem; }
   h2:not(:first-child) { margin-top: 20px; }
   .muted { color: #485b6d; margin: 6px 0; }
-  .rows { margin: 0; padding: 0; list-style: none; }
-  .rows li { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; padding: 8px 2px; border-top: 1px solid #d7dfe7; }
+  .rows { margin: 7px 0 0; padding: 0; list-style: none; max-height: 14rem; overflow-y: auto; }
+  .rows li { display: flex; align-items: center; flex-wrap: wrap; gap: 3px 8px; padding: 4px 3px; border-top: 1px solid #d7dfe7; }
   .tag { padding: 1px 8px; border-radius: 10px; background: #e7f1fa; color: #214e80; font-size: .82rem; font-weight: 650; }
   .rows .state { margin-left: auto; color: #485b6d; font-size: .9rem; }
   .live { display: flex; align-items: center; gap: 8px; margin: 0; padding: 5px 12px; border-radius: 16px; background: #ffffffa6; border: 1px solid #cdd9e4; font-size: .9rem; }

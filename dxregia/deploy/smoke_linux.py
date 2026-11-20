@@ -174,23 +174,25 @@ def wait_for(description, check, timeout=40):
 
 
 def telnet_presence(client):
-    callsign = "Q7QQQ"
+    callsign = "I1ZZZ"
 
-    def visible():
+    def session():
         status, snapshot = request(client, "/api/presence")
         assert status == 200
-        return any(
-            channel["Call"] == callsign and channel["Kind"] == "telnet"
+        return next((
+            channel
             for channel in (snapshot["Channels"] or [])
-        )
+            if channel["Call"] == callsign and channel["Kind"] == "telnet"
+        ), None)
 
     with socket.create_connection((HOST, TELNET_PORT), timeout=5) as conn:
         read_until(conn, b"login:")
         conn.sendall(callsign.encode() + b"\r\n")
         read_until(conn, b"dxspider >")
-        wait_for("Telnet user on the sysop dashboard", visible)
+        channel = wait_for("Telnet user on the sysop dashboard", session)
+        assert channel["DXCC"] == 85
         conn.sendall(b"bye\r\n")
-    wait_for("Telnet user to leave the sysop dashboard", lambda: not visible())
+    wait_for("Telnet user to leave the sysop dashboard", lambda: not session())
 
 
 def spot_delivery(primary, remote, peer, peer_port):

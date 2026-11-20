@@ -51,8 +51,8 @@ Sur `/admin`, les sysops consultent l’état de Telnet et du cluster, le sens d
 Sous Debian ou Ubuntu avec systemd, installez le paquet précompilé pour amd64 ou arm64. Il faut curl et sudo ou une session root.
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.5.0/dxregia/deploy/install-release.sh
-sh install-release.sh v0.5.0
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.6.0
 ```
 
 1. Ouvrez l’adresse LAN affichée par le programme d’installation, par exemple `http://SERVEUR:8080/admin`. Une nouvelle installation native écoute sur toutes les interfaces IPv4.
@@ -80,7 +80,7 @@ _Les documents techniques ci-dessous sont rédigés en italien._
 
 ## État
 
-DXRegia est en développement actif (version 0.5.0). L'installation, la première connexion, Telnet, la sauvegarde et le redémarrage sont testés sur Ubuntu 24.04 (amd64 et arm64). Restent à faire : un test sur Proxmox LXC, la remise du courrier avec d'autres fournisseurs et un paquet de version signé. Les rapports et idées sont les bienvenus dans les [GitHub Issues](https://github.com/wifi75/dxregia/issues).
+DXRegia est en développement actif (version 0.6.0). L'installation, la première connexion, Telnet, la sauvegarde et le redémarrage sont testés sur Ubuntu 24.04 (amd64 et arm64). Restent à faire : un test sur Proxmox LXC, la remise du courrier avec d'autres fournisseurs et un paquet de version signé. Les rapports et idées sont les bienvenus dans les [GitHub Issues](https://github.com/wifi75/dxregia/issues).
 
 ## Origine et licence
 

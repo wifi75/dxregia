@@ -594,6 +594,7 @@ export const adminRows: string[][] = [
   ['Registrazione non trovata.', 'Registration not found.', 'Registro no encontrado.', 'Registrierung nicht gefunden.', 'Inscription introuvable.', 'Registo não encontrado.'],
   ['Revoca non riuscita.', 'Revocation failed.', 'No se pudo revocar.', 'Widerruf fehlgeschlagen.', 'Révocation impossible.', 'Falha ao revogar.'],
   ['Altri cluster collegati al tuo come partner.', 'Other clusters linked to yours as partners.', 'Otros clústeres enlazados al tuyo como socios.', 'Andere Cluster, die als Partner mit deinem verbunden sind.', 'Autres clusters liés au vôtre comme partenaires.', 'Outros clusters ligados ao seu como parceiros.'],
+  ['Pagine dei nodi partner', 'Partner node pages', 'Páginas de nodos asociados', 'Partnerknoten-Seiten', 'Pages des nœuds partenaires', 'Páginas dos nós parceiros'],
   ['Pagine delle sessioni', 'Session pages', 'Páginas de sesiones', 'Sitzungsseiten', 'Pages des sessions', 'Páginas das sessões'],
   ['Pagina {} di {}', 'Page {} of {}', 'Página {} de {}', 'Seite {} von {}', 'Page {} sur {}', 'Página {} de {}'],
   ['Precedente', 'Previous', 'Anterior', 'Zurück', 'Précédente', 'Anterior'],

@@ -385,3 +385,9 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 - **Propagazione** apre con gli indici solari, le condizioni HF giorno/notte e le condizioni VHF di HamQSL. DXRegia aggiorna il feed XML al massimo una volta all’ora, mantiene l’ultima copia valida e mostra l’ora UTC del fornitore. `DXREGIA_HAMQSL=off` disattiva il prelievo. [HamQSL, N0NBH](https://www.hamqsl.com/solar.html)
 - La mappa MUF a tutta larghezza usa il rendering originale di KC2G, caricato dal browser direttamente dalla fonte con crediti visibili. La mappa degli spot osservati e i bollettini WWV/WCY si aprono nelle due sezioni sotto la mappa MUF. [Descrizione e attribuzioni KC2G](https://prop.kc2g.com/about/)
 - Verificati parser e API con il feed reale, build Svelte e test Go. In Edge provati i due prospetti, la mappa KC2G reale, la vista a 390 e 1440 px e le due sezioni espandibili.
+
+## 2026-11-20 — Release 0.6.0
+
+- Il tag v0.6.0 comprende la nuova pagina Propagazione, la griglia delle sessioni radioamatori, l’editor dei filtri spot e la guida Telnet per logger. Il changelog elenca le modifiche e le guide nelle sei lingue puntano alla nuova versione.
+- Nella dashboard ogni radioamatore occupa una riga con bandiera, nominativo, tipo di accesso e orario. I nodi partner sono paginati a gruppi di otto. L’aggiornamento riconosce l’hash del Local.pm distribuito con v0.5.0 e installa l’hook con i dati DXCC.
+- La procedura di pubblicazione usa i pacchetti Linux amd64 e arm64 del workflow Linux del commit di release, con i relativi checksum SHA-256.
