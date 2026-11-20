@@ -166,7 +166,11 @@
   <article class="glass-panel box partners">
     <header class="box-head"><h2>Nodi partner</h2><span class="count">{partnerRows.length}</span></header>
     {#if lockedCalls.length}
-      <p class="blocked" role="status">Nodi bloccati in DXSpider · {lockedCalls.join(', ')}. <a href="#partner">Apri Nodi partner</a></p>
+      <div class="blocked" role="status">
+        <strong>Account locali bloccati</strong> · {lockedCalls.join(', ')}
+        <p>DXSpider può bloccare gli account dei nodi appresi dalla rete. Per preparare un collegamento in uscita, apri la scheda del nodo e verifica il blocco.</p>
+        <a href="#partner">Apri Nodi partner</a>
+      </div>
     {/if}
     {#if partnerRows.length}
       <div class="partner-table">
@@ -321,7 +325,9 @@
     .diagnostics dl { grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr)); }
   }
 
-  .blocked, .blocked a { color: #9d2027; font-weight: 700; }
+  .blocked { margin: 7px 0 0; padding: 6px 8px; border-inline-start: 3px solid #9d2027; font-size: .85rem; }
+  .blocked strong { color: #9d2027; }
+  .blocked p { margin: 2px 0; }
   .heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
   h1 { margin: 0; font-size: 1.65rem; line-height: 1.2; }
   .health { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 216px), 1fr)); gap: 10px; margin-top: 6px; }

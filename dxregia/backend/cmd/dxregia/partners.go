@@ -160,7 +160,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				if until := inboundTestUntil(root, call); until.After(time.Now()) {
 					status.InboundTestUntil = &until
 				}
-				status.CanSetInboundIP = snapshot.CCInboundReset[call]
+				status.CanSetInboundIP = snapshot.canSetInboundIP(call)
 				status.InboundIP = partnerInboundIP(root, call)
 				status.CanResetCCInbound = snapshot.CCInboundReset[call] && entry.Provisioning != "In attesa di Mojo" && entry.Provisioning != "Abilitato in Mojo"
 				status.CanUnlock, status.Locked = snapshot.LockedPartners[call]
@@ -356,8 +356,12 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			http.Error(w, "Per passare dall’IP alla password serve una nuova password da inviare al partner.", http.StatusConflict)
 			return
 		}
-		if options.ResetCCInbound && (options.OutgoingOnly || options.Unlock || !snapshot.CCInboundReset[call]) {
-			http.Error(w, "Questo account CC Cluster non può essere aggiornato dal pannello.", http.StatusConflict)
+		canResetInbound := snapshot.CCInboundReset[call]
+		if options.SwitchFromIP {
+			canResetInbound = snapshot.canSetInboundIP(call)
+		}
+		if options.ResetCCInbound && (options.OutgoingOnly || options.Unlock || !canResetInbound) {
+			http.Error(w, "Questo account partner non può essere aggiornato dal pannello.", http.StatusConflict)
 			return
 		}
 		unlockable, locked := snapshot.LockedPartners[call]
@@ -407,7 +411,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				return
 			}
 		}
-		password, err := queuePartnerCredential(root, call, options.ResetCCInbound)
+		password, err := queuePartnerCredential(root, call, options.ResetCCInbound, options.SwitchFromIP && snapshot.InboundIPReady != nil)
 		if err != nil {
 			log.Printf("Queue partner: %v", err)
 			http.Error(w, "Impossibile inviare la richiesta a DXSpider.", http.StatusServiceUnavailable)
@@ -605,8 +609,8 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 				return
 			}
 			snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
-			if !snapshot.CCInboundReset[call] {
-				http.Error(w, "Serve un account CC Cluster locale e sbloccato.", http.StatusConflict)
+			if !snapshot.canSetInboundIP(call) {
+				http.Error(w, "Per l’accesso senza password serve un account partner locale già preparato e sbloccato.", http.StatusConflict)
 				return
 			}
 			var pending partnerMail

@@ -592,12 +592,13 @@
             <label>Autenticazione in ingresso
               <select bind:value={inboundMode} disabled={enabling || busy}>
                 <option value="password">Con password</option>
-                {#if selected.CanSetInboundIP || selected.InboundIP}
-                  <option value="ip">Senza password · IP o nome host autorizzato</option>
-                {/if}
+                <option value="ip">Senza password · IP o nome host autorizzato</option>
               </select>
             </label>
             {#if inboundMode === 'ip'}
+              {#if !selected.CanSetInboundIP}
+                <p class="hint">Prepara o sblocca l’account locale del partner per attivare l’accesso tramite IP.</p>
+              {/if}
               <form onsubmit={event => {
                 event.preventDefault()
                 void saveInboundIP((event.submitter as HTMLButtonElement)?.value === 'send')
@@ -688,7 +689,7 @@
               {/if}
               {#if selected.Email}
                 <button class="secondary" type="button" disabled={enabling || busy} onclick={sendNodeDetails}
-                  title="Invia indicativo, host e porta. L’accesso e le password restano invariati.">{publicMail?.call === selected.Call && publicMail.state === 'sending' ? 'Invio in corso…' : 'Invia dati pubblici via email'}</button>
+                  title="Invia indicativo, host e porta. L’accesso e le password restano invariati.">{publicMail?.call === selected.Call && publicMail.state === 'sending' ? 'Invio in corso…' : 'Invia dati pubblici senza password'}</button>
               {/if}
               <button class="secondary" type="button" disabled={enabling || busy || checkingStatus} onclick={async () => {
                 manualStatusCall = selected?.Call ?? ''

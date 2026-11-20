@@ -15,10 +15,10 @@ var inboundPasswordPattern = regexp.MustCompile(`^[0-9a-f]{48}$`)
 const lockedPartnerStatus = "Nodo bloccato in Mojo"
 
 func queuePartner(root, call string) (string, error) {
-	return queuePartnerCredential(root, call, false)
+	return queuePartnerCredential(root, call, false, false)
 }
 
-func queuePartnerCredential(root, call string, resetCCInbound bool) (string, error) {
+func queuePartnerCredential(root, call string, resetCCInbound, switchFromIP bool) (string, error) {
 	password, err := randomToken()
 	if err != nil {
 		return "", err
@@ -30,6 +30,9 @@ func queuePartnerCredential(root, call string, resetCCInbound bool) (string, err
 			return "", err
 		}
 		request = "reset-cc-inbound:" + string(hash)
+		if switchFromIP {
+			request = "reset-ip-inbound:" + string(hash)
+		}
 	}
 	if err := queuePartnerProvision(root, call, request); err != nil {
 		return "", err

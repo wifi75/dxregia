@@ -167,29 +167,30 @@ sub process {
     my $target = "$main::local_data/dxregia-presence.json";
     my $tmp = "$target.tmp";
     open(my $file, '>:raw', $tmp) or die "DXRegia snapshot: $!";
-    my ($locked, $outgoing_ready, $cc_inbound_reset) = partner_account_states();
-    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, SysopPassword => JSON::true, Telnet => telnet_options(), Channels => \@channels, LockedPartners => $locked, OutgoingReady => $outgoing_ready, CCInboundReset => $cc_inbound_reset }) or die "DXRegia snapshot: $!";
+    my ($locked, $outgoing_ready, $cc_inbound_reset, $inbound_ip_ready) = partner_account_states();
+    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, SysopPassword => JSON::true, Telnet => telnet_options(), Channels => \@channels, LockedPartners => $locked, OutgoingReady => $outgoing_ready, CCInboundReset => $cc_inbound_reset, InboundIPReady => $inbound_ip_ready }) or die "DXRegia snapshot: $!";
     close($file) or die "DXRegia snapshot: $!";
     rename($tmp, $target) or die "DXRegia snapshot: $!";
 }
 
 sub partner_account_states {
-    my (%locked, %outgoing_ready, %cc_inbound_reset);
-    open(my $directory, '<:raw', "$main::root/.dxregia-partners.json") or return (\%locked, \%outgoing_ready, \%cc_inbound_reset);
+    my (%locked, %outgoing_ready, %cc_inbound_reset, %inbound_ip_ready);
+    open(my $directory, '<:raw', "$main::root/.dxregia-partners.json") or return (\%locked, \%outgoing_ready, \%cc_inbound_reset, \%inbound_ip_ready);
     my $data = do { local $/; <$directory> };
     close($directory);
     my $partners = eval { JSON::decode_json($data) };
-    return (\%locked, \%outgoing_ready, \%cc_inbound_reset) unless ref($partners) eq 'HASH';
+    return (\%locked, \%outgoing_ready, \%cc_inbound_reset, \%inbound_ip_ready) unless ref($partners) eq 'HASH';
     for my $call (keys %$partners) {
         next unless $call =~ /\A[A-Z0-9]+(?:-[0-9]+)?\z/ && length($call) <= 12;
         next if $call eq $main::mycall || $call eq $main::myalias;
         my $user = DXUser::get_current($call);
         $cc_inbound_reset{$call} = JSON::true if editable_ccluster_peer($user);
+        $inbound_ip_ready{$call} = JSON::true if can_use_partner_inbound_ip($user);
         $outgoing_ready{$call} = JSON::true if can_connect_partner_account($user);
         next unless $user && $user->lockout;
         $locked{$call} = ($user->sort eq 'S' && ($user->priv || 0) <= 1) ? JSON::true : JSON::false;
     }
-    return (\%locked, \%outgoing_ready, \%cc_inbound_reset);
+    return (\%locked, \%outgoing_ready, \%cc_inbound_reset, \%inbound_ip_ready);
 }
 
 my $applied_telnet = '';
@@ -486,6 +487,12 @@ sub can_connect_partner_account {
         (editable_ccluster_peer($user) && $user->passwd);
 }
 
+sub can_use_partner_inbound_ip {
+    my ($user) = @_;
+    return editable_ccluster_peer($user) ||
+        ($user && $user->sort eq 'S' && !$user->lockout && ($user->priv || 0) <= 1 && $user->passwd);
+}
+
 sub provision_partners {
     my $dir = "$main::local_data/dxregia-partners";
     opendir(my $dh, $dir) or return;
@@ -501,16 +508,20 @@ sub provision_partners {
         my $unlock = $password =~ s/\Aunlock-outgoing:(?=[0-9a-f]{48}\z)/outgoing-only:/;
         my $outgoing = $password =~ /\Aoutgoing-only:[0-9a-f]{48}\z/;
         my $reset_cc = $password =~ s/\Areset-cc-inbound://;
-        if ($reset_cc && $password !~ /\A\$2a\$10\$[.\/A-Za-z0-9]{53}\z/) {
+        my $reset_ip = $password =~ s/\Areset-ip-inbound://;
+        if (($reset_cc || $reset_ip) && $password !~ /\A\$2a\$10\$[.\/A-Za-z0-9]{53}\z/) {
             $result = 'Richiesta non valida';
-        } elsif (!$reset_cc && !$outgoing && $password !~ /\A[0-9a-f]{48}\z/) {
+        } elsif (!$reset_cc && !$reset_ip && !$outgoing && $password !~ /\A[0-9a-f]{48}\z/) {
             $result = 'Richiesta non valida';
         } elsif (length($call) > 12 || $call eq $main::mycall || $call eq $main::myalias) {
             $result = 'Indicativo riservato';
         } else {
             my $user = DXUser::get_current($call);
-            if ($reset_cc) {
-                if (editable_ccluster_peer($user) && ExtMsg::supports_dxregia_bcrypt($password)) {
+            if ($reset_cc || $reset_ip) {
+                my $can_reset = $reset_ip
+                    ? (-f "$dir/$call.inbound-ip" && can_use_partner_inbound_ip($user))
+                    : editable_ccluster_peer($user);
+                if ($can_reset && ExtMsg::supports_dxregia_bcrypt($password)) {
                     $user->passwd('{DXREGIA-BCRYPT}' . $password);
                     register_partner_account($user, $call);
                     $result = 'Abilitato in Mojo';

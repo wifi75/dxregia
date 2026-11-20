@@ -27,14 +27,14 @@ use JSON ();
 use Socket ();
 use IPC::Open3;
 
-# A configured CC Cluster peer must use its exact TCP source address.
+# DXRegia 2026-11-20: configured DXSpider and CC Cluster peers must use their exact TCP source address.
 sub dxregia_peer_ip_match
 {
 	my ($conn, $call, $user) = @_;
 	return undef if length($call) > 12 || $call !~ /\A[A-Z0-9]+(?:-[0-9]+)?\z/;
 	my $path = "$main::local_data/dxregia-partners/$call.inbound-ip";
 	return undef unless -e $path;
-	return 0 unless $user && $user->sort eq 'L' && !$user->lockout &&
+	return 0 unless $user && ($user->sort eq 'L' || ($user->sort eq 'S' && $user->passwd)) && !$user->lockout &&
 		($user->priv || 0) <= 1 && $call ne $main::mycall && $call ne $main::myalias;
 	open(my $file, '<:raw', $path) or return 0;
 	my $data = '';

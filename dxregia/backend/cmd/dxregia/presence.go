@@ -33,6 +33,7 @@ type presence struct {
 	LockedPartners map[string]bool
 	OutgoingReady  map[string]bool
 	CCInboundReset map[string]bool
+	InboundIPReady map[string]bool
 }
 
 func registerPresence(mux *http.ServeMux, root string, auth *sysopAuth) {
@@ -112,6 +113,7 @@ func installPresenceHook(local string) error {
 			digest != "0cb6ecc0d2b1a0de669984ef38d1ee9b81ec5d81503f964b33baf9cd4f021b84" &&
 			digest != "11d0544784e421be82910117822ad02abaf3e55fb102a6225c5db1a7d93ff4ac" &&
 			digest != "360d54c3e524016fa07e96a841b44e549de2cd146dc1d7aef117a2bb67a19a4b" &&
+			digest != "a18d8c4d16195b38bdb262d72b370e9f001fda54a8195ed9b84e0693eb405e6e" &&
 			digest != "4846cf7c7af1fa255226849712421e64aa24e4576ee8e504d51a448472f6ca32" {
 			return nil
 		}

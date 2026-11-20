@@ -203,5 +203,12 @@ func partnerInboundIP(root, call string) string {
 
 func partnerInboundEnabled(root string, entry partner, snapshot presence) bool {
 	return entry.Provisioning == "Abilitato in Mojo" ||
-		(snapshot.CCInboundReset[entry.Call] && partnerInboundIP(root, entry.Call) != "")
+		(snapshot.canSetInboundIP(entry.Call) && partnerInboundIP(root, entry.Call) != "")
+}
+
+func (p presence) canSetInboundIP(call string) bool {
+	if p.InboundIPReady != nil {
+		return p.InboundIPReady[call]
+	}
+	return p.CCInboundReset[call]
 }

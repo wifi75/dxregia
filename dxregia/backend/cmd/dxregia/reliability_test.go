@@ -15,6 +15,64 @@ import (
 	"time"
 )
 
+func TestPartnerInboundIPAllowsPreparedDXSpiderAccount(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	root := t.TempDir()
+	const eligible, blocked = "OE3XHQ-1", "IZ3MEZ-8"
+	if err := os.Mkdir(filepath.Join(root, "local_data"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	entries := map[string]partner{
+		eligible: {partnerDetails: partnerDetails{Call: eligible}},
+		blocked:  {partnerDetails: partnerDetails{Call: blocked}},
+	}
+	if err := savePartners(filepath.Join(root, ".dxregia-partners.json"), entries); err != nil {
+		t.Fatal(err)
+	}
+	snapshot := presence{At: time.Now().Unix(), InboundIPReady: map[string]bool{eligible: true}}
+	if err := writePrivateJSON(filepath.Join(root, "local_data", "dxregia-presence.json"), snapshot); err != nil {
+		t.Fatal(err)
+	}
+	auth := &sysopAuth{session: sessionHash("test"), expires: time.Now().Add(time.Hour), factorOK: true}
+	mux := http.NewServeMux()
+	if err := registerPartners(ctx, mux, root, auth); err != nil {
+		t.Fatal(err)
+	}
+	request := func(method, path, body string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest(method, path, strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.AddCookie(&http.Cookie{Name: sysopCookie, Value: "test"})
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+		return rec
+	}
+	rec := request(http.MethodGet, "/api/partners", "")
+	var partners map[string]partnerStatus
+	if rec.Code != 200 || json.Unmarshal(rec.Body.Bytes(), &partners) != nil ||
+		!partners[eligible].CanSetInboundIP || partners[blocked].CanSetInboundIP {
+		t.Fatalf("unexpected partner capabilities: %s", rec.Body.String())
+	}
+	for _, test := range []struct {
+		call string
+		ip   string
+		want int
+	}{
+		{eligible, "192.168.1.1", http.StatusBadRequest},
+		{blocked, "8.8.4.4", http.StatusConflict},
+		{eligible, "8.8.4.4", http.StatusNoContent},
+	} {
+		rec := request(http.MethodPut, "/api/partners/"+test.call+"/inbound-ip", fmt.Sprintf("%q", test.ip))
+		if rec.Code != test.want {
+			t.Fatalf("%s %s: got %d, want %d: %s", test.call, test.ip, rec.Code, test.want, rec.Body.String())
+		}
+	}
+	if source := partnerInboundIP(root, eligible); source != "8.8.4.4" ||
+		!partnerInboundEnabled(root, entries[eligible], snapshot) || partnerInboundIP(root, blocked) != "" {
+		t.Fatal("unexpected inbound authorization")
+	}
+}
+
 func runConcurrentReaders(t *testing.T, viewers, reads int, read func() error) {
 	t.Helper()
 	var workers sync.WaitGroup

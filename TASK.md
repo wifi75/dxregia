@@ -8,6 +8,10 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Offrire ai partner DXSpider già preparati e sbloccati la scelta di accesso in ingresso senza password tramite IP o DNS autorizzato e l’invio delle relative istruzioni.
+
+- [x] Chiarire nella dashboard che gli account locali dei partner possono essere già bloccati da DXSpider quando il nodo viene appreso dalla rete.
+
 - [x] Integrare Reverse Beacon Network per CW e RTTY. Il sysop può attivare il collegamento in uscita dal pannello e il portale mostra gli spot RBN in una scheda dedicata.
 
 - [x] Preparare DXRegia 0.6.4 con Disco, RAM e Diagnostica sulla stessa riga su desktop, torte colorate e nome del Paese al passaggio del mouse sulle bandiere DXCC.

@@ -413,3 +413,9 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 
 - L’RBN si attiva da Collegamenti → Reverse Beacon Network ed è disattivato inizialmente. Il motore collega il feed CW/RTTY e il portale legge fino a 100 rapporti degli ultimi 30 minuti. L’utente Telnet sceglie le modalità con SET/SKIMMER CW RTTY.
 - I test coprono autorizzazione, attivazione e disattivazione, riconnessione cadenzata e inoltro dei candidati raggruppati in un ambiente simulato. Il collegamento al relay pubblico va verificato sul nodo al primo avvio del feed.
+
+## 2026-11-20 — Account locali dei nodi partner
+
+- La dashboard spiega che DXSpider può creare già bloccati gli account locali per i nodi appresi dalla rete. Il sysop verifica il blocco dalla scheda del partner prima di preparare l’uscita.
+- La scelta di accesso senza password tramite IP o DNS è disponibile anche per i partner DXSpider preparati. Un account bloccato o senza credenziale locale per DXSpider deve essere preparato prima. L’invio dei soli dati pubblici è disponibile a parte.
+- Verificati il salvataggio via API, il rifiuto di account non idonei e di indirizzi diversi da quello autorizzato, e il percorso del pulsante di invio con SMTP simulato in Chromium.
