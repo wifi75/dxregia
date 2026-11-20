@@ -337,3 +337,10 @@ export const dxccFlags: Record<number, string> = {
   357: 'ss',
   359: 'xk',
 }
+const ukFlagNames: Record<string, string> = {
+  'gb-eng': 'Inghilterra', 'gb-nir': 'Irlanda del Nord', 'gb-sct': 'Scozia', 'gb-wls': 'Galles',
+}
+
+export function dxccFlagName(flag: string, regionNames: Intl.DisplayNames) {
+  return ukFlagNames[flag] ?? regionNames.of(flag.toUpperCase()) ?? flag.toUpperCase()
+}

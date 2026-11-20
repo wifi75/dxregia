@@ -18,6 +18,9 @@ use constant { ROrigin => 0, RQrg => 1, RCall => 2, RMode => 3, RStrength => 4, 
 our $native_reports = 0;
 sub send_dx_spot { ++$native_reports }
 
+package Prefix;
+sub cty_data { return $_[0] eq 'I2ZZZ' ? (85, 0, 0, '', '', 'Italy-I') : (666) }
+
 package DXDebug;
 sub dbg { die @_ }
 
@@ -98,7 +101,7 @@ RBN::send_dx_spot($inbound, 'Q:3', [$now, 3, ['DL4ZZZ', 7020, 'I4ZZZ', 'CW', 12,
 Local::process_rbn($now + 10);
 is(state()->{State}, 'connected', 'reports an active CW/RTTY feed');
 is_deeply(state()->{Spots}, [{
-    Call => 'I2ZZZ', Skimmer => 'DL2ZZZ', Mode => 'RTTY', Frequency => 14020.5, SNR => 19, Quality => 3, At => $now,
+    Call => 'I2ZZZ', Skimmer => 'DL2ZZZ', Mode => 'RTTY', Frequency => 14020.5, SNR => 19, Quality => 3, At => $now, DXCC => 85, DXCCPrefix => 'I',
 }], 'exports one report per curated group and ignores inbound and FT8 reports');
 is($RBN::native_reports, 3, 'keeps the native delivery path intact');
 

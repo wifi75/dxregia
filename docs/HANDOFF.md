@@ -420,3 +420,7 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 - La scelta di accesso senza password tramite IP o DNS è disponibile anche per i partner DXSpider preparati. Un account bloccato o senza credenziale locale per DXSpider deve essere preparato prima. L’invio dei soli dati pubblici è disponibile a parte.
 - Verificati il salvataggio via API, il rifiuto di account non idonei e di indirizzi diversi da quello autorizzato, e il percorso del pulsante di invio con SMTP simulato in Chromium.
 - La tabella Nodi partner e la dashboard mostrano prima i collegamenti attivi e ordinano i gruppi per indicativo. L’ordinamento si aggiorna insieme allo stato delle sessioni.
+
+## 2026-11-20 — Paesi dei partner e degli spot RBN
+
+- Le colonne Bandiera e Paese dei partner usano il DXCC del nominativo completo, anche senza una sessione attiva. La tabella RBN mostra il prefisso DXCC, la bandiera e il paese della stazione rilevata. La pagina spiega il ruolo dello skimmer e la lettura di SNR e Q.

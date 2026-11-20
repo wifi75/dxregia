@@ -1,7 +1,9 @@
 // Testi del portale pubblico in sei lingue. L'italiano è la lingua di riferimento: le altre devono avere le stesse chiavi.
 const it = {
   rbnTitle: "Reverse Beacon Network",
-  rbnHelp: "Spot automatici CW e RTTY. SNR indica il rapporto segnale/rumore. Q indica la qualità stimata da DXSpider.",
+  rbnHelp: "Gli spot RBN indicano dove e a quale frequenza una stazione è stata ricevuta. Lo skimmer è il ricevitore che l’ha rilevata automaticamente in CW o RTTY. SNR indica quanto emerge il segnale dal rumore. Q è la stima di qualità di DXSpider.",
+  rbnFlag: "Bandiera",
+  rbnCountry: "Paese",
   rbnDisabled: "Feed RBN disattivato su questo nodo.",
   rbnWaiting: "In attesa dello stato da DXSpider.",
   rbnConnecting: "Collegamento RBN in corso. I primi spot possono richiedere alcuni minuti.",
@@ -232,7 +234,9 @@ type Catalog = Record<Key, string>
 
 const en: Catalog = {
   rbnTitle: "Reverse Beacon Network",
-  rbnHelp: "Automatic CW and RTTY spots. SNR is the signal-to-noise ratio. Q is the quality estimated by DXSpider.",
+  rbnHelp: "RBN spots show where and on what frequency a station was heard. The skimmer is the receiver that detected its CW or RTTY signal automatically. SNR shows how far the signal rises above the noise. Q is the quality score estimated by DXSpider.",
+  rbnFlag: "Flag",
+  rbnCountry: "Country",
   rbnDisabled: "The RBN feed is disabled on this node.",
   rbnWaiting: "Waiting for status from DXSpider.",
   rbnConnecting: "Connecting to RBN. The first spots may take a few minutes.",
@@ -461,7 +465,9 @@ const en: Catalog = {
 
 const es: Catalog = {
   rbnTitle: "Reverse Beacon Network",
-  rbnHelp: "Spots automáticos CW y RTTY. SNR es la relación señal/ruido. Q es la calidad estimada por DXSpider.",
+  rbnHelp: "Los spots RBN muestran dónde y en qué frecuencia se recibió una estación. El skimmer es el receptor que detectó automáticamente su señal CW o RTTY. SNR mide cuánto destaca la señal sobre el ruido. Q es la calidad estimada por DXSpider.",
+  rbnFlag: "Bandera",
+  rbnCountry: "País",
   rbnDisabled: "El feed RBN está desactivado en este nodo.",
   rbnWaiting: "Esperando el estado de DXSpider.",
   rbnConnecting: "Conectando a RBN. Los primeros spots pueden tardar unos minutos.",
@@ -690,7 +696,9 @@ const es: Catalog = {
 
 const de: Catalog = {
   rbnTitle: "Reverse Beacon Network",
-  rbnHelp: "Automatische CW- und RTTY-Spots. SNR ist der Signal-Rausch-Abstand. Q ist die von DXSpider geschätzte Qualität.",
+  rbnHelp: "RBN-Spots zeigen, wo und auf welcher Frequenz eine Station gehört wurde. Der Skimmer ist der Empfänger, der ihr CW- oder RTTY-Signal automatisch erkannt hat. SNR misst den Signal-Rausch-Abstand. Q ist die von DXSpider geschätzte Qualität.",
+  rbnFlag: "Flagge",
+  rbnCountry: "Land",
   rbnDisabled: "Der RBN-Feed ist auf diesem Knoten deaktiviert.",
   rbnWaiting: "Warte auf den Status von DXSpider.",
   rbnConnecting: "Verbindung mit RBN wird aufgebaut. Die ersten Spots können einige Minuten dauern.",
@@ -919,7 +927,9 @@ const de: Catalog = {
 
 const fr: Catalog = {
   rbnTitle: "Reverse Beacon Network",
-  rbnHelp: "Spots automatiques CW et RTTY. SNR est le rapport signal sur bruit. Q est la qualité estimée par DXSpider.",
+  rbnHelp: "Les spots RBN indiquent où et sur quelle fréquence une station a été entendue. Le skimmer est le récepteur qui a détecté automatiquement son signal CW ou RTTY. Le SNR mesure le rapport signal sur bruit. Q est la qualité estimée par DXSpider.",
+  rbnFlag: "Drapeau",
+  rbnCountry: "Pays",
   rbnDisabled: "Le flux RBN est désactivé sur ce nœud.",
   rbnWaiting: "En attente de l’état de DXSpider.",
   rbnConnecting: "Connexion à RBN en cours. Les premiers spots peuvent prendre quelques minutes.",
@@ -1148,7 +1158,9 @@ const fr: Catalog = {
 
 const pt: Catalog = {
   rbnTitle: "Reverse Beacon Network",
-  rbnHelp: "Spots automáticos CW e RTTY. SNR é a relação sinal/ruído. Q é a qualidade estimada pelo DXSpider.",
+  rbnHelp: "Os spots RBN mostram onde e em que frequência uma estação foi ouvida. O skimmer é o recetor que detetou automaticamente o seu sinal CW ou RTTY. SNR indica a relação sinal/ruído. Q é a qualidade estimada pelo DXSpider.",
+  rbnFlag: "Bandeira",
+  rbnCountry: "País",
   rbnDisabled: "O feed RBN está desativado neste nó.",
   rbnWaiting: "A aguardar o estado do DXSpider.",
   rbnConnecting: "A ligar ao RBN. Os primeiros spots podem demorar alguns minutos.",

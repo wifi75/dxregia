@@ -1,14 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { tr } from './adminI18n'
+  import { dxccFlags, dxccFlagName } from './dxccFlags'
+  import { lang } from './i18n.svelte'
 
   import type { ContactRequest } from './ContactRequests.svelte'
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; IPMailStatus?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; CanSetInboundIP?: boolean; InboundIP?: string; InboundTestUntil?: string; InboundAutoNext?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { DXCC?: number; RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; IPMailStatus?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; CanSetInboundIP?: boolean; InboundIP?: string; InboundTestUntil?: string; InboundAutoNext?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
+  const regionNames = $derived(new Intl.DisplayNames([lang()], { type: 'region' }))
   let partners = $state<Partner[]>([])
   const isOnline = (partner: Partner) => !partner.Locked && partner.Connection === 'Attivo'
   const sortedPartners = $derived(partners.toSorted((a, b) =>
@@ -463,12 +466,16 @@
     {:else}
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Indicativo</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
+          <thead><tr><th>Indicativo</th><th scope="col">Bandiera</th><th scope="col">Paese</th><th>Nome nodo</th><th>Referente</th><th scope="col">Stato</th><th scope="col" title="Chi ha avviato il collegamento">Direzione</th><th>Registrato il</th></tr></thead>
           <tbody>
             {#each (onlyInbound ? inboundPartners : sortedPartners) as partner (partner.Call)}
+              {@const flag = dxccFlags[partner.DXCC ?? 0]}
+              {@const country = flag ? dxccFlagName(flag, regionNames) : '—'}
               {@const state = statusError ? 'Stato non aggiornato' : partner.Locked ? 'Nodo bloccato in DXSpider' : partner.InboundTestUntil && partner.Connection !== 'Attivo' ? 'Prova in ingresso' : connectionLabel(partner.Connection)}
               <tr class:current={selected?.Call === partner.Call}>
                 <td><button class="call" type="button" onclick={() => open(partner)} disabled={busy || enabling}>{partner.Call}</button></td>
+                <td>{#if flag}<img class="partner-flag" src={'/flags/' + flag + '.svg'} alt="" title={country} width="22" height="16" loading="lazy" />{:else}—{/if}</td>
+                <td>{country}</td>
                 <td>{partner.Name || '—'}</td>
                 <td>{partner.Contact || '—'}</td>
                 <td>
@@ -815,6 +822,7 @@
   table { width: 100%; text-align: left; border-collapse: collapse; white-space: nowrap; }
   th, td { padding: 5px 8px; border-bottom: 1px solid #d7dfe7; }
   th { background: #edf3f9; }
+  .partner-flag { display: block; object-fit: cover; border: 1px solid #17384c26; border-radius: 2px; }
   tr.current td { background: #e4eef7; }
   .detail { margin-top: 18px; display: grid; gap: 14px; }
   .detail-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; }

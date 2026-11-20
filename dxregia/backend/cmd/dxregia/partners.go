@@ -26,6 +26,7 @@ type partnerDetails struct {
 
 type partnerStatus struct {
 	partner
+	DXCC                 int        `json:",omitempty"`
 	LastConnectAttempt   *time.Time `json:",omitempty"`
 	RetryEligibleAt      *time.Time `json:",omitempty"`
 	PublicMailAcceptedAt *time.Time `json:",omitempty"`
@@ -156,7 +157,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 			view := make(map[string]partnerStatus, len(partners))
 			for call, entry := range partners {
 				entry.Connection = currentConnection(root, call, snapshot)
-				status := partnerStatus{partner: entry, OutgoingReady: partnerOutgoingReady(entry, snapshot)}
+				status := partnerStatus{partner: entry, DXCC: snapshot.PartnerDXCC[call], OutgoingReady: partnerOutgoingReady(entry, snapshot)}
 				if until := inboundTestUntil(root, call); until.After(time.Now()) {
 					status.InboundTestUntil = &until
 				}

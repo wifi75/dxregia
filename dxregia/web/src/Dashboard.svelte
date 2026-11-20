@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { dxccFlags } from './dxccFlags'
+  import { dxccFlags, dxccFlagName } from './dxccFlags'
   import { lang } from './i18n.svelte'
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
@@ -57,9 +57,6 @@
   const currentPage = $derived(Math.min(sessionPage, pageCount))
   const visibleSessions = $derived(sessions.slice((currentPage - 1) * pageSize, currentPage * pageSize))
   const regionNames = $derived(new Intl.DisplayNames([lang()], { type: 'region' }))
-  const ukFlagNames: Record<string, string> = {
-    'gb-eng': 'Inghilterra', 'gb-nir': 'Irlanda del Nord', 'gb-sct': 'Scozia', 'gb-wls': 'Galles',
-  }
   $effect(() => { if (fresh && sessionPage > pageCount) sessionPage = pageCount })
   let partnerCalls = $derived(Object.keys(directory).sort())
   const activeNodeCalls = $derived(new Set(nodes
@@ -236,7 +233,7 @@
         <li class:at-edge={(index + 1) % sessionColumns === 0}>
           <div class="session-call">
             {#if flag}
-              {@const country = ukFlagNames[flag] ?? regionNames.of(flag.toUpperCase()) ?? flag.toUpperCase()}
+              {@const country = dxccFlagName(flag, regionNames)}
               <span class="session-flag">
                 <img src={'/flags/' + flag + '.svg'} alt={country} width="17" height="12" loading="lazy" />
                 <span class="flag-name" aria-hidden="true">{country}</span>

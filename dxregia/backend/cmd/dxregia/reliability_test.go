@@ -30,7 +30,10 @@ func TestPartnerInboundIPAllowsPreparedDXSpiderAccount(t *testing.T) {
 	if err := savePartners(filepath.Join(root, ".dxregia-partners.json"), entries); err != nil {
 		t.Fatal(err)
 	}
-	snapshot := presence{At: time.Now().Unix(), InboundIPReady: map[string]bool{eligible: true}}
+	snapshot := presence{
+		At: time.Now().Unix(), InboundIPReady: map[string]bool{eligible: true},
+		PartnerDXCC: map[string]int{eligible: 129, blocked: 85},
+	}
 	if err := writePrivateJSON(filepath.Join(root, "local_data", "dxregia-presence.json"), snapshot); err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +53,8 @@ func TestPartnerInboundIPAllowsPreparedDXSpiderAccount(t *testing.T) {
 	rec := request(http.MethodGet, "/api/partners", "")
 	var partners map[string]partnerStatus
 	if rec.Code != 200 || json.Unmarshal(rec.Body.Bytes(), &partners) != nil ||
-		!partners[eligible].CanSetInboundIP || partners[blocked].CanSetInboundIP {
+		!partners[eligible].CanSetInboundIP || partners[blocked].CanSetInboundIP ||
+		partners[eligible].DXCC != 129 || partners[blocked].DXCC != 85 {
 		t.Fatalf("unexpected partner capabilities: %s", rec.Body.String())
 	}
 	for _, test := range []struct {

@@ -21,13 +21,15 @@ type rbnConfig struct {
 }
 
 type rbnSpot struct {
-	Call      string
-	Skimmer   string
-	Mode      string
-	Frequency float64
-	At        int64
-	SNR       int
-	Quality   int
+	Call       string
+	Skimmer    string
+	Mode       string
+	Frequency  float64
+	At         int64
+	SNR        int
+	Quality    int
+	DXCC       int    `json:",omitempty"`
+	DXCCPrefix string `json:",omitempty"`
 }
 
 type rbnSnapshot struct {

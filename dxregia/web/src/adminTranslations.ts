@@ -86,6 +86,8 @@ export const adminRows: string[][] = [
   ['Hop e filtri', 'Hops and filters', 'Saltos y filtros', 'Hops und Filter', 'Sauts et filtres', 'Saltos e filtros'],
   ['Log DXSpider', 'DXSpider log', 'Registro de DXSpider', 'DXSpider-Protokoll', 'Journal DXSpider', 'Registo do DXSpider'],
   ['Nodi partner', 'Partner nodes', 'Nodos asociados', 'Partnerknoten', 'Nœuds partenaires', 'Nós parceiros'],
+  ['Paese', 'Country', 'País', 'Land', 'Pays', 'País'],
+  ['Bandiera', 'Flag', 'Bandera', 'Flagge', 'Drapeau', 'Bandeira'],
   ['Prepara o sblocca l’account locale del partner per attivare l’accesso tramite IP.', 'Prepare or unlock the partner’s local account to enable IP-based access.', 'Prepara o desbloquea la cuenta local del socio para activar el acceso por IP.', 'Bereite das lokale Partnerkonto vor oder entsperre es, um den IP-Zugang zu aktivieren.', 'Préparez ou débloquez le compte local du partenaire pour activer l’accès par IP.', 'Prepare ou desbloqueie a conta local do parceiro para ativar o acesso por IP.'],
   ['Invia dati pubblici senza password', 'Email public details without a password', 'Enviar datos públicos sin contraseña', 'Öffentliche Daten ohne Passwort senden', 'Envoyer les données publiques sans mot de passe', 'Enviar dados públicos sem palavra-passe'],
   ['Account locali bloccati', 'Locked local accounts', 'Cuentas locales bloqueadas', 'Gesperrte lokale Konten', 'Comptes locaux bloqués', 'Contas locais bloqueadas'],

@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Mostrare paese e bandiera nella tabella Nodi partner e aggiungere prefisso DXCC, bandiera e paese agli spot RBN con una spiegazione dello skimmer.
+
 - [x] Ordinare automaticamente la tabella Nodi partner e il riquadro della dashboard con i nodi attivi in cima e ordine alfabetico per indicativo dentro ciascun gruppo.
 
 - [x] Offrire ai partner DXSpider già preparati e sbloccati la scelta di accesso in ingresso senza password tramite IP o DNS autorizzato e l’invio delle relative istruzioni.

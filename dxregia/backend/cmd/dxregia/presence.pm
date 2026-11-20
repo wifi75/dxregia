@@ -45,10 +45,15 @@ sub capture_rbn_spot {
     return unless $call =~ /\A[A-Z0-9\/-]{2,20}\z/ && $skimmer =~ /\A[A-Z0-9\/-]{2,20}\z/
         && $frequency =~ /\A\d{1,7}(?:\.\d{1,4})?\z/ && $frequency > 0 && $at =~ /\A\d{1,12}\z/;
     my ($score) = ($quality // '') =~ /\bQ:(\d{1,2})\b/;
+    my @country = Prefix::cty_data($call);
+    my ($dxcc, $entity) = @country[0, 5];
+    my ($prefix) = ($entity // '') =~ /-([A-Z0-9]+(?:\/[A-Z0-9]+)?)\z/i;
     unshift @rbn_spots, {
         Call => $call, Skimmer => $skimmer, Frequency => 0 + $frequency, At => int($at),
         Mode => uc($best->[RBN::RMode()]) eq 'CW' ? 'CW' : 'RTTY',
         SNR => int($best->[RBN::RStrength()]), Quality => int($score || 0),
+        ($dxcc && $dxcc != 666 ? (DXCC => int($dxcc)) : ()),
+        ($dxcc && $dxcc != 666 && $prefix ? (DXCCPrefix => uc($prefix)) : ()),
     };
     splice @rbn_spots, 100 if @rbn_spots > 100;
 }
@@ -167,22 +172,25 @@ sub process {
     my $target = "$main::local_data/dxregia-presence.json";
     my $tmp = "$target.tmp";
     open(my $file, '>:raw', $tmp) or die "DXRegia snapshot: $!";
-    my ($locked, $outgoing_ready, $cc_inbound_reset, $inbound_ip_ready) = partner_account_states();
-    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, SysopPassword => JSON::true, Telnet => telnet_options(), Channels => \@channels, LockedPartners => $locked, OutgoingReady => $outgoing_ready, CCInboundReset => $cc_inbound_reset, InboundIPReady => $inbound_ip_ready }) or die "DXRegia snapshot: $!";
+    my ($locked, $outgoing_ready, $cc_inbound_reset, $inbound_ip_ready, $partner_dxcc) = partner_account_states();
+    print $file JSON::encode_json({ At => int($now), PartnerConnect => JSON::true, SysopPassword => JSON::true, Telnet => telnet_options(), Channels => \@channels, LockedPartners => $locked, OutgoingReady => $outgoing_ready, CCInboundReset => $cc_inbound_reset, InboundIPReady => $inbound_ip_ready, PartnerDXCC => $partner_dxcc }) or die "DXRegia snapshot: $!";
     close($file) or die "DXRegia snapshot: $!";
     rename($tmp, $target) or die "DXRegia snapshot: $!";
 }
 
 sub partner_account_states {
-    my (%locked, %outgoing_ready, %cc_inbound_reset, %inbound_ip_ready);
-    open(my $directory, '<:raw', "$main::root/.dxregia-partners.json") or return (\%locked, \%outgoing_ready, \%cc_inbound_reset, \%inbound_ip_ready);
+    my (%locked, %outgoing_ready, %cc_inbound_reset, %inbound_ip_ready, %partner_dxcc);
+    my @states = (\%locked, \%outgoing_ready, \%cc_inbound_reset, \%inbound_ip_ready, \%partner_dxcc);
+    open(my $directory, '<:raw', "$main::root/.dxregia-partners.json") or return @states;
     my $data = do { local $/; <$directory> };
     close($directory);
     my $partners = eval { JSON::decode_json($data) };
-    return (\%locked, \%outgoing_ready, \%cc_inbound_reset, \%inbound_ip_ready) unless ref($partners) eq 'HASH';
+    return @states unless ref($partners) eq 'HASH';
     for my $call (keys %$partners) {
         next unless $call =~ /\A[A-Z0-9]+(?:-[0-9]+)?\z/ && length($call) <= 12;
         next if $call eq $main::mycall || $call eq $main::myalias;
+        my ($dxcc) = Prefix::cty_data($call);
+        $partner_dxcc{$call} = int($dxcc) if $dxcc && $dxcc != 666;
         my $user = DXUser::get_current($call);
         $cc_inbound_reset{$call} = JSON::true if editable_ccluster_peer($user);
         $inbound_ip_ready{$call} = JSON::true if can_use_partner_inbound_ip($user);
@@ -190,7 +198,7 @@ sub partner_account_states {
         next unless $user && $user->lockout;
         $locked{$call} = ($user->sort eq 'S' && ($user->priv || 0) <= 1) ? JSON::true : JSON::false;
     }
-    return (\%locked, \%outgoing_ready, \%cc_inbound_reset, \%inbound_ip_ready);
+    return @states;
 }
 
 my $applied_telnet = '';
