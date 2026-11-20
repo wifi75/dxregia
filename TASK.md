@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Preparare DXRegia 0.6.4 con Disco, RAM e Diagnostica sulla stessa riga su desktop, torte colorate e nome del Paese al passaggio del mouse sulle bandiere DXCC.
+
 - [x] Preparare DXRegia 0.6.3 con i grafici ad anello di disco e memoria su una riga e la diagnostica del nodo più compatta.
 
 - [x] Preparare DXRegia 0.6.2 con nominativi più grandi, testo bianco nel tema scuro e griglia dei radioamatori senza orari. Rendere quadrate e colorate le schede delle condizioni solari e rimuovere i riquadri Bollettini e Propagazione osservata dalla vista pubblica.

@@ -404,3 +404,7 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 ## 2026-11-20 — Release 0.6.3
 
 - Disco e RAM condividono un riquadro con grafici ad anello per la percentuale di utilizzo corrente. La diagnostica conserva tutte le misure con meno spazio verticale.
+
+## 2026-11-20 — Release 0.6.4
+
+- Disco, RAM e Diagnostica sono affiancati su desktop. Le torte di disco e RAM distinguono lo spazio usato e libero. Le bandiere DXCC mostrano il nome del Paese o del territorio nella lingua del pannello al passaggio del mouse.

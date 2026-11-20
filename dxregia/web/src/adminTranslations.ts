@@ -34,6 +34,7 @@ export const adminRows: string[][] = [
   ['Memoria RAM', 'RAM', 'Memoria RAM', 'Arbeitsspeicher', 'Mémoire vive', 'Memória RAM'],
   ['disponibili', 'available', 'disponibles', 'verfügbar', 'disponibles', 'disponíveis'],
   ['Misura non disponibile.', 'Measurement unavailable.', 'Medición no disponible.', 'Messwert nicht verfügbar.', 'Mesure indisponible.', 'Medição indisponível.'],
+  ['Ritardo sessioni', 'Session delay', 'Retraso de sesiones', 'Sitzungsverzögerung', 'Délai des sessions', 'Atraso das sessões'],
   ['Ritardo aggiornamento sessioni', 'Session refresh delay', 'Retraso de actualización de sesiones', 'Verzögerung beim Sitzungsupdate', 'Délai de mise à jour des sessions', 'Atraso na atualização das sessões'],
   ['Spazio libero sul volume dati', 'Free space on the data volume', 'Espacio libre en el volumen de datos', 'Freier Speicher auf dem Datenvolume', 'Espace libre sur le volume de données', 'Espaço livre no volume de dados'],
   ['Log e storico email', 'Logs and email history', 'Registros e historial de correo', 'Protokolle und E-Mail-Verlauf', 'Journaux et historique des e-mails', 'Registos e histórico de e-mail'],
@@ -605,6 +606,10 @@ export const adminRows: string[][] = [
   ['Precedente', 'Previous', 'Anterior', 'Zurück', 'Précédente', 'Anterior'],
   ['Successiva', 'Next', 'Siguiente', 'Weiter', 'Suivante', 'Seguinte'],
   ['Radioamatori collegati al tuo nodo', 'Radio amateurs connected to your node', 'Radioaficionados conectados a tu nodo', 'Mit deinem Knoten verbundene Funkamateure', 'Radioamateurs connectés à votre nœud', 'Radioamadores ligados ao seu nó'],
+  ['Inghilterra', 'England', 'Inglaterra', 'England', 'Angleterre', 'Inglaterra'],
+  ['Irlanda del Nord', 'Northern Ireland', 'Irlanda del Norte', 'Nordirland', 'Irlande du Nord', 'Irlanda do Norte'],
+  ['Scozia', 'Scotland', 'Escocia', 'Schottland', 'Écosse', 'Escócia'],
+  ['Galles', 'Wales', 'Gales', 'Wales', 'Pays de Galles', 'País de Gales'],
   ['Utenti connessi in questo momento via Telnet o dal web.', 'Users connected right now by Telnet or from the web.', 'Usuarios conectados ahora por Telnet o desde la web.', 'Derzeit per Telnet oder über das Web verbundene Benutzer.', 'Utilisateurs connectés en ce moment en Telnet ou depuis le web.', 'Utilizadores ligados neste momento por Telnet ou pela web.'],
   // Parole singole
   ['Accedi', 'Sign in', 'Acceder', 'Anmelden', 'Se connecter', 'Iniciar sessão'],

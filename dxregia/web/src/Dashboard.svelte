@@ -57,6 +57,9 @@
   const currentPage = $derived(Math.min(sessionPage, pageCount))
   const visibleSessions = $derived(sessions.slice((currentPage - 1) * pageSize, currentPage * pageSize))
   const regionNames = $derived(new Intl.DisplayNames([lang()], { type: 'region' }))
+  const ukFlagNames: Record<string, string> = {
+    'gb-eng': 'Inghilterra', 'gb-nir': 'Irlanda del Nord', 'gb-sct': 'Scozia', 'gb-wls': 'Galles',
+  }
   $effect(() => { if (fresh && sessionPage > pageCount) sessionPage = pageCount })
   let partnerCalls = $derived(Object.keys(directory).sort())
   const partnerRows = $derived([...new Set([...partnerCalls, ...nodes.map(node => node.Call)])].sort())
@@ -220,13 +223,16 @@
   {:else if visibleSessions.length}
     <p class="sub session-legend">T · Telnet <span aria-hidden="true">/</span> W · Web</p>
     <ul class="session-grid" style:--session-columns={sessionColumns}>
-      {#each visibleSessions as session (session.Call + ':' + session.Kind)}
+      {#each visibleSessions as session, index (session.Call + ':' + session.Kind)}
         {@const flag = dxccFlags[session.DXCC ?? 0]}
-        <li>
+        <li class:at-edge={(index + 1) % sessionColumns === 0}>
           <div class="session-call">
             {#if flag}
-              {@const country = regionNames.of(flag.slice(0, 2).toUpperCase()) ?? flag.toUpperCase()}
-              <img src={'/flags/' + flag + '.svg'} alt={country} title={country} width="17" height="12" loading="lazy" />
+              {@const country = ukFlagNames[flag] ?? regionNames.of(flag.toUpperCase()) ?? flag.toUpperCase()}
+              <span class="session-flag">
+                <img src={'/flags/' + flag + '.svg'} alt={country} width="17" height="12" loading="lazy" />
+                <span class="flag-name" aria-hidden="true">{country}</span>
+              </span>
             {/if}
             <strong title={session.Call}>{session.Call}</strong>
           </div>
@@ -250,19 +256,17 @@
   {/if}
 {/snippet}
 
-<section class="glass-panel server-resources" aria-label="Risorse del server">
+<section class="server-resources" aria-label="Risorse del server">
   {#snippet resource(title: string, free: number, total: number, kind: 'disk' | 'memory')}
     {@const used = Math.max(0, total - free)}
     {@const usage = total > 0 ? Math.min(100, used / total * 100) : 0}
-    <article class="resource" data-kind={kind}>
+    <article class="glass-panel resource" data-kind={kind}>
       {#if total > 0}
-        <div class="resource-ring" role="meter" aria-label={title} aria-valuemin={0} aria-valuemax={100}
-          aria-valuenow={usage} aria-valuetext={number.format(usage) + '%'} style:--usage={usage + '%'}>
-          <strong>{number.format(usage)}%</strong>
-        </div>
+        <div class="resource-pie" role="meter" aria-label={title} aria-valuemin={0} aria-valuemax={100}
+          aria-valuenow={usage} aria-valuetext={number.format(usage) + '%'} style:--usage={usage + '%'}></div>
       {/if}
       <div class="resource-details">
-        <h2>{title}</h2>
+        <h2>{title}{#if total > 0}<span class="resource-percent">{number.format(usage)}%</span>{/if}</h2>
         {#if total > 0}
           <p><strong>{size(used)} / {size(total)}</strong><span class="resource-free">{size(free)} <span>disponibili</span></span></p>
         {:else}
@@ -273,42 +277,48 @@
   {/snippet}
   {@render resource('Disco · volume dati', nodeHealth?.FreeBytes ?? 0, nodeHealth?.DiskAvailable ? nodeHealth.TotalBytes : 0, 'disk')}
   {@render resource('Memoria RAM', nodeHealth?.MemoryFreeBytes ?? 0, nodeHealth?.MemoryAvailable ? nodeHealth.MemoryTotalBytes : 0, 'memory')}
+
+  <article class="glass-panel diagnostics">
+    <h2>Diagnostica del nodo</h2>
+    <dl>
+      <div><dt title="Ritardo aggiornamento sessioni">Ritardo sessioni</dt><dd>{fresh && presenceDelay !== undefined ? presenceDelay + ' s' : '—'}</dd></div>
+      <div><dt>Ultimo spot</dt><dd>{since(nodeHealth?.LatestSpotAt ?? 0, now)}</dd></div>
+      <div><dt>Log e storico email</dt><dd>
+        {nodeHealth?.LogsAvailable ? size(nodeHealth.LogBytes) : '—'}
+        {#if nodeHealth?.GrowthIntervalSeconds}
+          <small>{nodeHealth.GrowthBytes > 0 ? '+' : ''}{size(nodeHealth.GrowthBytes)} in {nodeHealth.GrowthIntervalSeconds} s</small>
+        {/if}
+        {#if nodeHealth?.RetentionDays}<small>Conservazione eventi: {nodeHealth.RetentionDays} giorni</small>{/if}
+      </dd></div>
+      <div><dt>Processo DXRegia</dt><dd>{nodeHealth?.DXRegiaPID ? 'PID ' + nodeHealth.DXRegiaPID : '—'}</dd></div>
+      <div><dt>Processo DXSpider</dt><dd>{nodeHealth?.DXSpiderPID ? 'PID ' + nodeHealth.DXSpiderPID : fresh ? 'Dati attivi · PID non rilevato' : 'Non rilevato'}</dd></div>
+    </dl>
+  </article>
 </section>
 
-<article class="glass-panel box diagnostics">
-  <h2>Diagnostica del nodo</h2>
-  <dl>
-    <div><dt>Ritardo aggiornamento sessioni</dt><dd>{fresh && presenceDelay !== undefined ? presenceDelay + ' s' : '—'}</dd></div>
-    <div><dt>Ultimo spot</dt><dd>{since(nodeHealth?.LatestSpotAt ?? 0, now)}</dd></div>
-    <div><dt>Log e storico email</dt><dd>
-      {nodeHealth?.LogsAvailable ? size(nodeHealth.LogBytes) : '—'}
-      {#if nodeHealth?.GrowthIntervalSeconds}
-        <small>{nodeHealth.GrowthBytes > 0 ? '+' : ''}{size(nodeHealth.GrowthBytes)} in {nodeHealth.GrowthIntervalSeconds} s</small>
-      {/if}
-      {#if nodeHealth?.RetentionDays}<small>Conservazione eventi: {nodeHealth.RetentionDays} giorni</small>{/if}
-    </dd></div>
-    <div><dt>Processo DXRegia</dt><dd>{nodeHealth?.DXRegiaPID ? 'PID ' + nodeHealth.DXRegiaPID : '—'}</dd></div>
-    <div><dt>Processo DXSpider</dt><dd>{nodeHealth?.DXSpiderPID ? 'PID ' + nodeHealth.DXSpiderPID : fresh ? 'Dati attivi · PID non rilevato' : 'Non rilevato'}</dd></div>
-  </dl>
-</article>
-
 <style>
-  .server-resources { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; padding: 7px 12px; }
-  .resource { display: flex; align-items: center; min-height: 50px; gap: 9px; min-width: 0; --resource-accent: #2674a3; }
-  .resource[data-kind=memory] { --resource-accent: #15815a; border-inline-start: 1px solid var(--glass-line); padding-inline-start: 12px; }
-  .resource-ring { position: relative; display: grid; place-items: center; flex: 0 0 50px; aspect-ratio: 1; font-size: .75rem; font-variant-numeric: tabular-nums; }
-  .resource-ring::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--resource-accent) var(--usage), #c6dbe6 0); mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px)); }
-  .resource h2, .diagnostics h2 { margin: 0 0 3px; font-size: .95rem; }
+  .server-resources { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2.25fr); gap: 8px; margin-top: 10px; }
+  .resource, .diagnostics { min-width: 0; padding: 8px 10px; }
+  .resource { display: flex; align-items: center; gap: 9px; --resource-accent: #176ba5; --resource-free: #93cbed; }
+  .resource[data-kind=memory] { --resource-accent: #096b49; --resource-free: #93dfb9; }
+  .resource-pie { flex: 0 0 44px; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(var(--resource-accent) var(--usage), var(--resource-free) 0); }
+  :global(html[data-theme=dark]) .resource-pie { filter: invert(1) hue-rotate(180deg); }
+  .resource h2, .diagnostics h2 { margin: 0 0 3px; font-size: .92rem; }
+  .resource h2 { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 7px; }
+  .resource-percent { font-size: .84rem; font-variant-numeric: tabular-nums; }
   .resource p { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 9px; margin: 0; font-size: .81rem; }
   .resource-free { color: #485b6d; }
-  .diagnostics.box { margin-top: 10px; padding: 7px 12px; }
-  .diagnostics dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 145px), 1fr)); gap: 5px 10px; margin: 5px 0 0; }
-  .diagnostics dt { color: #485b6d; font-size: .79rem; }
+  .diagnostics dl { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px 8px; margin: 4px 0 0; }
+  .diagnostics dt { color: #485b6d; font-size: .75rem; line-height: 1.2; }
   .diagnostics dd { margin: 1px 0 0; font-size: .82rem; font-weight: 700; }
-  .diagnostics small { display: inline-block; margin-inline-start: 4px; font-weight: 400; }
-  @media (max-width: 650px) {
-    .server-resources { grid-template-columns: 1fr; gap: 6px; }
-    .resource[data-kind=memory] { border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--glass-line); padding-top: 6px; }
+  .diagnostics small { display: block; font-size: .69rem; font-weight: 400; }
+  @media (max-width: 980px) {
+    .server-resources { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .diagnostics { grid-column: 1 / -1; }
+  }
+  @media (max-width: 620px) {
+    .server-resources { grid-template-columns: 1fr; }
+    .diagnostics dl { grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr)); }
   }
 
   .blocked, .blocked a { color: #9d2027; font-weight: 700; }
@@ -347,7 +357,11 @@
   .session-call { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
   .session-call strong { overflow: hidden; text-overflow: ellipsis; font-size: .875rem; }
   .inbound .led { width: 7px; height: 7px; flex-basis: 7px; }
-  .session-call img { flex: none; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
+  .session-flag { position: relative; flex: none; }
+  .session-flag img { display: block; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
+  .flag-name { display: none; position: absolute; z-index: 2; inset-block-end: calc(100% + 4px); inset-inline-start: -4px; padding: 3px 7px; border: 1px solid #a9c3d0; border-radius: 4px; background: #fff; color: #0f2a41; font-size: .8rem; font-weight: 650; pointer-events: none; }
+  .session-flag:hover .flag-name { display: block; }
+  .session-grid li.at-edge:not(:first-child) .flag-name { inset-inline: auto -4px; }
   .session-grid .tag { padding: 0 3px; font-size: .75rem; text-decoration: none; }
   .session-legend { font-size: .78rem; margin: 2px 0 6px; }
   /* The global dark theme inverts these colors after compositing. */
@@ -358,7 +372,7 @@
   @container (min-width: 1320px) {
     .session-grid li { min-height: 31px; padding-inline: 6px; }
     .session-call strong { font-size: .9375rem; }
-    .session-call img { width: 19px; height: 14px; }
+    .session-flag img { width: 19px; height: 14px; }
   }
   .pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: end; margin-top: 7px; font-size: .8rem; }
   .pagination button { min-height: 28px; padding: 2px 8px; }

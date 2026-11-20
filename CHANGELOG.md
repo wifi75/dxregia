@@ -4,6 +4,13 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-11-20
+
+### Changed
+
+- Place the disk, RAM and node diagnostics cards on the same row on desktop. Disk and RAM show current usage as colored pie charts.
+- Show the localized country or territory name when hovering over a connected station’s DXCC flag.
+
 ## [0.6.3] - 2026-11-20
 
 ### Changed
