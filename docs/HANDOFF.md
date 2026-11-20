@@ -408,3 +408,8 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 ## 2026-11-20 — Release 0.6.4
 
 - Disco, RAM e Diagnostica sono affiancati su desktop. Le torte di disco e RAM distinguono lo spazio usato e libero. Le bandiere DXCC mostrano il nome del Paese o del territorio nella lingua del pannello al passaggio del mouse.
+
+## 2026-11-20 — Release 0.7.0
+
+- L’RBN si attiva da Collegamenti → Reverse Beacon Network ed è disattivato inizialmente. Il motore collega il feed CW/RTTY e il portale legge fino a 100 rapporti degli ultimi 30 minuti. L’utente Telnet sceglie le modalità con SET/SKIMMER CW RTTY.
+- I test coprono autorizzazione, attivazione e disattivazione, riconnessione cadenzata e inoltro dei candidati raggruppati in un ambiente simulato. Il collegamento al relay pubblico va verificato sul nodo al primo avvio del feed.

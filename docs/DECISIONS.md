@@ -28,3 +28,7 @@ La conservazione automatica è esplicita e disattivata alla prima installazione.
 ## 2026-11-19 — Allarmi radio locali al browser
 
 Le regole e gli esiti radio vengono salvati nel browser. Il portale usa il feed degli spot già disponibile e il consenso esplicito per le notifiche di sistema. Il riepilogo e le ore di silenzio seguono l’ora locale del dispositivo. Il monitoraggio si svolge mentre il portale è aperto.
+
+## 2026-11-20 — Feed RBN
+
+DXRegia usa il collegamento RBN nativo di DXSpider e pubblica un’istantanea privata dei rapporti CW e RTTY già raggruppati. La pagina web legge quella istantanea e mette il feed in una vista dedicata. Il gestore riutilizza un collegamento RBN in uscita sulla porta 7000 quando è già presente. La gestione Telnet resta affidata alle preferenze di ogni utente DXSpider.

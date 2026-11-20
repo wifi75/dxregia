@@ -1,5 +1,18 @@
 // Testi del portale pubblico in sei lingue. L'italiano è la lingua di riferimento: le altre devono avere le stesse chiavi.
 const it = {
+  rbnTitle: "Reverse Beacon Network",
+  rbnHelp: "Spot automatici CW e RTTY. SNR indica il rapporto segnale/rumore. Q indica la qualità stimata da DXSpider.",
+  rbnDisabled: "Feed RBN disattivato su questo nodo.",
+  rbnWaiting: "In attesa dello stato da DXSpider.",
+  rbnConnecting: "Collegamento RBN in corso. I primi spot possono richiedere alcuni minuti.",
+  rbnConnected: "Collegato · CW e RTTY",
+  rbnConflict: "L’account locale DX0RBN è già in uso.",
+  rbnUnavailable: "Feed RBN non disponibile.",
+  rbnEmpty: "Nessuno spot RBN da mostrare.",
+  rbnEnable: "Attiva RBN",
+  rbnDisable: "Disattiva RBN",
+  rbnTelnet: "Per ricevere questi spot nel logger via Telnet, usa",
+  rbnSearch: "Cerca DX o skimmer",
   solarOverview: "Condizioni solari e radio",
   solarSunspots: "Macchie solari",
   solarAuroraLatitude: "Latitudine aurorale",
@@ -218,6 +231,19 @@ export type Key = keyof typeof it
 type Catalog = Record<Key, string>
 
 const en: Catalog = {
+  rbnTitle: "Reverse Beacon Network",
+  rbnHelp: "Automatic CW and RTTY spots. SNR is the signal-to-noise ratio. Q is the quality estimated by DXSpider.",
+  rbnDisabled: "The RBN feed is disabled on this node.",
+  rbnWaiting: "Waiting for status from DXSpider.",
+  rbnConnecting: "Connecting to RBN. The first spots may take a few minutes.",
+  rbnConnected: "Connected · CW and RTTY",
+  rbnConflict: "The local DX0RBN account is already in use.",
+  rbnUnavailable: "RBN feed unavailable.",
+  rbnEmpty: "No RBN spots to show.",
+  rbnEnable: "Enable RBN",
+  rbnDisable: "Disable RBN",
+  rbnTelnet: "To receive these spots in your logger over Telnet, use",
+  rbnSearch: "Search DX or skimmer",
   solarOverview: "Solar and radio conditions",
   solarSunspots: "Sunspots",
   solarAuroraLatitude: "Auroral latitude",
@@ -434,6 +460,19 @@ const en: Catalog = {
 }
 
 const es: Catalog = {
+  rbnTitle: "Reverse Beacon Network",
+  rbnHelp: "Spots automáticos CW y RTTY. SNR es la relación señal/ruido. Q es la calidad estimada por DXSpider.",
+  rbnDisabled: "El feed RBN está desactivado en este nodo.",
+  rbnWaiting: "Esperando el estado de DXSpider.",
+  rbnConnecting: "Conectando a RBN. Los primeros spots pueden tardar unos minutos.",
+  rbnConnected: "Conectado · CW y RTTY",
+  rbnConflict: "La cuenta local DX0RBN ya está en uso.",
+  rbnUnavailable: "Feed RBN no disponible.",
+  rbnEmpty: "No hay spots RBN para mostrar.",
+  rbnEnable: "Activar RBN",
+  rbnDisable: "Desactivar RBN",
+  rbnTelnet: "Para recibir estos spots por Telnet en tu logger, usa",
+  rbnSearch: "Buscar DX o skimmer",
   solarOverview: "Condiciones solares y de radio",
   solarSunspots: "Manchas solares",
   solarAuroraLatitude: "Latitud auroral",
@@ -650,6 +689,19 @@ const es: Catalog = {
 }
 
 const de: Catalog = {
+  rbnTitle: "Reverse Beacon Network",
+  rbnHelp: "Automatische CW- und RTTY-Spots. SNR ist der Signal-Rausch-Abstand. Q ist die von DXSpider geschätzte Qualität.",
+  rbnDisabled: "Der RBN-Feed ist auf diesem Knoten deaktiviert.",
+  rbnWaiting: "Warte auf den Status von DXSpider.",
+  rbnConnecting: "Verbindung mit RBN wird aufgebaut. Die ersten Spots können einige Minuten dauern.",
+  rbnConnected: "Verbunden · CW und RTTY",
+  rbnConflict: "Das lokale Konto DX0RBN wird bereits verwendet.",
+  rbnUnavailable: "RBN-Feed nicht verfügbar.",
+  rbnEmpty: "Keine RBN-Spots vorhanden.",
+  rbnEnable: "RBN aktivieren",
+  rbnDisable: "RBN deaktivieren",
+  rbnTelnet: "Für diese Spots im Logbuchprogramm über Telnet verwende",
+  rbnSearch: "DX oder Skimmer suchen",
   solarOverview: "Sonnen- und Funkbedingungen",
   solarSunspots: "Sonnenflecken",
   solarAuroraLatitude: "Aurora-Breitengrad",
@@ -866,6 +918,19 @@ const de: Catalog = {
 }
 
 const fr: Catalog = {
+  rbnTitle: "Reverse Beacon Network",
+  rbnHelp: "Spots automatiques CW et RTTY. SNR est le rapport signal sur bruit. Q est la qualité estimée par DXSpider.",
+  rbnDisabled: "Le flux RBN est désactivé sur ce nœud.",
+  rbnWaiting: "En attente de l’état de DXSpider.",
+  rbnConnecting: "Connexion à RBN en cours. Les premiers spots peuvent prendre quelques minutes.",
+  rbnConnected: "Connecté · CW et RTTY",
+  rbnConflict: "Le compte local DX0RBN est déjà utilisé.",
+  rbnUnavailable: "Flux RBN indisponible.",
+  rbnEmpty: "Aucun spot RBN à afficher.",
+  rbnEnable: "Activer RBN",
+  rbnDisable: "Désactiver RBN",
+  rbnTelnet: "Pour recevoir ces spots par Telnet dans votre logiciel de log, utilisez",
+  rbnSearch: "Rechercher un DX ou un skimmer",
   solarOverview: "Conditions solaires et radio",
   solarSunspots: "Taches solaires",
   solarAuroraLatitude: "Latitude aurorale",
@@ -1082,6 +1147,19 @@ const fr: Catalog = {
 }
 
 const pt: Catalog = {
+  rbnTitle: "Reverse Beacon Network",
+  rbnHelp: "Spots automáticos CW e RTTY. SNR é a relação sinal/ruído. Q é a qualidade estimada pelo DXSpider.",
+  rbnDisabled: "O feed RBN está desativado neste nó.",
+  rbnWaiting: "A aguardar o estado do DXSpider.",
+  rbnConnecting: "A ligar ao RBN. Os primeiros spots podem demorar alguns minutos.",
+  rbnConnected: "Ligado · CW e RTTY",
+  rbnConflict: "A conta local DX0RBN já está em uso.",
+  rbnUnavailable: "Feed RBN indisponível.",
+  rbnEmpty: "Sem spots RBN para mostrar.",
+  rbnEnable: "Ativar RBN",
+  rbnDisable: "Desativar RBN",
+  rbnTelnet: "Para receber estes spots por Telnet no seu logger, use",
+  rbnSearch: "Pesquisar DX ou skimmer",
   solarOverview: "Condições solares e de rádio",
   solarSunspots: "Manchas solares",
   solarAuroraLatitude: "Latitude auroral",

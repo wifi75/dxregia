@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { version as dxregiaVersion } from '../package.json'
+  import { t } from './i18n.svelte'
   import type { Snippet } from 'svelte'
   import { toDataURL } from 'qrcode'
   import WebSettings from './WebSettings.svelte'
@@ -30,7 +31,7 @@
   let { onSaved, nodeStatus }: { onSaved: () => void; nodeStatus: Snippet } = $props()
   const groups = [
     { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['accessi', 'Accessi al nodo'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet'], ['opzioni-telnet', 'Opzioni Telnet'], ['messaggio', 'Messaggio e pianificazione'], ['avvio', 'Script di avvio'], ['liste', 'Liste di blocco'], ['hop', 'Hop e filtri'], ['log-dxspider', 'Log DXSpider']] },
-    { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['email-partner', 'Storico email partner'], ['richieste', 'Richieste ricevute'], ['utenti', 'Utenti registrati']] },
+    { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['rbn', 'Reverse Beacon Network'], ['email-partner', 'Storico email partner'], ['richieste', 'Richieste ricevute'], ['utenti', 'Utenti registrati']] },
     { label: 'Gestione', items: [['analytics', 'Analytics'], ['posta', 'Server di posta'], ['backup', 'Backup'], ['password', 'Password']] },
   ] as const
   type Page = typeof groups[number]['items'][number][0]
@@ -311,6 +312,14 @@
           <MojoLog />
         {:else if page === 'partner'}
           <Partners {draft} />
+        {:else if page === 'rbn'}
+          {#await import('./ReverseBeacon.svelte')}
+            <p role="status">{t('loading')}</p>
+          {:then section}
+            <section.default admin />
+          {:catch}
+            <p role="alert">{t('rbnUnavailable')}</p>
+          {/await}
         {:else if page === 'email-partner'}
           <PartnerMailHistory />
         {:else if page === 'richieste'}

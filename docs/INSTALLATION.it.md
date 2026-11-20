@@ -15,8 +15,8 @@
 **Pacchetto precompilato.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.4/dxregia/deploy/install-release.sh
-sh install-release.sh v0.6.4
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.7.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.7.0
 ```
 
 Lo script verifica il checksum SHA-256, installa le dipendenze e avvia il servizio. Stampa l’indirizzo del pannello e una password temporanea per il primo accesso.
@@ -153,8 +153,10 @@ Il log del motore è anche in Nodo → Log DXSpider.
 - [Operazioni del sysop](OPERATIONS.md)
 - [Registro delle modifiche](../CHANGELOG.md) (in inglese)
 
-## DXRegia 0.6.4
+## DXRegia 0.7.0
 
 La pagina Propagazione mostra gli indici solari HamQSL in schede quadrate e colorate, le condizioni HF diurne e notturne, l’attività VHF e la mappa MUF di KC2G. La registrazione pubblica spiega come configurare Telnet in sette logger. La dashboard sysop mostra fino a 40 radioamatori collegati per pagina su schermi ampi, con le bandiere DXCC.
 
-[DXRegia 0.6.4](https://github.com/wifi75/dxregia/releases/tag/v0.6.4)
+RBN è disattivato di default. Apri **Collegamenti → Reverse Beacon Network** nel pannello sysop e premi **Attiva RBN** per avviare il collegamento in uscita CW/RTTY. La scheda **RBN** del portale pubblico mostra gli spot ricevuti. In Telnet o nel logger, digita `SET/SKIMMER CW RTTY` per riceverli e `UNSET/SKIMMER` per interromperli.
+
+[DXRegia 0.7.0](https://github.com/wifi75/dxregia/releases/tag/v0.7.0)

@@ -21,7 +21,7 @@
   const statsPage = window.location.pathname === '/statistiche'
   function viewFromURL(): SpotView {
     const view = new URLSearchParams(location.search).get('view')
-    return view === 'research' || view === 'alerts' || view === 'propagation' ? view : 'feed'
+    return view === 'research' || view === 'alerts' || view === 'propagation' || view === 'rbn' ? view : 'feed'
   }
   let spotView = $state(viewFromURL())
   function openSpotView(event: MouseEvent, next: SpotView) {
@@ -45,7 +45,7 @@
   // Il pannello sysop è solo su /admin; ogni altra pagina è il portale pubblico.
   const publicPortal = !(window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'))
   if (publicPortal) trackPortalPresence()
-  const titles = { feed: 'spotsTitle', research: 'spotResearch', alerts: 'radioAlerts', propagation: 'navPropagation' } as const
+  const titles = { feed: 'spotsTitle', research: 'spotResearch', alerts: 'radioAlerts', propagation: 'navPropagation', rbn: 'rbnTitle' } as const
   const portalTitle = $derived(t(titles[spotView]))
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
@@ -102,6 +102,7 @@
       <a href="/spots?view=research" aria-current={!toolPage && spotView === 'research' ? 'page' : undefined} onclick={event => openSpotView(event, 'research')}>{t('spotResearch')}</a>
       <a href="/spots?view=alerts" aria-current={!toolPage && spotView === 'alerts' ? 'page' : undefined} onclick={event => openSpotView(event, 'alerts')}>{t('radioAlerts')}</a>
       <a href="/spots?view=propagation" aria-current={!toolPage && spotView === 'propagation' ? 'page' : undefined} onclick={event => openSpotView(event, 'propagation')}>{t('navPropagation')}</a>
+      <a href="/spots?view=rbn" aria-current={!toolPage && spotView === 'rbn' ? 'page' : undefined} onclick={event => openSpotView(event, 'rbn')}>RBN</a>
     {/if}
     {#if publicPortal}<a class="stats-link" href="/statistiche" aria-current={statsPage ? 'page' : undefined}>{t('navStats')}</a>{/if}
     <a href="/contatti" aria-current={contactPage ? 'page' : undefined}>{publicPortal ? t('navContact') : 'Contatti'}</a>

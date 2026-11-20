@@ -110,6 +110,7 @@ func main() {
 	spots := registerSpots(mux, *setupRoot, loadQSLDirectory(service, *setupRoot))
 	registerBulletins(mux, *setupRoot)
 	registerSolarConditions(service, mux, *setupRoot)
+	registerRBN(mux, *setupRoot, auth)
 	registerNodeHealth(service, mux, *setupRoot, auth, spots)
 	registerADXO(service, mux, *setupRoot)
 	registerEngineVersion(mux, *setupRoot)

@@ -332,6 +332,15 @@
     {:else}<p role="status">{alertsFailed ? t('archiveDown') : t('loading')}</p>{/if}
   </div>
   {#if researchOpened}<div hidden={activePage !== 'research'}><SpotResearch {spots} /></div>{/if}
+  {#if activePage === 'rbn'}
+    {#await import('./ReverseBeacon.svelte')}
+      <p role="status">{t('loading')}</p>
+    {:then section}
+      <section.default />
+    {:catch}
+      <p role="status">{t('rbnUnavailable')}</p>
+    {/await}
+  {/if}
   {#if activePage === 'propagation'}
     {#await import('./SolarConditions.svelte')}
       <p role="status">{t('loading')}</p>

@@ -5,6 +5,128 @@ use JSON ();
 
 my $last_write = 0;
 my $applied_profile = "";
+my $rbn_alias = 'DX0RBN';
+my $rbn_owner = 'DXRegia RBN';
+my $rbn_enabled = 0;
+my $rbn_next_attempt = 0;
+my $rbn_error = '';
+my @rbn_spots;
+
+sub init {
+    # Observe the curated candidates once before the engine applies each user's filters.
+    my $send = \&RBN::send_dx_spot;
+    no warnings 'redefine';
+    *RBN::send_dx_spot = sub {
+        if ($rbn_enabled && $_[0]->conn && $_[0]->conn->{outgoing}) {
+            eval { capture_rbn_spot($_[1], $_[2]); 1 }
+                or DXDebug::dbg("DXRegia RBN capture: $@");
+        }
+        goto &$send;
+    };
+}
+
+sub capture_rbn_spot {
+    my ($quality, $candidate) = @_;
+    my $best;
+    for my $spot (@$candidate) {
+        next unless ref($spot) eq 'ARRAY';
+        my $mode = $spot->[RBN::RMode()] // '';
+        next unless $mode =~ /\A(?:CW|RTT|RTTY)\z/i;
+        my $db = $spot->[RBN::RStrength()];
+        next unless defined $db && $db =~ /\A-?\d{1,3}\z/;
+        $best = $spot if !$best || $db > $best->[RBN::RStrength()];
+    }
+    return unless $best;
+    my $call = uc($best->[RBN::RCall()] // '');
+    my $skimmer = uc($best->[RBN::ROrigin()] // '');
+    $skimmer =~ s/-#\z//;
+    my $frequency = $candidate->[RBN::CData()]->[RBN::RQrg()] // '';
+    my $at = $best->[RBN::RUtz()] // '';
+    return unless $call =~ /\A[A-Z0-9\/-]{2,20}\z/ && $skimmer =~ /\A[A-Z0-9\/-]{2,20}\z/
+        && $frequency =~ /\A\d{1,7}(?:\.\d{1,4})?\z/ && $frequency > 0 && $at =~ /\A\d{1,12}\z/;
+    my ($score) = ($quality // '') =~ /\bQ:(\d{1,2})\b/;
+    unshift @rbn_spots, {
+        Call => $call, Skimmer => $skimmer, Frequency => 0 + $frequency, At => int($at),
+        Mode => uc($best->[RBN::RMode()]) eq 'CW' ? 'CW' : 'RTTY',
+        SNR => int($best->[RBN::RStrength()]), Quality => int($score || 0),
+    };
+    splice @rbn_spots, 100 if @rbn_spots > 100;
+}
+
+sub process_rbn {
+    my ($now) = @_;
+    my $enabled = 0;
+    my $inbound_hash = '';
+    if (open(my $config, '<:raw', "$main::root/local/dxregia-rbn.json")) {
+        my $bytes = '';
+        read($config, $bytes, 1025);
+        close($config);
+        my $value = length($bytes) <= 1024 ? eval { JSON::decode_json($bytes) } : undef;
+        $enabled = ref($value) eq 'HASH' && JSON::is_bool($value->{Enabled}) && $value->{Enabled};
+        $inbound_hash = $value->{InboundHash} // '' if $enabled;
+        $enabled = 0 unless $inbound_hash =~ /\A\$2a\$10\$[.\/A-Za-z0-9]{53}\z/;
+    }
+    my $managed = DXChannel::get($rbn_alias);
+    unless ($enabled) {
+        if ($rbn_enabled) {
+            my $user = DXUser::get_current($rbn_alias);
+            if ($user && $user->is_rbn && ($user->name // '') eq $rbn_owner) {
+                if ($managed && $managed->is_rbn) { $managed->disconnect; }
+                elsif (my $connection = Msg->conns($rbn_alias)) { $connection->disconnect; }
+            }
+        }
+        $rbn_enabled = 0;
+        $rbn_next_attempt = 0;
+        $rbn_error = '';
+        @rbn_spots = ();
+        return;
+    }
+    $rbn_enabled = 1;
+    my $connected = scalar grep {
+        $_->is_rbn && $_->conn && $_->conn->{outgoing} && ($_->conn->{peerport} // 0) == 7000
+    } DXChannel::get_all();
+    $rbn_error = 'conflict' if !$connected && $managed && !$managed->is_rbn;
+    if (!$connected && !Msg->conns($rbn_alias) && $now >= $rbn_next_attempt) {
+        $rbn_next_attempt = $now + 60;
+        $rbn_error = start_rbn($inbound_hash);
+    }
+    my $state = $connected ? 'connected' : ($rbn_error || 'connecting');
+    @rbn_spots = grep { $_->{At} >= $now - 1800 } @rbn_spots;
+    my $path = "$main::local_data/dxregia-rbn.json";
+    open(my $snapshot, '>:raw', "$path.tmp") or die "DXRegia RBN snapshot: $!";
+    print $snapshot JSON::encode_json({ At => int($now), State => $state, Spots => \@rbn_spots })
+        or die "DXRegia RBN snapshot: $!";
+    close($snapshot) or die "DXRegia RBN snapshot: $!";
+    rename("$path.tmp", $path) or die "DXRegia RBN snapshot: $!";
+}
+
+sub start_rbn {
+    my ($inbound_hash) = @_;
+    return 'conflict' if $rbn_alias eq $main::mycall || $rbn_alias eq $main::myalias;
+    my $user = DXUser::get_current($rbn_alias);
+    if ($user) {
+        return 'conflict' unless $user->is_rbn && ($user->name // '') eq $rbn_owner
+            && !$user->lockout && !$user->priv;
+    } else {
+        $user = DXUser->new($rbn_alias) or return 'error';
+        $user->sort('N');
+        $user->name($rbn_owner);
+        $user->homenode($main::mycall);
+    }
+    my $stored = '{DXREGIA-BCRYPT}' . $inbound_hash;
+    if (($user->passwd // '') ne $stored) {
+        # ExtMsg requires this unusable credential for inbound Telnet only.
+        $user->passwd($stored);
+        $user->close();
+    }
+    my $path = "$main::local_data/dxregia-rbn.connect";
+    open(my $script, '>:raw', $path) or return 'error';
+    my $written = print $script "timeout 15\nconnect telnet telnet.reversebeacon.net 7000\n'call:' '$main::mycall'\n";
+    my $closed = close($script);
+    my $ok = $written && $closed && eval { ExtMsg::start_connect($rbn_alias, $path); 1 };
+    unlink $path;
+    return $ok ? '' : 'error';
+}
 
 sub process {
     my $now = time;
@@ -21,6 +143,7 @@ sub process {
     test_partner_inbound($now);
     connect_partners();
     remove_partners();
+    eval { process_rbn($now); 1 } or DXDebug::dbg("DXRegia RBN: $@");
     my @channels;
     foreach my $channel (DXChannel::get_all()) {
         next if $channel->call eq $main::mycall;

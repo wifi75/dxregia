@@ -15,8 +15,8 @@
 **Vorgefertigtes Paket.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.6.4/dxregia/deploy/install-release.sh
-sh install-release.sh v0.6.4
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.7.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.7.0
 ```
 
 Das Skript prüft die SHA-256-Prüfsumme, installiert die Laufzeitabhängigkeiten und startet den Dienst. Es zeigt die Adresse des Panels und ein temporäres Passwort für die erste Anmeldung an.
@@ -153,8 +153,10 @@ Das Engine-Log findest du auch unter Knoten → DXSpider-Log (Log DXSpider).
 - [Sysop-Betrieb](OPERATIONS.md) (Italienisch)
 - [Änderungsprotokoll](../CHANGELOG.md) (Englisch)
 
-## DXRegia 0.6.4
+## DXRegia 0.7.0
 
 Die Seite zur Ausbreitung zeigt HamQSL-Solarindizes in quadratischen, farbigen Karten, HF-Bedingungen für Tag und Nacht, VHF-Aktivität und die MUF-Karte von KC2G. Die öffentliche Registrierung erklärt die Telnet-Einrichtung für sieben Logbuchprogramme. Die Sysop-Übersicht zeigt auf breiten Bildschirmen bis zu 40 verbundene Funkamateure pro Seite mit DXCC-Flaggen.
 
-[DXRegia 0.6.4](https://github.com/wifi75/dxregia/releases/tag/v0.6.4)
+RBN ist standardmäßig deaktiviert. Öffne **Reverse Beacon Network** im Sysop-Menü und wähle **RBN aktivieren** für die ausgehende CW/RTTY-Verbindung. Im öffentlichen Portal erscheinen die empfangenen Spots unter **RBN**. In Telnet oder im Logbuchprogramm aktiviert `SET/SKIMMER CW RTTY` den Empfang und `UNSET/SKIMMER` beendet ihn.
+
+[DXRegia 0.7.0](https://github.com/wifi75/dxregia/releases/tag/v0.7.0)

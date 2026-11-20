@@ -1,4 +1,4 @@
-export type SpotView = 'feed' | 'research' | 'alerts' | 'propagation'
+export type SpotView = 'feed' | 'research' | 'alerts' | 'propagation' | 'rbn'
 
 export type Spot = {
   Frequency: number; Call: string; At: number; Comment: string; Spotter: string; DXCC: number

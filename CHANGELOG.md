@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-20
+
+### Added
+
+- Optional Reverse Beacon Network integration for CW and RTTY. Sysops can connect to the official feed from the admin panel. The public RBN tab shows the most recent reports, with DX or skimmer search, mode filters, SNR and quality. Telnet users can subscribe to the modes they want.
+
 ## [0.6.4] - 2026-11-20
 
 ### Changed
