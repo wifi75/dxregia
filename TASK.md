@@ -8,7 +8,7 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
-- [x] Mostrare bandiera e nome nella colonna Paese della tabella Nodi partner e aggiungere prefisso DXCC, bandiera e paese agli spot RBN con una spiegazione dello skimmer.
+- [x] Mostrare bandiera e nome nella colonna Paese dei nodi partner e nella colonna DXCC degli spot RBN. Spiegare il ruolo dello skimmer nella pagina RBN.
 
 - [x] Ordinare automaticamente la tabella Nodi partner e il riquadro della dashboard con i nodi attivi in cima e ordine alfabetico per indicativo dentro ciascun gruppo.
 

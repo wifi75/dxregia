@@ -4,7 +4,7 @@
   import { locale, t } from './i18n.svelte'
   import { dxccFlags } from './dxccFlags'
 
-  type Spot = { Call: string; Skimmer: string; Mode: 'CW' | 'RTTY'; Frequency: number; At: number; SNR: number; Quality: number; DXCC?: number; DXCCPrefix?: string }
+  type Spot = { Call: string; Skimmer: string; Mode: 'CW' | 'RTTY'; Frequency: number; At: number; SNR: number; Quality: number; DXCC?: number }
   type Feed = { Enabled: boolean; State: 'disabled' | 'waiting' | 'connecting' | 'connected' | 'conflict' | 'error'; Spots: Spot[] }
   let { admin = false }: { admin?: boolean } = $props()
   let feed = $state<Feed>()
@@ -85,7 +85,7 @@
         <table>
           <thead><tr>
             <th scope="col">{t('thUtc')}</th><th scope="col">{t('thDx')}</th><th scope="col">{t('thEntity')}</th>
-            <th scope="col">{t('rbnFlag')}</th><th scope="col">{t('rbnCountry')}</th><th scope="col">{t('thFreq')} (kHz)</th>
+            <th scope="col">{t('thFreq')} (kHz)</th>
             <th scope="col">{t('thMode')}</th><th scope="col">Skimmer</th><th scope="col">SNR</th><th scope="col">Q</th>
           </tr></thead>
           <tbody>
@@ -95,9 +95,11 @@
               {@const band = bandFor(spot.Frequency)}
               <tr>
                 <td><time datetime={new Date(spot.At * 1000).toISOString()}>{stamp.format(spot.At * 1000)}</time></td>
-                <th scope="row">{spot.Call}</th><td>{spot.DXCCPrefix || '—'}</td>
-                <td>{#if flag}<img src={'/flags/' + flag + '.svg'} alt="" title={country} width="22" height="16" loading="lazy" />{:else}—{/if}</td>
-                <td>{country ?? '—'}</td>
+                <th scope="row">{spot.Call}</th>
+                <td><span class="country">
+                  {#if flag}<img src={'/flags/' + flag + '.svg'} alt="" width="26" height="19" loading="lazy" />{/if}
+                  <span>{country ?? '—'}</span>
+                </span></td>
                 <td>{frequency.format(spot.Frequency)} {#if band}<small class="band">{band}</small>{/if}</td>
                 <td><span class="mode" data-kind={spot.Mode}>{spot.Mode}</span></td><td>{spot.Skimmer}</td><td>{spot.SNR} dB</td><td>{spot.Quality || '—'}</td>
               </tr>
@@ -130,7 +132,8 @@
   th, td { padding: 6px 8px; text-align: start; border-bottom: 1px solid #c4d8e3; }
   thead { background: #d2ebe9; color: #124640; }
   tbody tr:nth-child(even) { background: #e1f1f680; }
-  td img { display: block; object-fit: cover; border: 1px solid #17384c26; border-radius: 2px; }
+  .country { display: inline-flex; align-items: center; gap: 7px; }
+  .country img { flex: none; object-fit: cover; border: 1px solid #17384c26; border-radius: 2px; }
   .mode, .band { display: inline-block; padding: 1px 6px; border-radius: 4px; font-weight: 650; }
   .mode[data-kind=CW] { background: #ffe3a9; color: #68430a; }
   .mode[data-kind=RTTY] { background: #ebdcff; color: #513682; }
