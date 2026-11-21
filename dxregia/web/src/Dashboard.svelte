@@ -18,7 +18,7 @@
   let { status, failed, refresh }: { status?: Status; failed: boolean; refresh: () => void } = $props()
 
   let snapshot = $state<Snapshot>()
-  let directory = $state<Record<string, { Name: string; Locked?: boolean }>>({})
+  let directory = $state<Record<string, { Name: string; Locked?: boolean; DXCC?: number }>>({})
   let now = $state(Date.now())
   let loading = false
   let again = false
@@ -187,9 +187,15 @@
                 {#each calls as call (call)}
                   {@const node = nodes.find(item => item.Call === call)}
                   {@const locked = directory[call]?.Locked}
+                  {@const dxcc = node?.DXCC || directory[call]?.DXCC}
+                  {@const flag = dxccFlags[dxcc ?? 0]}
+                  {@const country = flag ? dxccFlagName(flag, regionNames, dxcc) : ''}
                   {@const tone = locked || !node ? 'red' : node.State === 'normal' ? 'green' : 'amber'}
                   <tr>
-                    <td><strong title={directory[call]?.Name || undefined}>{call}</strong></td>
+                    <td><span class="partner-node">
+                      {#if flag}<img src={'/flags/' + flag + '.svg'} alt="" width="22" height="16" loading="lazy" />{/if}
+                      <span class="partner-name"><strong title={directory[call]?.Name || undefined}>{call}</strong>{#if country}<small>{country}</small>{/if}</span>
+                    </span></td>
                     <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in DXSpider' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}
                       {#if !locked && node?.State === 'normal'}<small>· dalle {time.format(new Date(node.Since * 1000))}</small>{/if}</span></td>
                     <td>{#if node}<span class="tag">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{:else}—{/if}</td>
@@ -359,6 +365,12 @@
   .partners { border-top: 3px solid #3a82c0; }
   .partner-tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 0 14px; align-items: start; }
   .partner-table { margin-top: 7px; overflow-x: auto; }
+  .partner-table + .partner-table { padding-left: 14px; border-left: 1px solid #b4cbd9; }
+  @media (max-width: 1100px) { .partner-table + .partner-table { padding-left: 0; border-left: 0; } }
+  .partner-node { display: inline-flex; align-items: center; gap: 8px; }
+  .partner-node img { flex: none; object-fit: cover; border: 1px solid #17384c26; border-radius: 2px; }
+  .partner-name { display: grid; line-height: 1.15; }
+  .partner-name small { color: #506678; font-size: .76rem; white-space: nowrap; }
   .partner-table table { width: 100%; border-collapse: collapse; text-align: left; }
   .partner-table th, .partner-table td { padding: .32rem .5rem; border-bottom: 1px solid #cfdee7; }
   .partner-table th { color: #3f5c71; background: #e8f1f7; font-size: .8rem; }
