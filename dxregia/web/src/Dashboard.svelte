@@ -65,11 +65,15 @@
   const partnerRows = $derived([...new Set([...partnerCalls, ...nodes.map(node => node.Call)])]
     .sort((a, b) => Number(activeNodeCalls.has(b)) - Number(activeNodeCalls.has(a)) || a.localeCompare(b)))
   let partnerPage = $state(1)
-  const partnersPerPage = 8
+  const partnersPerPage = 16
   const partnerPageCount = $derived(Math.max(1, Math.ceil(partnerRows.length / partnersPerPage)))
   const currentPartnerPage = $derived(Math.min(partnerPage, partnerPageCount))
   const visiblePartners = $derived(partnerRows.slice((currentPartnerPage - 1) * partnersPerPage, currentPartnerPage * partnersPerPage))
   $effect(() => { if (fresh && partnerPage > partnerPageCount) partnerPage = partnerPageCount })
+  const partnerColumns = $derived.by(() => {
+    const half = Math.ceil(visiblePartners.length / 2)
+    return [visiblePartners.slice(0, half), visiblePartners.slice(half)].filter(column => column.length)
+  })
   let lockedCalls = $derived(partnerCalls.filter(call => directory[call].Locked))
   let connected = $derived(partnerCalls.filter(call => activeNodeCalls.has(call)))
   let listener = $derived<{ tone: Tone; title: string; detail: string }>(
@@ -174,23 +178,27 @@
       </div>
     {/if}
     {#if partnerRows.length}
-      <div class="partner-table">
-        <table>
-          <thead><tr><th scope="col">Nodo</th><th scope="col">Stato</th><th scope="col">Direzione</th></tr></thead>
-          <tbody>
-            {#each visiblePartners as call (call)}
-              {@const node = nodes.find(item => item.Call === call)}
-              {@const locked = directory[call]?.Locked}
-              {@const tone = locked || !node ? 'red' : node.State === 'normal' ? 'green' : 'amber'}
-              <tr>
-                <td><strong title={directory[call]?.Name || undefined}>{call}</strong></td>
-                <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in DXSpider' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}
-                  {#if !locked && node?.State === 'normal'}<small>· dalle {time.format(new Date(node.Since * 1000))}</small>{/if}</span></td>
-                <td>{#if node}<span class="tag">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{:else}—{/if}</td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
+      <div class="partner-tables">
+        {#each partnerColumns as calls}
+          <div class="partner-table">
+            <table>
+              <thead><tr><th scope="col">Nodo</th><th scope="col">Stato</th><th scope="col">Direzione</th></tr></thead>
+              <tbody>
+                {#each calls as call (call)}
+                  {@const node = nodes.find(item => item.Call === call)}
+                  {@const locked = directory[call]?.Locked}
+                  {@const tone = locked || !node ? 'red' : node.State === 'normal' ? 'green' : 'amber'}
+                  <tr>
+                    <td><strong title={directory[call]?.Name || undefined}>{call}</strong></td>
+                    <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in DXSpider' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}
+                      {#if !locked && node?.State === 'normal'}<small>· dalle {time.format(new Date(node.Since * 1000))}</small>{/if}</span></td>
+                    <td>{#if node}<span class="tag">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{:else}—{/if}</td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        {/each}
       </div>
       {@render pagination('Pagine dei nodi partner', currentPartnerPage, partnerPageCount, page => partnerPage = page)}
     {:else}
@@ -349,6 +357,7 @@
   .box-head h2 { margin: 0; }
   .count { min-width: 1.8em; padding: 2px 10px; border-radius: 999px; background: #e3eef6; color: #143a60; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
   .partners { border-top: 3px solid #3a82c0; }
+  .partner-tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 0 14px; align-items: start; }
   .partner-table { margin-top: 7px; overflow-x: auto; }
   .partner-table table { width: 100%; border-collapse: collapse; text-align: left; }
   .partner-table th, .partner-table td { padding: .32rem .5rem; border-bottom: 1px solid #cfdee7; }
