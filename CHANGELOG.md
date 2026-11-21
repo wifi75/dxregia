@@ -4,6 +4,14 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+### Fixed
+
+- After a reboot, if the network or DNS is not ready yet, DXSpider Mojo no longer stays off: the service waits for the network (`network-online.target`, `nss-lookup.target`) and DXRegia retries the engine start every 10 seconds, up to every 2 minutes, until it answers.
+
+### Changed
+
+- The partner nodes card on the admin status page shows the nodes in two compact columns, 16 per page.
+
 ## [0.7.3] - 2026-11-21
 
 ### Changed

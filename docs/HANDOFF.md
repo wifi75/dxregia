@@ -430,6 +430,13 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 
 Verifica 2FA ricordata per 10 giorni con cookie dispositivo fidato (trusted_device.go, test in web_session_test.go). Server di prova 192.168.1.124 aggiornato a cc7f1cdf. Da verificare a mano: login con codice, chiusura del browser e nuovo login con sola password.
 
+## 2026-11-21 — Riavvio del motore e scheda nodi partner (dopo la 0.7.3, non ancora rilasciato)
+
+- Stato: dopo il riavvio del container (23:11) il DNS non era pronto, Mojo è uscito con "Temporary failure in name resolution" e DXRegia non ha riprovato. Correzione in `mojo.go` (`retryMojo`, chiamata da `setup.go`) e in `dxregia.service` (`Wants=network-online.target`, `After=network-online.target nss-lookup.target`). La scheda "Nodi partner" di `Dashboard.svelte` ora ha due colonne e 16 nodi per pagina.
+- Verifica: `go vet` e `go test ./cmd/dxregia` verdi, build web ed `svelte-check` senza errori nel file. Server di prova aggiornato a `3435295b`. Non provati: un riavvio reale con DNS in ritardo e la scheda a schermo.
+- Limiti: i tentativi coprono solo l'avvio; se Mojo si ferma più tardi non viene riavviato.
+- Prossimo passo: riavvio di prova del container, poi rilascio 0.7.4; valutare il riavvio automatico di Mojo se si ferma a servizio attivo.
+
 ## 2026-11-21 — DXRegia 0.7.3
 
 - Stato: sblocco ed eliminazione dei nodi partner usano una finestra di conferma dell'applicazione (`Partners.svelte`, funzione `askConfirm`) al posto di `confirm()` del browser.
