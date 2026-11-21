@@ -15,7 +15,7 @@
   let status = $state('')
   import { onMount } from 'svelte'
   let hours = $state(8)
-  let choices = $state<number[]>([1, 2, 4, 8, 12, 24, 72, 168])
+  let choices = $state<number[]>([1, 2, 4, 8, 12, 24, 72, 168, 240])
   let durationStatus = $state('')
   const label = (value: number) => value < 24 ? value + (value === 1 ? ' ora' : ' ore') : value / 24 + (value === 24 ? ' giorno' : ' giorni')
   onMount(async () => {

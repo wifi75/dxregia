@@ -215,7 +215,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 			}
 			a.session, a.expires = sessionHash(token), time.Now().Add(20*time.Minute)
 			a.factorOK, a.pendingKey = false, ""
-			if !a.temporary && !a.factorEnabled() {
+			if !a.temporary && (!a.factorEnabled() || (action == "login" && a.factor.Key != "" && a.trustedBrowser(r))) {
 				a.factorOK = true
 				a.expires = time.Now().Add(time.Duration(a.sessionHours()) * time.Hour)
 				if err := a.persistWebSession(a.expires); err != nil {
@@ -291,6 +291,9 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 			}
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
 				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
+			if err := a.trustBrowser(w, r.TLS != nil); err != nil {
+				log.Printf("Save trusted device: %v", err)
+			}
 		case "logout":
 			if a.signedIn(r) {
 				if err := a.removeWebSession(); err != nil {

@@ -13,7 +13,7 @@ import (
 
 const defaultSessionHours = 8
 
-var sessionHourChoices = []int{1, 2, 4, 8, 12, 24, 72, 168}
+var sessionHourChoices = []int{1, 2, 4, 8, 12, 24, 72, 168, 240}
 
 func validSessionHours(hours int) bool {
 	for _, choice := range sessionHourChoices {
