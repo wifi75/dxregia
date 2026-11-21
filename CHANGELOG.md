@@ -4,6 +4,10 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+### Added
+
+- Update DXRegia from the admin panel (Management > Updates). The page shows the installed and the available version, checks GitHub on demand and starts the official update after the sysop confirms with the web password. Progress and the result are shown live, and the page reconnects by itself after the restart. Native Linux installs only. Installations made before this change need one last update from the terminal (`dxregia-update`) to install the two systemd units.
+
 ## [0.7.4] - 2026-11-21
 
 ### Fixed

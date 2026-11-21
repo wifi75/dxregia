@@ -430,6 +430,13 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 
 Verifica 2FA ricordata per 10 giorni con cookie dispositivo fidato (trusted_device.go, test in web_session_test.go). Server di prova 192.168.1.124 aggiornato a cc7f1cdf. Da verificare a mano: login con codice, chiusura del browser e nuovo login con sola password.
 
+## 2026-11-21 — Aggiornamento dal pannello
+
+- Stato: il pannello (Gestione > Aggiornamenti) mostra versione installata e disponibile (ultimo commit di `main`, confrontato con `/opt/dxregia/revision`) e avvia l'aggiornamento. Il backend (`update.go`) scrive soltanto il file vuoto `/var/lib/dxregia/update-request`; `dxregia-update.path` avvia `dxregia-update.service`, che esegue `/usr/local/bin/dxregia-update` (cioè `update-native.sh`) come root e scrive il registro in `/var/lib/dxregia/update.log`. Serve sysop con verifica completata e password web; nessun parametro dell'utente arriva allo script.
+- Verifica: `go test ./...` verde (test con GitHub e systemd simulati); sul server di prova la catena path → servizio → registro funziona ("già aggiornato"). Non provato: un aggiornamento reale avviato dal pulsante.
+- Limiti: solo installazioni native Linux; le installazioni precedenti vanno aggiornate una volta da terminale per installare le unità; l'aggiornamento richiede go, npm, git sul server come lo script manuale.
+- Prossimo passo: prova reale con una versione più nuova, poi rilascio.
+
 ## 2026-11-21 — Riavvio del motore e scheda nodi partner (DXRegia 0.7.4)
 
 - Stato: dopo il riavvio del container (23:11) il DNS non era pronto, Mojo è uscito con "Temporary failure in name resolution" e DXRegia non ha riprovato. Correzione in `mojo.go` (`retryMojo`, chiamata da `setup.go`) e in `dxregia.service` (`Wants=network-online.target`, `After=network-online.target nss-lookup.target`). La scheda "Nodi partner" di `Dashboard.svelte` ora ha due colonne e 16 nodi per pagina.
