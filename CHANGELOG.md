@@ -4,6 +4,10 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+### Fixed
+
+- The Updates page names the versions (for example v0.8.0) next to the commits, instead of a possibly outdated "latest release". The admin sidebar showed a fixed v0.7.0: it now follows the real version.
+
 ## [0.8.0] - 2026-11-22
 
 ### Added

@@ -25,8 +25,10 @@ func TestUpdateFromPanel(t *testing.T) {
 		pathUnit:     filepath.Join(dir, "dxregia-update.path"),
 		requestFile:  filepath.Join(dir, "update-request"),
 		logFile:      filepath.Join(dir, "update.log"),
-		remote:       func(context.Context) (string, string, error) { return newRevision, "v9.9.9", nil },
-		running:      func() bool { return false },
+		remote: func(context.Context) (string, map[string]string, error) {
+			return newRevision, map[string]string{newRevision: "v9.9.9", oldRevision: "v9.9.0"}, nil
+		},
+		running: func() bool { return false },
 	}
 	if err := os.WriteFile(up.revisionFile, []byte(oldRevision+"\n"), 0644); err != nil {
 		t.Fatal(err)
@@ -67,7 +69,7 @@ func TestUpdateFromPanel(t *testing.T) {
 		t.Fatal("update started without sign-in")
 	}
 	info := status()
-	if info.Installed || info.Current != oldRevision[:12] || info.Available != newRevision[:12] || info.UpToDate || info.Latest != "v9.9.9" {
+	if info.Installed || info.Current != oldRevision[:12] || info.Available != newRevision[:12] || info.UpToDate || info.AvailableTag != "v9.9.9" || info.CurrentTag != "v9.9.0" {
 		t.Fatalf("unexpected status %+v", info)
 	}
 	if w := call(http.MethodPost, "/api/update/start", good, true); w.Code != http.StatusConflict {

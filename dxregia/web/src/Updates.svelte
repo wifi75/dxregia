@@ -3,7 +3,7 @@
 
   type Info = {
     Installed: boolean; State: 'idle' | 'queued' | 'running' | 'success' | 'failed'
-    Current: string; Available: string; Latest?: string; UpToDate: boolean
+    Current: string; Available: string; CurrentTag?: string; AvailableTag?: string; UpToDate: boolean
     CheckedAt: number; CheckError?: string; Log?: string[]
   }
   let info = $state<Info>()
@@ -95,8 +95,8 @@
     <p role="status">Controllo in corso…</p>
   {:else}
     <dl class="versions">
-      <div><dt>Installata</dt><dd>{info.Current || 'sconosciuta'}</dd></div>
-      <div><dt>Disponibile</dt><dd>{info.Available || '—'}{#if info.Latest} <small>(ultima release {info.Latest})</small>{/if}</dd></div>
+      <div><dt>Installata</dt><dd>{#if info.CurrentTag}{info.CurrentTag} <small>({info.Current})</small>{:else}{info.Current || 'sconosciuta'}{/if}</dd></div>
+      <div><dt>Disponibile</dt><dd>{#if info.AvailableTag}{info.AvailableTag} <small>({info.Available})</small>{:else}{info.Available || '—'}{/if}</dd></div>
     </dl>
     {#if info.CheckError}
       <p role="alert">{info.CheckError}</p>

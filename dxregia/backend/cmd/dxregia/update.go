@@ -33,27 +33,28 @@ const (
 var ansiEscape = regexp.MustCompile(`\x1b\[[0-9;]*[A-Za-z]`)
 
 type updateInfo struct {
-	Installed  bool // le unità systemd dell'aggiornamento sono presenti
-	State      string
-	Current    string
-	Available  string
-	Latest     string `json:",omitempty"`
-	UpToDate   bool
-	CheckedAt  int64
-	CheckError string   `json:",omitempty"`
-	Log        []string `json:",omitempty"`
+	Installed    bool // le unità systemd dell'aggiornamento sono presenti
+	State        string
+	Current      string
+	Available    string
+	CurrentTag   string `json:",omitempty"` // nome della versione, se il commit ha un tag
+	AvailableTag string `json:",omitempty"`
+	UpToDate     bool
+	CheckedAt    int64
+	CheckError   string   `json:",omitempty"`
+	Log          []string `json:",omitempty"`
 }
 
 type updater struct {
 	revisionFile, pathUnit, requestFile, logFile string
-	remote                                       func(context.Context) (head, release string, err error)
+	remote                                       func(context.Context) (head string, tags map[string]string, err error)
 	running                                      func() bool
 
-	mu        sync.Mutex
-	head      string
-	release   string
-	checked   time.Time
-	checkErr  string
+	mu       sync.Mutex
+	head     string
+	tags     map[string]string
+	checked  time.Time
+	checkErr string
 }
 
 func newUpdater(stateDir string) *updater {
@@ -86,28 +87,37 @@ func githubGet(ctx context.Context, path, accept string) ([]byte, error) {
 }
 
 // githubHead restituisce l'ultimo commit del ramo main, quello che installa update-native.sh,
-// e il nome dell'ultima release pubblicata.
-func githubHead(ctx context.Context) (string, string, error) {
+// e i tag pubblicati (commit completo -> nome), per dare un nome di versione ai commit.
+func githubHead(ctx context.Context) (string, map[string]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
 	data, err := githubGet(ctx, "/commits/main", "application/vnd.github.sha")
 	if err != nil {
-		return "", "", err
+		return "", nil, err
 	}
 	head := strings.TrimSpace(string(data))
 	if len(head) != 40 || strings.Trim(head, "0123456789abcdef") != "" {
-		return "", "", errors.New("risposta di GitHub non valida")
+		return "", nil, errors.New("risposta di GitHub non valida")
 	}
-	var release string
-	if data, err := githubGet(ctx, "/releases/latest", "application/vnd.github+json"); err == nil {
-		var latest struct {
-			TagName string `json:"tag_name"`
+	tags := map[string]string{}
+	if data, err := githubGet(ctx, "/tags?per_page=50", "application/vnd.github+json"); err == nil {
+		var list []struct {
+			Name   string `json:"name"`
+			Commit struct {
+				Sha string `json:"sha"`
+			} `json:"commit"`
 		}
-		if json.Unmarshal(data, &latest) == nil && len(latest.TagName) <= 40 {
-			release = latest.TagName
+		if json.Unmarshal(data, &list) == nil {
+			for _, tag := range list {
+				if len(tag.Name) <= 40 && len(tag.Commit.Sha) == 40 {
+					if _, seen := tags[tag.Commit.Sha]; !seen {
+						tags[tag.Commit.Sha] = tag.Name
+					}
+				}
+			}
 		}
 	}
-	return head, release, nil
+	return head, tags, nil
 }
 
 func systemdUpdateRunning() bool {
@@ -128,13 +138,13 @@ func (u *updater) refresh(ctx context.Context, force bool) {
 	if age < updateCheckGap || (!force && age < updateCheckAge && u.head != "") {
 		return
 	}
-	head, release, err := u.remote(ctx)
+	head, tags, err := u.remote(ctx)
 	u.checked = time.Now()
 	if err != nil {
 		u.checkErr = "Impossibile controllare gli aggiornamenti su GitHub."
 		return
 	}
-	u.head, u.release, u.checkErr = head, release, ""
+	u.head, u.tags, u.checkErr = head, tags, ""
 }
 
 func (u *updater) installedRevision() string {
@@ -203,21 +213,22 @@ func updateState(running, queued bool, log []string) string {
 
 func (u *updater) info() updateInfo {
 	u.mu.Lock()
-	head, release, checked, checkErr := u.head, u.release, u.checked, u.checkErr
+	head, tags, checked, checkErr := u.head, u.tags, u.checked, u.checkErr
 	u.mu.Unlock()
 	_, unitErr := os.Stat(u.pathUnit)
 	_, requestErr := os.Stat(u.requestFile)
 	log := u.readLog()
 	current := u.installedRevision()
 	info := updateInfo{
-		Installed:  unitErr == nil,
-		State:      updateState(u.running(), requestErr == nil, log),
-		Current:    shortRevision(current),
-		Available:  shortRevision(head),
-		Latest:     release,
-		UpToDate:   current != "" && head != "" && current == head,
-		CheckError: checkErr,
-		Log:        log,
+		Installed:    unitErr == nil,
+		State:        updateState(u.running(), requestErr == nil, log),
+		Current:      shortRevision(current),
+		Available:    shortRevision(head),
+		CurrentTag:   tags[current],
+		AvailableTag: tags[head],
+		UpToDate:     current != "" && head != "" && current == head,
+		CheckError:   checkErr,
+		Log:          log,
 	}
 	if !checked.IsZero() {
 		info.CheckedAt = checked.Unix()

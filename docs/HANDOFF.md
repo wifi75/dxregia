@@ -434,6 +434,7 @@ Verifica 2FA ricordata per 10 giorni con cookie dispositivo fidato (trusted_devi
 
 - Stato: rilasciata la 0.8.0 con l'aggiornamento dal pannello (senza richiesta di password, conferma in finestra) e la scheda nodi partner su due colonne con paese, bandiera, separatore, solo LED per i nodi attivi e IN/OUT. Guide di installazione nelle sei lingue aggiornate.
 - Verifica: test Go e build web verdi; aggiornamento dal pulsante provato a mano dall'utente solo nella fase iniziale, esito finale da confermare.
+- Nota di rilascio: a ogni release portare `version` di `dxregia/web/package.json` e `package-lock.json` alla versione (la barra laterale del pannello la mostra).
 - Prossimo passo: confermare un aggiornamento reale dal pulsante; riavvio automatico di Mojo se si ferma a servizio attivo.
 
 ## 2026-11-21 — Aggiornamento dal pannello
