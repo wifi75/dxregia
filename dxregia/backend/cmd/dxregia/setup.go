@@ -133,6 +133,8 @@ func registerSetup(service context.Context, children *sync.WaitGroup, mux *http.
 			return nil
 		} else {
 			log.Printf("Mojo restart: %v", err)
+			// Dopo un riavvio la rete o il DNS possono non essere pronti: riprova finché il motore parte.
+			go retryMojo(service, children, perl, root, *saved)
 		}
 	} else if !os.IsNotExist(err) {
 		return err

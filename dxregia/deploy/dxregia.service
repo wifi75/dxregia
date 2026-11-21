@@ -1,6 +1,7 @@
 [Unit]
 Description=DXRegia DX Cluster
-After=network.target
+Wants=network-online.target
+After=network-online.target nss-lookup.target
 
 [Service]
 Type=simple

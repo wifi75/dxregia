@@ -102,6 +102,30 @@ func startMojo(service context.Context, children *sync.WaitGroup, perl, root str
 	}
 }
 
+// retryMojo riavvia il motore dopo un primo avvio fallito, con attese crescenti da 10 secondi a 2 minuti.
+func retryMojo(service context.Context, children *sync.WaitGroup, perl, root string, config nodeConfig) {
+	address := net.JoinHostPort("127.0.0.1", strconv.Itoa(config.Port))
+	for delay := 10 * time.Second; ; {
+		select {
+		case <-service.Done():
+			return
+		case <-time.After(delay):
+		}
+		if checkListener(service, address).State == "ready" {
+			return
+		}
+		err := startMojo(service, children, perl, root, config)
+		if err == nil {
+			log.Print("Mojo avviato al nuovo tentativo")
+			return
+		}
+		log.Printf("Mojo restart: %v", err)
+		if delay < 2*time.Minute {
+			delay *= 2
+		}
+	}
+}
+
 func checkPortAvailable(port int) error {
 	listener, err := net.Listen("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
 	if err != nil {
