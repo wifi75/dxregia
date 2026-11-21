@@ -107,7 +107,7 @@ dxregia-update
 
 Descarrega a versão mais recente, compila-a, guarda a cópia anterior e volta atrás sozinho se o painel ou o Telnet deixarem de responder. Dados, credenciais, portas e personalizações mantêm-se. `dxregia-update --check` só mostra a versão instalada e a disponível. O serviço reinicia: as ligações caem cerca de um minuto e restabelecem-se sozinhas, e volta a entrar no painel. As instalações feitas antes deste comando podem obter `dxregia/deploy/update-native.sh` e executá-lo com `sh update-native.sh`. Com Docker use `sh update-docker.sh`.
 
-Também pode atualizar a partir do painel de administração: **Gestão > Atualizações**. A página mostra a versão instalada e a disponível, **Verificar agora** consulta o GitHub e **Atualizar agora** inicia a mesma atualização após uma confirmação. O progresso aparece em direto e a página volta a ligar-se após o reinício. O Telnet e as ligações com os parceiros são interrompidos durante cerca de um minuto. Se instalou antes desta função, execute uma vez `dxregia-update` no terminal para a ativar.
+Também pode atualizar a partir do painel de administração: **Gestão > Atualizações**. A página mostra a versão instalada e a disponível, **Verificar agora** consulta o GitHub e **Atualizar agora** inicia a mesma atualização após uma confirmação. O progresso aparece em direto e a página volta a ligar-se após o reinício. O Telnet e as ligações com os parceiros são interrompidos durante cerca de um minuto. Se instalou antes desta função, execute uma vez `dxregia-update` no terminal para a ativar. Quando só mudam as páginas do painel ou a documentação, os ficheiros são substituídos sem reinício e o Telnet continua ligado.
 
 ## 9. Cópia de segurança e restauro
 
