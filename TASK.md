@@ -8,6 +8,7 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.7.4 (riavvio del motore dopo un boot con DNS non pronto e scheda nodi partner su due colonne).
 - [x] Riavvio del server: dopo un boot con DNS non pronto Mojo non partiva e restava spento. Ora l'unità systemd attende la rete e DXRegia riprova l'avvio con attese crescenti (10 s, 20 s, 40 s... fino a 2 min). Solo avvio: un arresto successivo di Mojo non viene ancora riavviato. Da provare con un vero riavvio del container.
 - [x] Scheda Nodi partner dello stato del nodo su due colonne compatte, 16 nodi per pagina.
 - [x] Preparare DXRegia 0.7.3: conferma di sblocco ed eliminazione dei nodi partner in una finestra dell'applicazione invece dell'avviso del browser. L'indicativo di un nodo salvato resta non modificabile (per correggerlo: elimina e ricrea).

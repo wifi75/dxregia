@@ -2,14 +2,14 @@
 
 ## Installazione da release GitHub
 
-Lo script scarica il pacchetto nativo amd64 o arm64, ne verifica lo SHA-256 e avvia l’installatore. Senza argomenti usa l’ultima release pubblicata. Per installare la versione 0.7.3, scarica lo script dal tag e avvialo così.
+Lo script scarica il pacchetto nativo amd64 o arm64, ne verifica lo SHA-256 e avvia l’installatore. Senza argomenti usa l’ultima release pubblicata. Per installare la versione 0.7.4, scarica lo script dal tag e avvialo così.
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.7.3/dxregia/deploy/install-release.sh
-sh install-release.sh v0.7.3
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.7.4/dxregia/deploy/install-release.sh
+sh install-release.sh v0.7.4
 ```
 
-[Pacchetti e checksum di DXRegia 0.7.3](https://github.com/wifi75/dxregia/releases/tag/v0.7.3)
+[Pacchetti e checksum di DXRegia 0.7.4](https://github.com/wifi75/dxregia/releases/tag/v0.7.4)
 
 ## Pacchetto nativo precompilato
 
