@@ -8,6 +8,7 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.9.0 (aggiornamento senza riavvio per le sole modifiche alla grafica, piè di pagina del pannello, nomi delle versioni nella pagina Aggiornamenti).
 - [x] Rilasciare DXRegia 0.8.0 (aggiornamento dal pannello, scheda nodi partner con paese e bandiera).
 - [x] Aggiornamento dal pannello (Gestione > Aggiornamenti): `update.go`, unità `dxregia-update.service` e `dxregia-update.path`, pagina `Updates.svelte`. Verificato: test Go, catena path unit → servizio → registro sul server di prova (risultato "già aggiornato"). Da provare a mano: pulsante "Aggiorna ora" con una versione realmente più nuova.
 - [x] Rilasciare DXRegia 0.7.4 (riavvio del motore dopo un boot con DNS non pronto e scheda nodi partner su due colonne).

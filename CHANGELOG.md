@@ -4,12 +4,15 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-22
+
 ### Changed
 
 - Updates that change only the panel's pages and the documentation no longer restart the service: the files are replaced in place, so Telnet and the partner links stay connected. If the check on the new files fails, the previous pages are restored. Any change to the program, the engine or the system files still does the full update with a restart. `DXREGIA_FULL=1` forces the full update.
 
 ### Fixed
 
+- The admin panel now shows the DXSpider version, the project link and the author in its footer.
 - The Updates page names the versions (for example v0.8.0) next to the commits, instead of a possibly outdated "latest release". The admin sidebar showed a fixed v0.7.0: it now follows the real version.
 
 ## [0.8.0] - 2026-11-22

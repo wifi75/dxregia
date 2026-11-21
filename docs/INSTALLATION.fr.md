@@ -15,8 +15,8 @@
 **Paquet précompilé.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.8.0/dxregia/deploy/install-release.sh
-sh install-release.sh v0.8.0
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.9.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.9.0
 ```
 
 Le script vérifie la somme SHA-256, installe les dépendances et démarre le service. Il affiche l’adresse du panneau et un mot de passe temporaire pour la première connexion.
