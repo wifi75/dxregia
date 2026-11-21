@@ -435,7 +435,7 @@ Verifica 2FA ricordata per 10 giorni con cookie dispositivo fidato (trusted_devi
 - Stato: il pannello (Gestione > Aggiornamenti) mostra versione installata e disponibile (ultimo commit di `main`, confrontato con `/opt/dxregia/revision`) e avvia l'aggiornamento. Il backend (`update.go`) scrive soltanto il file vuoto `/var/lib/dxregia/update-request`; `dxregia-update.path` avvia `dxregia-update.service`, che esegue `/usr/local/bin/dxregia-update` (cioè `update-native.sh`) come root e scrive il registro in `/var/lib/dxregia/update.log`. Serve sysop con verifica completata e password web; nessun parametro dell'utente arriva allo script.
 - Verifica: `go test ./...` verde (test con GitHub e systemd simulati); sul server di prova la catena path → servizio → registro funziona ("già aggiornato"). Non provato: un aggiornamento reale avviato dal pulsante.
 - Limiti: solo installazioni native Linux; le installazioni precedenti vanno aggiornate una volta da terminale per installare le unità; l'aggiornamento richiede go, npm, git sul server come lo script manuale.
-- Prossimo passo: prova reale con una versione più nuova, poi rilascio.
+- Prossimo passo: prova reale con una versione più nuova, poi rilascio. La prova è in corso dal pulsante del pannello con un commit di sola documentazione.
 
 ## 2026-11-21 — Riavvio del motore e scheda nodi partner (DXRegia 0.7.4)
 
