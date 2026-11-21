@@ -8,6 +8,7 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Preparare DXRegia 0.7.3: conferma di sblocco ed eliminazione dei nodi partner in una finestra dell'applicazione invece dell'avviso del browser. L'indicativo di un nodo salvato resta non modificabile (per correggerlo: elimina e ricrea).
 - [x] Preparare DXRegia 0.7.2: pagine pubbliche sempre ricontrollate dal browser dopo un aggiornamento, ricarica automatica una volta se manca un file, footer del portale sempre in fondo alla pagina.
 
 - [x] Ricordare la verifica in due passaggi per 10 giorni su ogni browser con un cookie di dispositivo fidato, anche dopo riavvio del browser e del servizio. Aggiungere 10 giorni alle durate di sessione.

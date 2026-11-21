@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-11-21
+
+### Changed
+
+- In the partner list, "Unlock this node" and "Delete node" now ask for confirmation in a DXRegia dialog instead of the browser's own alert.
+
 ## [0.7.2] - 2026-11-21
 
 ### Fixed

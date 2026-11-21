@@ -134,6 +134,22 @@
     passwordDialog.showModal()
   }
 
+  let askDialog: HTMLDialogElement
+  let ask = $state({ title: '', text: '', label: '', danger: false })
+  let askDone: ((ok: boolean) => void) | undefined
+
+  function askConfirm(title: string, text: string, label: string, danger = false) {
+    if (askDialog.open) return Promise.resolve(false)
+    ask = { title, text, label, danger }
+    askDialog.returnValue = ''
+    return new Promise<boolean>(resolve => { askDone = resolve; askDialog.showModal() })
+  }
+
+  function finishAsk() {
+    askDone?.(askDialog.returnValue === 'confirm')
+    askDone = undefined
+  }
+
   function finishPasswordReset() {
     if (passwordDialog.returnValue === 'confirm' && selected?.Call === passwordTarget) {
       if (confirmation === 'password') void enable(false, true, false, true, Boolean(selected?.InboundIP))
@@ -144,7 +160,7 @@
   async function enable(outgoingOnly = false, mail = false, unlock = false, resetCCInbound = false, switchFromIP = false) {
     const call = selected?.Call
     if (!call || enabling) return
-    if (unlock && !confirm(tr('Sbloccare {} in DXSpider e preparare il collegamento? Se il nodo ha già una password locale, potrà usarla per collegarsi.', call))) return
+    if (unlock && !await askConfirm(tr('Sblocca questo nodo'), tr('Sbloccare {} in DXSpider e preparare il collegamento? Se il nodo ha già una password locale, potrà usarla per collegarsi.', call), tr('Sblocca questo nodo'), true)) return
     enabling = true
     if (mail) emailStatus = 'In attesa dell’abilitazione'
     error = ''
@@ -201,7 +217,7 @@
   async function removePartner() {
     const call = selected?.Call
     if (!call || enabling) return
-    if (!confirm(tr('Eliminare il nodo {}?\n\nIl nodo viene scollegato, il suo accesso al tuo cluster viene rimosso (la sua password smette di funzionare) e la scheda viene cancellata. Non si può annullare.', call))) return
+    if (!await askConfirm(tr('Elimina nodo'), tr('Eliminare il nodo {}?\n\nIl nodo viene scollegato, il suo accesso al tuo cluster viene rimosso (la sua password smette di funzionare) e la scheda viene cancellata. Non si può annullare.', call), tr('Elimina nodo'), true)) return
     enabling = true
     error = ''
     message = ''
@@ -802,7 +818,18 @@
   </form>
 </dialog>
 
+<dialog class="glass-panel password-dialog" bind:this={askDialog} onclose={finishAsk}
+  aria-labelledby="partner-ask-title" aria-describedby="partner-ask-description">
+  <h2 id="partner-ask-title">{ask.title}</h2>
+  <p id="partner-ask-description" class="ask-text">{ask.text}</p>
+  <form method="dialog" class="actions">
+    <button class="secondary" value="cancel" autofocus>Annulla</button>
+    <button class:danger={ask.danger} value="confirm">{ask.label}</button>
+  </form>
+</dialog>
+
 <style>
+  .ask-text { white-space: pre-line; }
   .password-dialog { width: min(440px, calc(100% - 32px)); box-sizing: border-box; padding: 24px; color: var(--glass-text); }
   .password-dialog::backdrop { background: #0b2238a0; backdrop-filter: blur(3px); }
   .password-dialog .actions { justify-content: flex-end; }
