@@ -518,6 +518,7 @@
     </section>
   </div>
   </div>
+  <div class="foot-gap" aria-hidden="true"></div>
   <footer class="foot">
     {#if views !== undefined}
       <span class="stat" title={t('visitsLabel')}>
@@ -570,7 +571,8 @@
   .confirmed { color: #197849; font-weight: 800; }
   @media (max-width: 900px) { .comparison.paired { grid-template-columns: minmax(0, 1fr); } }
   .spot-timing { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 2px; color: #385569; font-size: .82rem; font-variant-numeric: tabular-nums; }
-  main { position: relative; width: 100%; max-width: 1240px; margin: 0 auto; padding: 14px clamp(12px, 2vw, 32px) 24px; }
+  main { position: relative; display: flex; flex-direction: column; width: 100%; max-width: 1240px; min-height: calc(100dvh - 60px); margin: 0 auto; padding: 14px clamp(12px, 2vw, 32px) 24px; }
+  .foot-gap { flex: 1 0 22px; }
   @media (prefers-reduced-motion: reduce) { tbody tr.fresh, tbody tr.fresh:nth-child(even) { animation: none; background: #fff1a0; } }
   .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 7px 10px; margin-bottom: 12px; min-width: 0; }
   .chip-row, .search-row { display: contents; }
@@ -678,7 +680,7 @@
   .popup .dates { font-weight: 600; }
   .popup .src { margin: 8px 0 0; font-size: .82rem; }
   .popup a { color: #175c82; font-weight: 600; }
-  .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; margin: 22px auto 0; padding: 9px 18px; width: fit-content; max-width: 100%; border: 1px solid #b9cbd9; border-radius: 999px; background: #ffffffb3; backdrop-filter: blur(10px); color: #274760; font-size: .88rem; }
+  .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; margin: 0 auto; flex: none; padding: 9px 18px; width: fit-content; max-width: 100%; border: 1px solid #b9cbd9; border-radius: 999px; background: #ffffffb3; backdrop-filter: blur(10px); color: #274760; font-size: .88rem; }
   .stat, .project { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
   .stat strong { font-variant-numeric: tabular-nums; color: #143a60; font-weight: 800; }
   .stat svg, .project svg { color: #3a82c0; }

@@ -17,6 +17,15 @@ window.fetch = async (...args: Parameters<typeof fetch>) => {
   }
   return response
 }
+// Dopo un aggiornamento i nomi dei file cambiano: un browser con la pagina vecchia non trova più la parte richiesta.
+// Si ricarica una sola volta per prendere la versione nuova.
+window.addEventListener('vite:preloadError', () => {
+  try {
+    if (sessionStorage.getItem('dxregia-reloaded')) return
+    sessionStorage.setItem('dxregia-reloaded', '1')
+  } catch { return }
+  location.reload()
+})
 import App from './App.svelte'
 
 mount(App, { target: document.getElementById('app')! })
