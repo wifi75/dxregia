@@ -430,6 +430,12 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 
 Verifica 2FA ricordata per 10 giorni con cookie dispositivo fidato (trusted_device.go, test in web_session_test.go). Server di prova 192.168.1.124 aggiornato a cc7f1cdf. Da verificare a mano: login con codice, chiusura del browser e nuovo login con sola password.
 
+## 2026-11-22 — Aggiornamento senza riavvio (dopo la 0.8.0)
+
+- Stato: `update-native.sh` confronta il commit installato con quello nuovo; se cambiano solo `dxregia/web/`, `docs/` e i file `.md` sostituisce le pagine del pannello senza fermare il servizio (Telnet e partner restano collegati) e ripristina le pagine precedenti se il controllo fallisce. Ogni altra modifica fa l'aggiornamento completo con riavvio. `DXREGIA_FULL=1` forza quello completo.
+- Verifica: sintassi dello script e logica di confronto (fetch del commit vecchio, diff, classificazione) provate in locale; l'aggiornamento completo che installa lo script nuovo è riuscito sul server di prova. In corso: prova dell'aggiornamento leggero dal pulsante con questo commit di sola documentazione, controllando che il processo di DXSpider non si riavvii.
+- Limiti: un cambiamento al programma Go richiede ancora il riavvio completo (Mojo è un processo figlio del servizio); separarli è il passo successivo, più delicato.
+
 ## 2026-11-22 — DXRegia 0.8.0
 
 - Stato: rilasciata la 0.8.0 con l'aggiornamento dal pannello (senza richiesta di password, conferma in finestra) e la scheda nodi partner su due colonne con paese, bandiera, separatore, solo LED per i nodi attivi e IN/OUT. Guide di installazione nelle sei lingue aggiornate.
