@@ -9,9 +9,24 @@ indicator() {
     fi
 }
 fail() { indicator 31 "Errore: $*" >&2; exit 1; }
-step() { printf '\n[%s/5] %s\n' "$1" "$2"; }
+steps=5
+step() { printf '\n[%s/%s] %s\n' "$1" "$steps" "$2"; }
 as_root() {
     if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi
+}
+
+detect_url() {
+    web_port=8080
+    web_host=127.0.0.1
+    if as_root test -f /etc/dxregia.env; then
+        web_port=$(as_root awk -F= '/^DXREGIA_WEB_PORT=[0-9]+$/ { port=$2 } END { print port }' /etc/dxregia.env)
+        web_host=$(as_root awk -F= '/^DXREGIA_HTTP_BIND=[0-9.]+$/ { host=$2 } END { print host }' /etc/dxregia.env)
+        [ "${web_host:-127.0.0.1}" != 0.0.0.0 ] || web_host=127.0.0.1
+    fi
+    if as_root test -f "$state/web-port"; then
+        web_port=$(as_root cat "$state/web-port")
+    fi
+    url="http://${web_host:-127.0.0.1}:${web_port:-8080}"
 }
 
 [ "$(uname -s)" = Linux ] || fail 'Questo script richiede Linux.'
@@ -130,6 +145,18 @@ if [ "$revision" = "$current" ] && [ "$mode" != source ]; then
     exit 0
 fi
 indicator 32 'Sorgente pronto.'
+# Se sono cambiati solo la grafica del pannello e la documentazione, i file si sostituiscono senza riavviare
+# il servizio: Telnet e i collegamenti con i nodi partner restano attivi. DXREGIA_FULL=1 forza l'aggiornamento completo.
+light=0
+if [ "$mode" != source ] && [ "${DXREGIA_FULL:-0}" != 1 ] && [ -n "$current" ] &&
+    git -C "$source" fetch --quiet --depth 1 origin "$current" 2>/dev/null; then
+    changed=$(git -C "$source" diff --name-only "$current" "$revision" 2>/dev/null || true)
+    if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qvE '^(dxregia/web/|docs/|[^/]+\.md$|dxregia/deploy/README\.md$)'; then
+        light=1
+        steps=3
+        printf '%s\n' 'Sono cambiati solo la grafica e la documentazione: aggiornamento senza riavvio.'
+    fi
+fi
 step 2 "Compilo il pannello web ($(printf '%.12s' "$revision"))."
 (
     cd "$source/dxregia/web" && npm ci && npm run build
@@ -141,6 +168,31 @@ if [ "${DXREGIA_VERBOSE:-0}" = 1 ]; then
     cat "$work/web-build.log"
 fi
 indicator 32 'Pannello web compilato.'
+if [ "$light" -eq 1 ]; then
+    step 3 'Sostituisco i file del pannello. Nessun riavvio: Telnet e collegamenti restano attivi.'
+    detect_url
+    printf '%s\n' "$revision" > "$work/revision"
+    rollback=$(as_root mktemp -d /opt/.dxregia-update-XXXXXX)
+    as_root install -d -m 0755 "$runtime/web.new"
+    as_root cp -R "$source/dxregia/web/dist/." "$runtime/web.new/"
+    as_root cp -a "$runtime/revision" "$rollback/revision"
+    as_root mv -T "$runtime/web" "$rollback/web"
+    as_root mv -T "$runtime/web.new" "$runtime/web"
+    as_root install -m 0644 "$work/revision" "$runtime/revision"
+    for attempt in $(seq 1 10); do
+        if curl -fsS --max-time 3 "$url/api/auth" >/dev/null 2>&1 && curl -fsS --max-time 3 "$url/" >/dev/null 2>&1; then
+            for old in $(ls -1dt /opt/.dxregia-update-* 2>/dev/null | tail -n +4); do as_root rm -rf -- "$old"; done
+            indicator 32 "DXRegia aggiornato a $(printf '%.12s' "$revision") (senza riavvio)."
+            exit 0
+        fi
+        sleep 1
+    done
+    as_root mv -T "$runtime/web" "$rollback/failed-web"
+    as_root mv -T "$rollback/web" "$runtime/web"
+    as_root cp -a "$rollback/revision" "$runtime/revision"
+    indicator 31 'Ripristino della versione precedente.' >&2
+    fail 'Il pannello non risponde dopo la sostituzione dei file.'
+fi
 step 3 'Compilo il backend Go. Questa fase può restare silenziosa per qualche minuto.'
 (
     cd "$source/dxregia/backend" &&
@@ -176,17 +228,7 @@ for config in Local.pm Listeners.pm; do
     fi
 done
 
-web_port=8080
-web_host=127.0.0.1
-if as_root test -f /etc/dxregia.env; then
-    web_port=$(as_root awk -F= '/^DXREGIA_WEB_PORT=[0-9]+$/ { port=$2 } END { print port }' /etc/dxregia.env)
-    web_host=$(as_root awk -F= '/^DXREGIA_HTTP_BIND=[0-9.]+$/ { host=$2 } END { print host }' /etc/dxregia.env)
-    [ "${web_host:-127.0.0.1}" != 0.0.0.0 ] || web_host=127.0.0.1
-fi
-if as_root test -f "$state/web-port"; then
-    web_port=$(as_root cat "$state/web-port")
-fi
-url="http://${web_host:-127.0.0.1}:${web_port:-8080}"
+detect_url
 configured=0
 if as_root test -f "$engine/local/dxregia-initialized"; then configured=1; fi
 
