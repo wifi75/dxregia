@@ -196,9 +196,9 @@
                       {#if flag}<img src={'/flags/' + flag + '.svg'} alt="" width="22" height="16" loading="lazy" />{/if}
                       <span class="partner-name"><strong title={directory[call]?.Name || undefined}>{call}</strong>{#if country}<small>{country}</small>{/if}</span>
                     </span></td>
-                    <td><span class="partner-state"><span class="led" data-tone={tone} aria-hidden="true"></span>{locked ? 'Nodo bloccato in DXSpider' : !node ? 'Disconnesso' : node.State === 'normal' ? 'Attivo' : 'Sessione aperta'}
+                    <td><span class="partner-state"><span class="led" data-tone={tone} role="img" aria-label={locked || !node || node.State !== 'normal' ? undefined : 'Attivo'} aria-hidden={locked || !node || node.State !== 'normal' ? 'true' : undefined} title={node?.State === 'normal' && !locked ? 'Attivo' : undefined}></span>{locked ? 'Nodo bloccato in DXSpider' : !node ? 'Disconnesso' : node.State === 'normal' ? '' : 'Sessione aperta'}
                       {#if !locked && node?.State === 'normal'}<small>· dalle {time.format(new Date(node.Since * 1000))}</small>{/if}</span></td>
-                    <td>{#if node}<span class="tag">{node.Outbound ? 'In uscita ↗' : 'In ingresso ↙'}</span>{:else}—{/if}</td>
+                    <td>{#if node}<span class="tag" title={node.Outbound ? 'Collegamento in uscita' : 'Collegamento in ingresso'}>{node.Outbound ? 'OUT' : 'IN'}</span>{:else}<span class="tag-gap">—</span>{/if}</td>
                   </tr>
                 {/each}
               </tbody>
@@ -378,6 +378,8 @@
   .partner-state small { color: #506678; white-space: nowrap; }
   .partner-state .led { width: 8px; height: 8px; flex-basis: 8px; }
   .partner-table .tag { white-space: nowrap; }
+  .partner-table th:last-child { padding-left: calc(.5rem + 8px); }
+  .tag-gap { padding-inline-start: 8px; }
   .inbound { border-top: 3px solid #167b50; }
   .users { margin-top: 14px; border-top: 4px solid #2fa36b; container-type: inline-size; }
   .session-grid { display: grid; grid-template-columns: repeat(var(--session-columns), minmax(0, 1fr)); gap: 3px 4px; padding: 0; margin: 0; list-style: none; }
