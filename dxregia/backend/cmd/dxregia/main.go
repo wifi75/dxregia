@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -140,19 +141,23 @@ func main() {
 	})
 	for _, route := range []string{"GET /registrazione", "GET /registrazione/conferma"} {
 		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "no-cache")
 			http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 		})
 	}
 	mux.HandleFunc("GET /contatti", func(w http.ResponseWriter, r *http.Request) {
 		traffic.view(r)
+		w.Header().Set("Cache-Control", "no-cache")
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
 	mux.HandleFunc("GET /spots", func(w http.ResponseWriter, r *http.Request) {
 		traffic.view(r)
+		w.Header().Set("Cache-Control", "no-cache")
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
 	mux.HandleFunc("GET /statistiche", func(w http.ResponseWriter, r *http.Request) {
 		traffic.view(r)
+		w.Header().Set("Cache-Control", "no-cache")
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	})
 	// Il pannello sysop vive su /admin e non è collegato da nessuna pagina pubblica.
@@ -165,7 +170,16 @@ func main() {
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/spots", http.StatusFound)
 	})
-	mux.Handle("GET /", http.FileServer(http.Dir(*web)))
+	files := http.FileServer(http.Dir(*web))
+	// I file in /assets hanno il codice nel nome e non cambiano mai; il resto va ricontrollato ad ogni apertura.
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/assets/") {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		} else {
+			w.Header().Set("Cache-Control", "no-cache")
+		}
+		files.ServeHTTP(w, r)
+	})
 	httpPort, err := loadWebPort(*webPortFile, *port)
 	if err != nil {
 		log.Fatalf("Load HTTP port: %v", err)
