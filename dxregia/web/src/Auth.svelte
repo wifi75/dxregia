@@ -356,6 +356,11 @@
       {/key}
       {/if}
     </div>
+    <footer class="login-footer admin-footer">
+      {#if engineVersion}<span>DXSpider <strong>{engineVersion}</strong></span>{/if}
+      <a href="https://github.com/wifi75/dxregia" target="_blank" rel="noopener noreferrer" title="Progetto open source">DXRegia su GitHub</a>
+      <span>By IU3WJQ - Tiziano Cassone</span>
+    </footer>
   {:else}
     <section class="auth-card glass-panel glass-enter">
       <Logo />
@@ -428,6 +433,7 @@
   .auth-card label { display: grid; max-width: none; gap: 8px; font-weight: 650; }
   .login-footer { display: flex; flex-wrap: wrap; justify-content: center; gap: .35rem .75rem; margin: 20px auto 0; padding-top: 12px; border-top: 1px solid #c4d6e3; color: #405b70; font-size: .78rem; }
   .login-footer a { color: #174e79; }
+  .admin-footer { margin-top: 28px; }
   .auth-card input { width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; }
   .auth-card form button { justify-self: center; width: auto; min-width: 120px; min-height: 40px; padding: 0 28px; margin-top: 4px; }
   .password-field { display: grid; }
