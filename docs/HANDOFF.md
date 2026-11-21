@@ -425,3 +425,7 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 
 - La colonna Paese dei partner mostra bandiera e nome in base al DXCC del nominativo completo, anche senza una sessione attiva. La tabella RBN affianca bandiera e nome nella colonna DXCC come la tabella Spot. La pagina spiega il ruolo dello skimmer e la lettura di SNR e Q.
 - L’entità speciale ITU HQ (4U1ITU) è identificata con il simbolo ONU già presente negli asset e conserva il proprio nome DXCC.
+
+## 2026-11-21 — DXRegia 0.7.1
+
+Verifica 2FA ricordata per 10 giorni con cookie dispositivo fidato (trusted_device.go, test in web_session_test.go). Server di prova 192.168.1.124 aggiornato a cc7f1cdf. Da verificare a mano: login con codice, chiusura del browser e nuovo login con sola password.

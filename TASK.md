@@ -8,6 +8,8 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Ricordare la verifica in due passaggi per 10 giorni su ogni browser con un cookie di dispositivo fidato, anche dopo riavvio del browser e del servizio. Aggiungere 10 giorni alle durate di sessione.
+
 - [x] Mostrare bandiera e nome nella colonna Paese dei nodi partner e nella colonna DXCC degli spot RBN, inclusa la sede ITU. Spiegare il ruolo dello skimmer nella pagina RBN.
 
 - [x] Ordinare automaticamente la tabella Nodi partner e il riquadro della dashboard con i nodi attivi in cima e ordine alfabetico per indicativo dentro ciascun gruppo.

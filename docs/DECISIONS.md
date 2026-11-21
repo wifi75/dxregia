@@ -32,3 +32,7 @@ Le regole e gli esiti radio vengono salvati nel browser. Il portale usa il feed 
 ## 2026-11-20 — Feed RBN
 
 DXRegia usa il collegamento RBN nativo di DXSpider e pubblica un’istantanea privata dei rapporti CW e RTTY già raggruppati. La pagina web legge quella istantanea e mette il feed in una vista dedicata. Il gestore riutilizza un collegamento RBN in uscita sulla porta 7000 quando è già presente. La gestione Telnet resta affidata alle preferenze di ogni utente DXSpider.
+
+## 2026-11-21 — 2FA ricordata per 10 giorni
+
+La sessione completa persisteva già al riavvio, ma il login con password la cancellava e il cookie di sessione moriva con il browser: il codice veniva richiesto a ogni accesso. Un cookie persistente «dispositivo fidato» (10 giorni, solo hash su disco in .dxregia-trusted.json, legato a password e chiave 2FA) salta il codice al login con password giusta. Scartato: allungare solo la sessione, perché non copre il login dopo la chiusura del browser. Il cambio password o 2FA invalida ogni dispositivo.

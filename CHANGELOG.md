@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-21
+
+### Changed
+
+- The sysop two-step check is now remembered for 10 days on each browser. After the six-digit code, a persistent trusted-browser cookie lets the next password sign-in skip the code, even after closing the browser or restarting the service. Trust ends when the password or the second factor changes. Session length can now be set to 10 days.
+
 ## [0.7.0] - 2026-11-20
 
 ### Added
