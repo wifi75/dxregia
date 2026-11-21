@@ -115,6 +115,7 @@ func main() {
 	registerNodeHealth(service, mux, *setupRoot, auth, spots)
 	registerADXO(service, mux, *setupRoot)
 	registerEngineVersion(mux, *setupRoot)
+	registerUpdate(mux, *setupRoot, auth)
 	if err := registerContacts(service, mux, *setupRoot, auth); err != nil {
 		log.Fatal(err)
 	}

@@ -200,7 +200,13 @@ for part in $parts; do
     as_root mv -T "$staged_engine/$part" "$engine/$part"
 done
 as_root install -m 0644 "$source/dxregia/deploy/dxregia.service" "$unit"
+# L'aggiornamento dal pannello usa questo stesso script e due unità systemd.
+as_root install -m 0755 "$source/dxregia/deploy/update-native.sh" /usr/local/bin/dxregia-update
+for update_unit in dxregia-update.service dxregia-update.path; do
+    as_root install -m 0644 "$source/dxregia/deploy/$update_unit" "/etc/systemd/system/$update_unit"
+done
 as_root systemctl daemon-reload
+as_root systemctl enable --now dxregia-update.path || true
 as_root systemctl start "$service"
 step 5 'Verifico la risposta del pannello e, se configurato, di Telnet.'
 for attempt in $(seq 1 25); do

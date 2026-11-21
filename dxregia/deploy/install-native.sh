@@ -88,8 +88,12 @@ if [ ! -f "$unit" ]; then
         as_root install -m 0600 "$stage/environment" /etc/dxregia.env
     fi
     as_root install -m 0644 "$root/dxregia/deploy/dxregia.service" "$unit"
+    for update_unit in dxregia-update.service dxregia-update.path; do
+        as_root install -m 0644 "$root/dxregia/deploy/$update_unit" "/etc/systemd/system/$update_unit"
+    done
     as_root systemctl daemon-reload
     as_root systemctl enable --now dxregia.service
+    as_root systemctl enable --now dxregia-update.path || true
 else
     as_root systemctl start dxregia.service
 fi

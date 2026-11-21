@@ -1,0 +1,14 @@
+[Unit]
+Description=Update DXRegia from the official repository
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStartPre=-/bin/rm -f /var/lib/dxregia/update-request
+ExecStart=/usr/local/bin/dxregia-update
+Environment=HOME=/root PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+UMask=0022
+StandardOutput=truncate:/var/lib/dxregia/update.log
+StandardError=inherit
+TimeoutStartSec=30min

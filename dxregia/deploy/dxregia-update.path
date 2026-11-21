@@ -1,0 +1,9 @@
+[Unit]
+Description=Start the DXRegia update requested from the admin panel
+
+[Path]
+PathExists=/var/lib/dxregia/update-request
+Unit=dxregia-update.service
+
+[Install]
+WantedBy=multi-user.target
