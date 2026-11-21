@@ -430,6 +430,12 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 
 Verifica 2FA ricordata per 10 giorni con cookie dispositivo fidato (trusted_device.go, test in web_session_test.go). Server di prova 192.168.1.124 aggiornato a cc7f1cdf. Da verificare a mano: login con codice, chiusura del browser e nuovo login con sola password.
 
+## 2026-11-22 — DXRegia 0.8.0
+
+- Stato: rilasciata la 0.8.0 con l'aggiornamento dal pannello (senza richiesta di password, conferma in finestra) e la scheda nodi partner su due colonne con paese, bandiera, separatore, solo LED per i nodi attivi e IN/OUT. Guide di installazione nelle sei lingue aggiornate.
+- Verifica: test Go e build web verdi; aggiornamento dal pulsante provato a mano dall'utente solo nella fase iniziale, esito finale da confermare.
+- Prossimo passo: confermare un aggiornamento reale dal pulsante; riavvio automatico di Mojo se si ferma a servizio attivo.
+
 ## 2026-11-21 — Aggiornamento dal pannello
 
 - Stato: il pannello (Gestione > Aggiornamenti) mostra versione installata e disponibile (ultimo commit di `main`, confrontato con `/opt/dxregia/revision`) e avvia l'aggiornamento. Il backend (`update.go`) scrive soltanto il file vuoto `/var/lib/dxregia/update-request`; `dxregia-update.path` avvia `dxregia-update.service`, che esegue `/usr/local/bin/dxregia-update` (cioè `update-native.sh`) come root e scrive il registro in `/var/lib/dxregia/update.log`. Serve il sysop con verifica completata e la conferma nella finestra, senza richiedere di nuovo la password (scelta dell'utente); nessun parametro dell'utente arriva allo script.

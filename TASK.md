@@ -8,6 +8,7 @@ Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.8.0 (aggiornamento dal pannello, scheda nodi partner con paese e bandiera).
 - [x] Aggiornamento dal pannello (Gestione > Aggiornamenti): `update.go`, unità `dxregia-update.service` e `dxregia-update.path`, pagina `Updates.svelte`. Verificato: test Go, catena path unit → servizio → registro sul server di prova (risultato "già aggiornato"). Da provare a mano: pulsante "Aggiorna ora" con una versione realmente più nuova.
 - [x] Rilasciare DXRegia 0.7.4 (riavvio del motore dopo un boot con DNS non pronto e scheda nodi partner su due colonne).
 - [x] Riavvio del server: dopo un boot con DNS non pronto Mojo non partiva e restava spento. Ora l'unità systemd attende la rete e DXRegia riprova l'avvio con attese crescenti (10 s, 20 s, 40 s... fino a 2 min). Solo avvio: un arresto successivo di Mojo non viene ancora riavviato. Da provare con un vero riavvio del container.

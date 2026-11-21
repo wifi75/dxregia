@@ -15,8 +15,8 @@
 **Pacote pré-compilado.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.7.4/dxregia/deploy/install-release.sh
-sh install-release.sh v0.7.4
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.8.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.8.0
 ```
 
 O script verifica a soma SHA-256, instala as dependências e inicia o serviço. Mostra o endereço do painel e uma palavra-passe temporária para o primeiro acesso.
@@ -106,6 +106,8 @@ dxregia-update
 ```
 
 Descarrega a versão mais recente, compila-a, guarda a cópia anterior e volta atrás sozinho se o painel ou o Telnet deixarem de responder. Dados, credenciais, portas e personalizações mantêm-se. `dxregia-update --check` só mostra a versão instalada e a disponível. O serviço reinicia: as ligações caem cerca de um minuto e restabelecem-se sozinhas, e volta a entrar no painel. As instalações feitas antes deste comando podem obter `dxregia/deploy/update-native.sh` e executá-lo com `sh update-native.sh`. Com Docker use `sh update-docker.sh`.
+
+Também pode atualizar a partir do painel de administração: **Gestão > Atualizações**. A página mostra a versão instalada e a disponível, **Verificar agora** consulta o GitHub e **Atualizar agora** inicia a mesma atualização após uma confirmação. O progresso aparece em direto e a página volta a ligar-se após o reinício. O Telnet e as ligações com os parceiros são interrompidos durante cerca de um minuto. Se instalou antes desta função, execute uma vez `dxregia-update` no terminal para a ativar.
 
 ## 9. Cópia de segurança e restauro
 

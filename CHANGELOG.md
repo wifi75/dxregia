@@ -4,9 +4,15 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-22
+
 ### Added
 
 - Update DXRegia from the admin panel (Management > Updates). The page shows the installed and the available version, checks GitHub on demand and starts the official update after the sysop confirms in a dialog. No password is asked again: the sign-in with the two-step check is enough. Progress and the result are shown live, and the page reconnects by itself after the restart. Native Linux installs only. Installations made before this change need one last update from the terminal (`dxregia-update`) to install the two systemd units.
+
+### Changed
+
+- The partner nodes card on the admin status page shows the country flag and name of each node, a divider between the two columns, only the LED for active nodes and `IN` or `OUT` in the Direction column.
 
 ## [0.7.4] - 2026-11-21
 
