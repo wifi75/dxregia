@@ -11,7 +11,6 @@
   let loadError = $state('')
   let checking = $state(false)
   let starting = $state(false)
-  let password = $state('')
   let message = $state('')
   let dialog: HTMLDialogElement
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -60,13 +59,12 @@
     try {
       const response = await fetch('/api/update/start', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ Password: password }),
+        body: '{}',
       })
       if (!response.ok) {
         message = (await response.text()).trim() || 'Impossibile avviare l’aggiornamento.'
         return
       }
-      password = ''
       dialog.close()
       seenBusy = true
       await load()
@@ -79,7 +77,6 @@
   }
 
   function ask() {
-    password = ''
     message = ''
     dialog.showModal()
   }
@@ -140,15 +137,12 @@
 
 <dialog class="glass-panel update-dialog" bind:this={dialog} aria-labelledby="update-title" aria-describedby="update-text">
   <h2 id="update-title">Aggiorna DXRegia</h2>
-  <p id="update-text">Durante l’aggiornamento Telnet e i collegamenti con i nodi partner si interrompono per circa un minuto. Se qualcosa va storto, DXRegia torna da solo alla versione precedente. Conferma con la password web.</p>
+  <p id="update-text">Durante l’aggiornamento Telnet e i collegamenti con i nodi partner si interrompono per circa un minuto. Se qualcosa va storto, DXRegia torna da solo alla versione precedente.</p>
   <form onsubmit={start}>
-    <label>Password web
-      <input type="password" bind:value={password} autocomplete="current-password" maxlength="72" required />
-    </label>
     {#if message}<p role="alert">{message}</p>{/if}
     <div class="actions">
       <button type="button" class="secondary" onclick={() => dialog.close()}>Annulla</button>
-      <button type="submit" disabled={starting || !password}>{starting ? 'Avvio…' : 'Aggiorna ora'}</button>
+      <button type="submit" disabled={starting} autofocus>{starting ? 'Avvio…' : 'Aggiorna ora'}</button>
     </div>
   </form>
 </dialog>
@@ -167,6 +161,5 @@
   .log { max-height: 320px; overflow: auto; margin: 0; padding: 10px 12px; border: 1px solid #cdd9e4; border-radius: 6px; background: #0f2233; color: #dce9f3; font-size: .82rem; white-space: pre-wrap; }
   .update-dialog { width: min(440px, calc(100% - 32px)); box-sizing: border-box; padding: 24px; color: var(--glass-text); }
   .update-dialog::backdrop { background: #0b2238a0; backdrop-filter: blur(3px); }
-  .update-dialog label { display: grid; gap: 4px; margin: 10px 0; }
   .update-dialog .actions { justify-content: flex-end; }
 </style>

@@ -13,8 +13,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 // Aggiornamento di DXRegia dal pannello di amministrazione.
@@ -56,7 +54,6 @@ type updater struct {
 	release   string
 	checked   time.Time
 	checkErr  string
-	nextStart time.Time
 }
 
 func newUpdater(stateDir string) *updater {
@@ -253,30 +250,19 @@ func (u *updater) register(mux *http.ServeMux, auth *sysopAuth) {
 			http.Error(w, "Formato non valido.", http.StatusUnsupportedMediaType)
 			return
 		}
-		var request struct{ Password string }
-		body := json.NewDecoder(http.MaxBytesReader(w, r.Body, 512))
+		// Il corpo deve essere un oggetto JSON vuoto: nessun dato dell'utente arriva allo script.
+		var request struct{}
+		body := json.NewDecoder(http.MaxBytesReader(w, r.Body, 64))
 		body.DisallowUnknownFields()
-		if body.Decode(&request) != nil || body.Decode(new(any)) != io.EOF || len(request.Password) > 72 {
+		if body.Decode(&request) != nil || body.Decode(new(any)) != io.EOF {
 			http.Error(w, "Richiesta non valida.", http.StatusBadRequest)
 			return
 		}
 		auth.mu.Lock()
 		allowed := auth.signedIn(r) && !auth.temporary && auth.factorOK
-		passwordOK := allowed && bcrypt.CompareHashAndPassword(auth.hash, []byte(request.Password)) == nil
-		wait := time.Now().Before(u.nextStart)
-		if allowed && !passwordOK {
-			u.nextStart = time.Now().Add(time.Second)
-		}
 		auth.mu.Unlock()
-		switch {
-		case !allowed:
+		if !allowed {
 			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
-			return
-		case wait:
-			http.Error(w, "Attendi prima di riprovare.", http.StatusTooManyRequests)
-			return
-		case !passwordOK:
-			http.Error(w, "Password web non valida.", http.StatusForbidden)
 			return
 		}
 		u.refresh(r.Context(), true)

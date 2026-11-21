@@ -10,8 +10,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -21,11 +19,7 @@ const (
 
 func TestUpdateFromPanel(t *testing.T) {
 	dir := t.TempDir()
-	hash, err := bcrypt.GenerateFromPassword([]byte("example-password"), bcrypt.MinCost)
-	if err != nil {
-		t.Fatal(err)
-	}
-	auth := &sysopAuth{session: sessionHash("token"), expires: time.Now().Add(time.Hour), factorOK: true, hash: hash}
+	auth := &sysopAuth{session: sessionHash("token"), expires: time.Now().Add(time.Hour), factorOK: true}
 	up := &updater{
 		revisionFile: filepath.Join(dir, "revision"),
 		pathUnit:     filepath.Join(dir, "dxregia-update.path"),
@@ -64,7 +58,7 @@ func TestUpdateFromPanel(t *testing.T) {
 		}
 		return info
 	}
-	good := `{"Password":"example-password"}`
+	good := `{}`
 
 	if call(http.MethodGet, "/api/update", "", false).Code != http.StatusUnauthorized {
 		t.Fatal("status readable without sign-in")
@@ -83,14 +77,7 @@ func TestUpdateFromPanel(t *testing.T) {
 	if err := os.WriteFile(up.pathUnit, nil, 0644); err != nil {
 		t.Fatal(err)
 	}
-	if w := call(http.MethodPost, "/api/update/start", `{"Password":"wrong"}`, true); w.Code != http.StatusForbidden {
-		t.Fatalf("wrong password gave %d", w.Code)
-	}
-	if w := call(http.MethodPost, "/api/update/start", good, true); w.Code != http.StatusTooManyRequests {
-		t.Fatalf("no delay after a wrong password: %d", w.Code)
-	}
-	up.nextStart = time.Time{}
-	if w := call(http.MethodPost, "/api/update/start", `{"Password":"example-password","Url":"http://example.test"}`, true); w.Code != http.StatusBadRequest {
+	if w := call(http.MethodPost, "/api/update/start", `{"Url":"http://example.test"}`, true); w.Code != http.StatusBadRequest {
 		t.Fatalf("unknown field accepted: %d", w.Code)
 	}
 	if _, err := os.Stat(up.requestFile); err == nil {
