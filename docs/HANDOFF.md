@@ -429,3 +429,7 @@ La sessione CC Cluster senza password di N4ZKF-1 è stata osservata come attiva 
 ## 2026-11-21 — DXRegia 0.7.1
 
 Verifica 2FA ricordata per 10 giorni con cookie dispositivo fidato (trusted_device.go, test in web_session_test.go). Server di prova 192.168.1.124 aggiornato a cc7f1cdf. Da verificare a mano: login con codice, chiusura del browser e nuovo login con sola password.
+
+## 2026-11-21 — DXRegia 0.7.2
+
+Corretto «Feed RBN non disponibile» dopo un aggiornamento: il browser teneva in cache la pagina con i vecchi nomi dei file. Ora le pagine pubbliche hanno Cache-Control no-cache e /assets è immutabile; main.ts ricarica una volta su vite:preloadError. Footer del portale in fondo alla pagina. Server di prova aggiornato.

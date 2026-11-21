@@ -4,6 +4,13 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-11-21
+
+### Fixed
+
+- Public portal pages are now revalidated on every visit, so a browser never keeps showing an older version after an update. Hashed files in `/assets` stay cached. A page that still cannot find a file after an update reloads itself once.
+- The portal footer (visits, DXSpider version, project link, author) stays at the bottom of the page when the content is short.
+
 ## [0.7.1] - 2026-11-21
 
 ### Changed
