@@ -207,7 +207,7 @@ def spot_delivery(primary, remote, peer, peer_port):
         marker = "DXREGIA-SMOKE"
         with (socket.create_connection((receiver_ip, peer_port), timeout=15) as logger,
               socket.create_connection((sender_ip, TELNET_PORT), timeout=15) as spotter):
-            for connection, call in [(logger, b"Q9QQQ"), (spotter, b"Q7QQQ")]:
+            for connection, call in [(logger, b"T9TTT"), (spotter, b"T7TTT")]:
                 read_until(connection, b"login:")
                 connection.sendall(call + b"\r\n")
                 read_until(connection, b"dxspider >")
@@ -232,7 +232,7 @@ def spot_delivery(primary, remote, peer, peer_port):
                                    check=False)
                 raise
             assert any(
-                line.startswith(b"DX de Q7QQQ") and b"JA1ABC" in line and marker.encode() in line
+                line.startswith(b"DX de T7TTT") and b"JA1ABC" in line and marker.encode() in line
                 for line in delivered.splitlines()
             )
 
@@ -273,11 +273,11 @@ def peer_link(primary):
         status, changed = remote("/api/auth/password", secrets.token_hex(24))
         assert status == 200 and not changed.get("mustChange") and not changed.get("mustVerify"), changed
         assert remote("/api/factor-settings") == (200, {"Enabled": False})
-        config = {"node": "Q3QQQ-2", "sysop": "Q3QQQ", "locator": "JN55AA", "port": peer_port}
+        config = {"node": "T3TTT-2", "sysop": "T3TTT", "locator": "JN55AA", "port": peer_port}
         assert remote("/api/setup", config) == (200, {"started": True, "port": peer_port})
 
         # DNS names stay valid even when Docker assigns a different IP on restart.
-        local_call, peer_call = "I1QQQ-2", "Q3QQQ-2"
+        local_call, peer_call = "I1QQQ-2", "T3TTT-2"
         assert remote("/api/partners", {"Call": local_call, "Host": CONTAINER, "Port": TELNET_PORT})[0] == 200
         assert request(primary, "/api/partners", {"Call": peer_call, "Host": peer, "Port": peer_port})[0] == 200
         status, incoming = remote(f"/api/partners/{local_call}/enable", {})
@@ -370,7 +370,7 @@ def main():
     assert request(client, "/api/node-settings", edited, method="PUT") == (200, edited)
     # Snapshot hook applies the updated profile during the next five-second cycle.
     time.sleep(6)
-    telnet_login(b"Q8QQQ", b"Profilo Linux")
+    telnet_login(b"T8TTT", b"Profilo Linux")
     assert request(client, "/api/spots")[1]["Available"]
     service("stop")
     with tempfile.TemporaryDirectory(prefix="dxregia-smoke-") as folder:
@@ -394,7 +394,7 @@ def main():
         ready(client)
         assert request(client, "/api/visits") == (200, {"Views": 2})
         time.sleep(6)
-        telnet_login(b"Q7QQQ", b"Profilo Linux")
+        telnet_login(b"T7TTT", b"Profilo Linux")
         assert request(client, "/api/factor-settings") == (200, {"Enabled": True})
         assert request(client, "/api/session-duration")[0] == 200
 
