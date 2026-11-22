@@ -196,11 +196,11 @@ def telnet_presence(client):
 
 
 def spot_delivery(primary, remote, peer, peer_port):
-    # An isolated documentation subnet lets the real PC61 source pass the
-    # existing RFC1918 check without changing any production filters.
+    # Upstream drops PC61 whose source is not a public Internet address. The network is internal (no route
+    # outside the host), so a public-looking subnet lets the real PC61 pass without changing any filter.
     network = "dxregia-spot-smoke"
-    sender_ip, receiver_ip = "192.0.2.10", "192.0.2.11"
-    docker("network", "create", "--internal", "--subnet", "192.0.2.0/24", network)
+    sender_ip, receiver_ip = "192.31.196.10", "192.31.196.11"
+    docker("network", "create", "--internal", "--subnet", "192.31.196.0/24", network)
     try:
         docker("network", "connect", "--ip", sender_ip, network, CONTAINER)
         docker("network", "connect", "--ip", receiver_ip, network, peer)
