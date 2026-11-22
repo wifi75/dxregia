@@ -4,6 +4,13 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-11-22
+
+### Changed
+
+- The engine's startup log no longer shows the harmless `cannot stat '/spider/initial_data/*'` and `not a git repository` lines: `engine/perl/cluster.pl` skips the copy when the folder does not exist and asks git only when a repository exists (change dated in the file).
+- Safety net in the service unit: after a clean stop, without a recent `keep-engine` file, a leftover engine process is stopped.
+
 ## [0.14.0] - 2026-11-22
 
 ### Changed
