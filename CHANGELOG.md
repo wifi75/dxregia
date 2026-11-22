@@ -4,6 +4,14 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-22
+
+### Changed
+
+- The DXSpider engine is aligned with upstream 1.57 build 929 (it was build 688): PC92 routing fixes with rollback, limits and bad-node/bad-spotter checks at login, new `load/badnode` and `load/badspotter` commands, automatic compression of old logs, many warnings and loops fixed. DXWeb and DXWeb Admin are not included.
+- The panel console answers the new DXSpider question before replacing an older session of the same callsign.
+- The laboratory callsigns of the Linux tests no longer start with Q, which upstream now rejects, and the test spot travels over a public-looking internal subnet because upstream drops PC61 from non-public addresses.
+
 ## [0.9.0] - 2026-11-22
 
 ### Changed

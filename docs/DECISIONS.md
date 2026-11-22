@@ -40,3 +40,7 @@ La sessione completa persisteva già al riavvio, ma il login con password la can
 ## 2026-11-21 — Aggiornamento dal pannello tramite unità systemd
 
 Il servizio web gira senza privilegi e viene riavviato dall'aggiornamento, quindi non può eseguirlo. Il pannello scrive solo un file di richiesta vuoto; una unità `.path` avvia un servizio `oneshot` che esegue lo script ufficiale come root. Scartati: sudo o polkit per l'utente del servizio (superficie d'attacco più ampia) e un aggiornamento eseguito dentro il processo web (sarebbe interrotto dal riavvio). Nessun URL, versione o argomento arriva dal browser.
+
+## 2026-11-22 — Allineamento del motore con differenza fra basi
+
+Il motore in `engine/` segue il ramo mojo del fork EA3CV/dxspider. L'allineamento si fa applicando la differenza fra la base precedente e la nuova punta, escludendo `dxweb/` e `dxweb-admin/`, e unendo a mano i file che DXRegia modifica. Non si importa la cronologia upstream. I file predefiniti di `initial_data/` si copiano anche in `engine/data/`, perché upstream li copia da un percorso `/spider` che non esiste nelle nostre installazioni.

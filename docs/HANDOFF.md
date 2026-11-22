@@ -13,7 +13,7 @@
 
 - Directory: D:/progetti/dxregia.
 - Branch di lavoro: dxregia/main.
-- Baseline upstream: mojo, commit 9b55f03ff870d50a9d3e57090dc7408035a4a2b1.
+- Baseline upstream: mojo, commit 5e4139b53d1d9f801b84f4b4d4e1fc50b5430dab (DXSpider 1.57 build 929, allineata il 2026-11-22; la base precedente era 9b55f03f, build 688).
 - Documentazione e struttura iniziali create. Il motore e i file di licenza del clone sono conservati.
 - Su questo host il controllo iniziale ha trovato Node, ma go, npm e docker non risultavano disponibili nel PATH. Nessuna verifica runtime Linux è stata eseguita.
 - Requisiti visivi e flussi per pagina pubblica e area sysop: docs/INTERFACES.md.
@@ -467,3 +467,19 @@ Verifica 2FA ricordata per 10 giorni con cookie dispositivo fidato (trusted_devi
 ## 2026-11-21 — DXRegia 0.7.2
 
 Corretto «Feed RBN non disponibile» dopo un aggiornamento: il browser teneva in cache la pagina con i vecchi nomi dei file. Ora le pagine pubbliche hanno Cache-Control no-cache e /assets è immutabile; main.ts ricarica una volta su vite:preloadError. Footer del portale in fondo alla pagina. Server di prova aggiornato.
+
+## 2026-11-22 — Allineamento al motore upstream 1.57 build 929 (DXRegia 0.10.0)
+
+Il motore in `engine/` è stato portato da 9b55f03f (build 688) a 5e4139b5 (build 929), 242 commit del fork EA3CV/dxspider che integra le correzioni di Dirk (G1TLH). Procedura usata: `git diff --binary` fra le due basi nel clone upstream, senza `dxweb/` e `dxweb-admin/` (il pannello DXRegia li sostituisce), applicato con `git apply --directory=engine`; i file conflittuali sono stati uniti a mano. Le nostre modifiche al motore sono in sette file (`ExtMsg.pm`, `DXCommandmode.pm`, `Verify.pm`, `Version.pm`, `cmd/set/password.pl`, `cmd/unset/password.pl`, `cmd/sysop.pl`): ogni sincronizzazione deve ricontrollarli.
+
+Differenze di comportamento upstream da ricordare:
+
+- I file predefiniti (`cty.dat`, `wpxloc.raw`, `badip.*`, `badnode`, `badspotter`, `badword`, `baddx`) stanno ora in `initial_data/` e upstream li copia in `data/` all'avvio da un percorso fisso `/spider`, che da noi non esiste. Li teniamo copiati anche in `engine/data/` (aggiunti con `git add -f`, perché `data/.gitignore` li esclude). A ogni sincronizzazione: `cp -up engine/initial_data/* engine/data/`.
+- `is_callsign` rifiuta i nominativi che iniziano per Q: i nominativi di laboratorio dei collaudi sono ora T3TTT, T7TTT, T8TTT, T9TTT.
+- I PC61 con sorgente non pubblica sono scartati: il collaudo Docker porta lo spot su una sottorete interna 192.31.196.0/24.
+- Un secondo accesso con lo stesso nominativo (da loopback o con password) chiede «(Y/N)» prima di sostituire la sessione precedente: la console del pannello (`loginConsole`) risponde Y, come faceva di fatto il comportamento precedente.
+- Nuovi controlli `badnode`/`badspotter` al login, limite di 12 connessioni utente per nominativo base, comandi `load/badnode` e `load/badspotter`, routing PC92 con rollback.
+- `cty.dat` non contiene più `DX0NE`: il test Go usa `3D2CCC` come eccezione esatta.
+- Non integrati: DXWeb, DXWeb Admin e il loro installatore. DXReg (registrazione utenti) è presente nel codice ma disattivato (`$reg_enable = 0` nel `DXVars.pm.issue` upstream).
+
+Verifica: test Go e smoke Linux su GitHub (amd64 e arm64, nativo e Docker) verdi; motore avviato sul server di prova, su una copia dei dati reali e porte diverse, con login, `sh/dx` e spot RBN corretti. Non verificato: PC92 con partner reali per un periodo prolungato e Version.pm: il saluto Telnet mostra «DXSpider V build» vuoti perché senza `.git` cluster.pl non legge Version.pm (comportamento già presente prima dell'allineamento).

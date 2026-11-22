@@ -20,7 +20,7 @@ Per ricreare una copia di laboratorio su un altro computer, da una directory est
 
 ~~~sh
 git clone --branch mojo https://github.com/EA3CV/dxspider.git mojo-lab
-git -C mojo-lab checkout --detach 9b55f03ff870d50a9d3e57090dc7408035a4a2b1
+git -C mojo-lab checkout --detach 5e4139b53d1d9f801b84f4b4d4e1fc50b5430dab
 ~~~
 
 Compila il frontend con i comandi precedenti. Poi, da `dxregia/backend` della copia DXRegia (sostituisci i percorsi di esempio):
