@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import re
+import sqlite3
 import sys
 import tempfile
 import zipfile
@@ -22,6 +23,9 @@ VOLATILE = {"cluster.lck", "dxregia-presence.json", "dxregia-presence.json.tmp"}
 JOBS = {"enable", "connect", "script", "result", "connect-result", "tmp", "mail.json"}
 RESERVED = re.compile(r"^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)", re.I)
 MAX_MANIFEST = 8 * 1024 * 1024
+# Files SQLite keeps next to the database while the node runs: never part of a hot backup.
+SQLITE_SIDE = ("-journal", "-wal", "-shm")
+DATABASE = "local_data/dxusers.db"
 
 
 def allowed(name):
@@ -76,12 +80,29 @@ def copy_hash(source, destination):
     return {"sha256": digest.hexdigest(), "size": count}
 
 
-def backup(root, output):
+def snapshot_database(source, directory):
+    """Consistent copy of the live SQLite database, checked before it goes into an archive."""
+    target = Path(directory) / "dxusers.snapshot"
+    origin = sqlite3.connect(f"file:{source}?mode=ro", uri=True, timeout=30)
+    try:
+        copy = sqlite3.connect(target)
+        try:
+            origin.backup(copy)
+            if copy.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                raise ValueError("La banca utenti non ha superato il controllo di integrità.")
+        finally:
+            copy.close()
+    finally:
+        origin.close()
+    return target
+
+
+def backup(root, output, online=False):
     root = root.resolve(strict=True)
     if not (root / "perl/cluster.pl").is_file() or not (root / "local/DXVars.pm").is_file():
         raise ValueError("Indica la directory di un nodo Mojo configurato.")
-    if (root / "local_data/cluster.lck").exists():
-        raise ValueError("Mojo ha un file di blocco. Arresta il nodo e il backend prima del backup.")
+    if not online and (root / "local_data/cluster.lck").exists():
+        raise ValueError("Mojo ha un file di blocco. Arresta il nodo e il backend prima del backup, oppure usa --online.")
     output = output.resolve()
     if output.is_relative_to(root):
         raise ValueError("Salva l'archivio fuori dalla directory del nodo.")
@@ -91,15 +112,20 @@ def backup(root, output):
         staging = Path(temp.name)
     try:
         index = {}
-        with zipfile.ZipFile(staging, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        with tempfile.TemporaryDirectory(dir=output.parent, prefix=".dxregia-snapshot-") as scratch, \
+                zipfile.ZipFile(staging, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for name, file in paths(root):
+                if online and name.endswith(SQLITE_SIDE) and name.startswith("local_data/"):
+                    continue
+                if online and name == DATABASE:
+                    file = snapshot_database(file, scratch)
                 with file.open("rb") as source, archive.open(name, "w", force_zip64=True) as target:
                     index[name] = copy_hash(source, target)
             manifest = json.dumps({"format": "dxregia-backup-v1", "files": index}).encode()
             if len(manifest) > MAX_MANIFEST:
                 raise ValueError("L'indice del backup supera la dimensione supportata.")
             archive.writestr(MANIFEST, manifest)
-        if (root / "local_data/cluster.lck").exists():
+        if not online and (root / "local_data/cluster.lck").exists():
             raise ValueError("Mojo è partito durante il backup.")
         os.link(staging, output)  # publish without replacing an existing backup
     finally:
@@ -164,6 +190,7 @@ def main():
     create = subcommands.add_parser("backup")
     create.add_argument("node", type=Path)
     create.add_argument("archive", type=Path)
+    create.add_argument("--online", action="store_true", help="copia un nodo in funzione, con una copia coerente della banca utenti")
     verify = subcommands.add_parser("verify")
     verify.add_argument("archive", type=Path)
     recover = subcommands.add_parser("restore")
@@ -172,7 +199,7 @@ def main():
     args = parser.parse_args()
     try:
         if args.action == "backup":
-            count = backup(args.node, args.archive)
+            count = backup(args.node, args.archive, args.online)
         else:
             count = restore(args.archive, getattr(args, "destination", None))
     except (OSError, ValueError, KeyError, zipfile.BadZipFile, RuntimeError) as error:

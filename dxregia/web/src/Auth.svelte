@@ -347,6 +347,7 @@
         {:else if page === 'posta'}
           <EmailSettings />
         {:else if page === 'backup'}
+          <BackupNode />
           <BackupVerify />
         {:else if page === 'aggiornamenti'}
           <Updates />
