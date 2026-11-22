@@ -89,7 +89,8 @@ func startEngineCommand(program, script, root string, logs *os.File) (*enginePro
 	return &engineProc{
 		pid:  pid,
 		done: done,
-		term: func() { _ = syscall.Kill(-group, syscall.SIGTERM) },
+		// Solo perl riceve SIGTERM: la shell attende la sua uscita e registra il codice, così l'arresto è ordinato.
+		term: func() { _ = syscall.Kill(int(pid), syscall.SIGTERM) },
 		kill: func() { _ = syscall.Kill(-group, syscall.SIGKILL) },
 	}, nil
 }
