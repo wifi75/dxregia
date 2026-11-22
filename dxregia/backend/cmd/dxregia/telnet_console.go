@@ -108,22 +108,35 @@ func loginConsole(conn io.Writer, reader *bufio.Reader, call, password string) e
 	if _, err := fmt.Fprintf(conn, "%s\r\n", call); err != nil {
 		return err
 	}
-	welcome, err := readConsolePrompt(reader, "dxspider >", "password:")
-	if err != nil {
-		return err
-	}
-	if strings.HasSuffix(strings.ToLower(welcome), "password:") {
-		if password == "" || len(password) > 72 || strings.ContainsAny(password, "\r\n\x00") {
-			return errors.New("Telnet credentials required")
-		}
-		if _, err := fmt.Fprintf(conn, "%s\r\n", password); err != nil {
+	sentPassword, confirmed := false, false
+	for {
+		welcome, err := readConsolePrompt(reader, "dxspider >", "password:", "(y/n):")
+		if err != nil {
 			return err
 		}
-		if _, err := readConsolePrompt(reader, "dxspider >"); err != nil {
-			return err
+		switch lower := strings.ToLower(welcome); {
+		case strings.HasSuffix(lower, "password:"):
+			if sentPassword || password == "" || len(password) > 72 || strings.ContainsAny(password, "\r\n\x00") {
+				return errors.New("Telnet credentials required")
+			}
+			sentPassword = true
+			if _, err := fmt.Fprintf(conn, "%s\r\n", password); err != nil {
+				return err
+			}
+		case strings.HasSuffix(lower, "(y/n):"):
+			// DXSpider asks before dropping an older session of the same callsign. The panel console is a
+			// single session, so a previous one of its own is replaced, as DXSpider did before the question.
+			if confirmed {
+				return errors.New("Telnet session confirmation repeated")
+			}
+			confirmed = true
+			if _, err := fmt.Fprint(conn, "Y\r\n"); err != nil {
+				return err
+			}
+		default:
+			return nil
 		}
 	}
-	return nil
 }
 
 func readConsolePrompt(reader *bufio.Reader, markers ...string) (string, error) {
