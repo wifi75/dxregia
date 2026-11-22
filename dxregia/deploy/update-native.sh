@@ -157,6 +157,18 @@ if [ "$mode" != source ] && [ "${DXREGIA_FULL:-0}" != 1 ] && [ -n "$current" ] &
         printf '%s\n' 'Sono cambiati solo la grafica e la documentazione: aggiornamento senza riavvio.'
     fi
 fi
+# Se non sono cambiati né il motore né il suo hook (engine/, COPYING, LICENSE, presence.pm), il servizio web si riavvia
+# lasciando attivo il motore: Telnet e i collegamenti con i nodi partner non si interrompono.
+keep_engine=0
+if [ "$light" -eq 0 ] && [ "$mode" != source ] && [ "${DXREGIA_FULL:-0}" != 1 ] && [ -n "$current" ] &&
+    git -C "$source" cat-file -e "$current" 2>/dev/null; then
+    if engine_changed=$(git -C "$source" diff --name-only "$current" "$revision" -- engine COPYING LICENSE \
+        dxregia/backend/cmd/dxregia/presence.pm 2>/dev/null) && [ -z "$engine_changed" ]; then
+        keep_engine=1
+        parts=''
+        printf '%s\n' 'Il motore non è cambiato: resta attivo durante il riavvio del pannello.'
+    fi
+fi
 step 2 "Compilo il pannello web ($(printf '%.12s' "$revision"))."
 (
     cd "$source/dxregia/web" && npm ci && npm run build
@@ -234,6 +246,7 @@ if as_root test -f "$engine/local/dxregia-initialized"; then configured=1; fi
 
 step 4 'Applico i file e riavvio il servizio.'
 installed=1
+if [ "$keep_engine" -eq 1 ]; then as_root touch "$state/keep-engine"; fi
 as_root systemctl stop "$service"
 as_root mv -T "$runtime" "$rollback/runtime"
 as_root mv -T "$rollback/new-runtime" "$runtime"
@@ -250,6 +263,7 @@ done
 as_root systemctl daemon-reload
 as_root systemctl enable --now dxregia-update.path || true
 as_root systemctl start "$service"
+as_root rm -f "$state/keep-engine"
 step 5 'Verifico la risposta del pannello e, se configurato, di Telnet.'
 for attempt in $(seq 1 25); do
     if curl -fsS --max-time 2 "$url/api/auth" >/dev/null 2>&1 &&

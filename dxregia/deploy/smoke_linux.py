@@ -222,6 +222,37 @@ def telnet_presence(client):
     wait_for("Telnet user to leave the sysop dashboard", lambda: not session())
 
 
+def engine_pid():
+    out = subprocess.run(["pgrep", "-f", "perl/cluster.pl"], stdout=subprocess.PIPE, text=True).stdout.split()
+    return out[0] if out else None
+
+
+def engine_survives_web_restart(client):
+    """Restarting only the web service keeps the engine and an open Telnet session when the update leaves keep-engine."""
+    flag = "/var/lib/dxregia/keep-engine"
+    before = wait_for("engine process", engine_pid)
+    with socket.create_connection((HOST, TELNET_PORT), timeout=5) as conn:
+        read_until(conn, b"login:")
+        conn.sendall(b"I1ZZZ\r\n")
+        read_until(conn, b"dxspider >")
+        privileged("touch", flag)
+        service("restart")
+        privileged("rm", "-f", flag)
+        ready(client)
+        assert engine_pid() == before, "The engine was restarted together with the web service"
+        conn.settimeout(10)
+        conn.sendall(b"\r\n")
+        read_until(conn, b"dxspider >")
+        conn.sendall(b"bye\r\n")
+    # The new web service adopted the running engine and still reads its state.
+    wait_for("adopted engine on the dashboard", lambda: request(client, "/api/listener")[1]["state"] == "ready")
+    # Without the flag, stopping the web service also stops the engine, as before.
+    service("restart")
+    ready(client)
+    after = wait_for("new engine process", engine_pid)
+    assert after != before, "The engine survived a restart without keep-engine"
+
+
 def spot_delivery(primary, remote, peer, peer_port):
     # Upstream drops PC61 whose source is not a public Internet address. The network is internal (no route
     # outside the host), so a public-looking subnet lets the real PC61 pass without changing any filter.
@@ -443,6 +474,7 @@ def main():
         assert verify_upload(client, archive.read_bytes()) == 200
         assert verify_upload(client, (base / "damaged.zip").read_bytes()) == 422
         if NATIVE:
+            engine_survives_web_restart(client)
             def fresh_code():
                 code = totp(enroll["enrollmentKey"])
                 return code if code != first_code else None

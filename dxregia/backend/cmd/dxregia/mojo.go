@@ -10,12 +10,19 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"sync"
-	"syscall"
 	"time"
 )
+
+// engineProc è il processo del motore, avviato da questo servizio o adottato da uno precedente.
+type engineProc struct {
+	pid     int64
+	done    chan error // riceve l'esito quando il motore termina
+	term    func()     // chiede l'arresto
+	kill    func()     // arresto forzato
+	adopted bool
+}
 
 func startMojo(service context.Context, children *sync.WaitGroup, perl, root string, config nodeConfig) error {
 	data := filepath.Join(root, "local_data")
@@ -23,8 +30,13 @@ func startMojo(service context.Context, children *sync.WaitGroup, perl, root str
 		return err
 	}
 	address := net.JoinHostPort("127.0.0.1", strconv.Itoa(config.Port))
-	if err := checkPortAvailable(config.Port); err != nil {
-		return fmt.Errorf("la porta Telnet non è disponibile: %w", err)
+	// Un motore già attivo (servizio web riavviato da un aggiornamento) si adotta: la sua porta è occupata di proposito.
+	ready := func() bool { return checkListener(service, address).State == "ready" }
+	proc, adopted := adoptRunningEngine(root, "cluster.pl", ready)
+	if !adopted {
+		if err := checkPortAvailable(config.Port); err != nil {
+			return fmt.Errorf("la porta Telnet non è disponibile: %w", err)
+		}
 	}
 
 	logFile, err := os.OpenFile(filepath.Join(data, "dxregia-startup.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
@@ -58,24 +70,44 @@ func startMojo(service context.Context, children *sync.WaitGroup, perl, root str
 	if err := ensureMojoListener(filepath.Join(root, "local"), config.Port); err != nil {
 		return fmt.Errorf("configurazione listener Telnet: %w", err)
 	}
-	cmd := mojoCommand(service, perl, root, "cluster.pl", logFile)
-	if runtime.GOOS != "windows" {
-		cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
-		cmd.WaitDelay = 8 * time.Second
+	if adopted {
+		log.Printf("Mojo già attivo (pid %d): adottato", proc.pid)
+		noteMojoWatch(root, "adopted")
+	} else {
+		var err error
+		proc, err = startEngineProcess(service, perl, root, logFile)
+		if err != nil {
+			return err
+		}
 	}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	pid := int64(cmd.Process.Pid)
+	pid := proc.pid
 	managedEnginePID.Store(pid)
 	managedEngineStarted.Store(time.Now().Unix())
 	exited := make(chan error, 1)
+	finish := func(err error) {
+		managedEnginePID.CompareAndSwap(pid, 0)
+		exited <- err
+	}
 	children.Add(1)
 	go func() {
 		defer children.Done()
-		err := cmd.Wait()
-		managedEnginePID.CompareAndSwap(pid, 0)
-		exited <- err
+		select {
+		case err := <-proc.done:
+			finish(err)
+		case <-service.Done():
+			if keepEngineOnStop(root) {
+				noteMojoWatch(root, "kept")
+				return
+			}
+			proc.term()
+			select {
+			case err := <-proc.done:
+				finish(err)
+			case <-time.After(8 * time.Second):
+				proc.kill()
+				finish(<-proc.done)
+			}
+		}
 	}()
 	probe, cancel := context.WithTimeout(service, 9*time.Second)
 	defer cancel()
@@ -86,7 +118,7 @@ func startMojo(service context.Context, children *sync.WaitGroup, perl, root str
 		case err := <-exited:
 			return fmt.Errorf("Mojo si è chiuso prima di rispondere: %v", err)
 		case <-probe.Done():
-			_ = cmd.Process.Kill()
+			proc.kill()
 			<-exited
 			return errors.New("Mojo non ha risposto sulla porta Telnet")
 		case <-timer.C:

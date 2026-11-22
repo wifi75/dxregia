@@ -15,7 +15,9 @@ EnvironmentFile=-/etc/dxregia.env
 ExecStart=/opt/dxregia/bin/dxregia -web /opt/dxregia/web -backup-tool /opt/dxregia/bin/dxregia-backup -setup-root /var/lib/dxregia/mojo -setup-perl /usr/bin/perl -bootstrap-password-file /var/lib/dxregia/sysop-initial -http-bind ${DXREGIA_HTTP_BIND} -port ${DXREGIA_WEB_PORT} -web-port-file /var/lib/dxregia/web-port -telnet 127.0.0.1:${DXREGIA_TELNET_PORT}
 Restart=on-failure
 TimeoutStopSec=15s
-KillMode=mixed
+# Solo il processo web: il motore ha il suo gruppo e lo ferma il servizio stesso, salvo che un aggiornamento del
+# solo pannello lasci il file keep-engine, nel qual caso resta attivo e il nuovo servizio lo adotta.
+KillMode=process
 NoNewPrivileges=true
 
 [Install]

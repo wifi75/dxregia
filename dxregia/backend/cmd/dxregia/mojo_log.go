@@ -225,14 +225,19 @@ func parseMojoConnection(line string) (mojoLogEvent, bool) {
 	}
 }
 
-var mojoWatchLine = regexp.MustCompile(`^([0-9]{9,12})\^DXRegia watchdog (restart|giveup)$`)
+var mojoWatchLine = regexp.MustCompile(`^([0-9]{9,12})\^DXRegia watchdog (restart|giveup|adopted|kept)$`)
 
 func parseMojoStartup(line string) (mojoLogEvent, bool) {
 	const kind = "Avvio"
 	if m := mojoWatchLine.FindStringSubmatch(line); m != nil {
 		at, _ := strconv.ParseInt(m[1], 10, 64)
-		if m[2] == "giveup" {
+		switch m[2] {
+		case "giveup":
 			return mojoLogEvent{At: at, Kind: kind, Message: "Riavvio automatico del motore sospeso: troppi arresti in 10 minuti"}, true
+		case "adopted":
+			return mojoLogEvent{At: at, Kind: kind, Message: "Il nuovo servizio ha ripreso il motore già attivo, senza interruzioni"}, true
+		case "kept":
+			return mojoLogEvent{At: at, Kind: kind, Message: "Servizio fermato per l’aggiornamento: il motore resta attivo"}, true
 		}
 		return mojoLogEvent{At: at, Kind: kind, Message: "Il motore si era fermato in modo anomalo: riavvio automatico"}, true
 	}
