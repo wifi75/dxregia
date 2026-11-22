@@ -44,3 +44,7 @@ Il servizio web gira senza privilegi e viene riavviato dall'aggiornamento, quind
 ## 2026-11-22 — Allineamento del motore con differenza fra basi
 
 Il motore in `engine/` segue il ramo mojo del fork EA3CV/dxspider. L'allineamento si fa applicando la differenza fra la base precedente e la nuova punta, escludendo `dxweb/` e `dxweb-admin/`, e unendo a mano i file che DXRegia modifica. Non si importa la cronologia upstream. I file predefiniti di `initial_data/` si copiano anche in `engine/data/`, perché upstream li copia da un percorso `/spider` che non esiste nelle nostre installazioni.
+
+## 2026-11-22 — Backup a caldo con copia coerente della banca utenti
+
+Il backup da terminale richiedeva il nodo fermo, quindi non si poteva pianificare. Il pannello usa `--online`: la banca utenti SQLite si copia con l'API di backup (consistente anche durante le scritture) e si controlla prima di entrare nell'archivio; gli altri file sono piccoli e, per quanto verificato, scritti con sostituzione completa (non provato su tutti). L'archivio contiene credenziali, quindi scaricarlo o cancellarlo richiede una sessione completa, e il ripristino resta da terminale perché sostituisce un nodo in funzione.

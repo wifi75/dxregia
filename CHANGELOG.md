@@ -4,6 +4,18 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-22
+
+### Added
+
+- Backup of the running node from the panel (Gestione > Backup): create one now or every day at a chosen UTC hour, keep the last 1-30 copies, download or delete them. The copy does not interrupt Telnet or the links; the user database is copied with SQLite's online backup and checked. Downloading and deleting need a full session (password and second factor). Restoring from a backup is still done from the terminal.
+- Optional daily summary email (after 06:00 UTC) with the partners' status and the routing events, refused logins and automatic restarts of the last 24 hours. It is switched on in the email settings.
+- The block lists page also edits the nodes and users blocked at login (`badnode` and `badspotter`). The entries are saved in the same `.local` files that `set/badnode` and `set/badspotter` write, and the node reloads them within seconds without a restart.
+
+### Changed
+
+- `backup_node.py backup` accepts `--online` for a running node. Without it the tool still requires a stopped node.
+
 ## [0.11.0] - 2026-11-22
 
 ### Added

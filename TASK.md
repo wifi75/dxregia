@@ -25,6 +25,7 @@ Regola: nessuna voce di menu nuova se la funzione sta bene dentro una pagina esi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.12.0 (voci 4, 5 e 6 del piano). Voce 4: gli avvisi sui partner spenti con soglia e ripristino esistevano già nelle preferenze email; si è aggiunto il riepilogo giornaliero. Voce 5: elenchi nodi e utenti bloccati al login. Voce 6: backup a caldo, pianificato, con scarico e conservazione. Restano le voci 7-10 del piano.
 - [x] Rilasciare DXRegia 0.11.0: log Routing e Accessi, riavvio automatico del motore, durata di servizio e motore nella diagnostica. Cambio di piano: la «Salute del nodo» non è una pagina nuova, perché disco, memoria, processi e ultimo spot erano già nella scheda Diagnostica del nodo; ora vi si aggiungono durata e riavvii.
 - [x] Rilasciare DXRegia 0.10.0 (motore allineato a DXSpider 1.57 build 929, risposta alla conferma di sostituzione della sessione nella console del pannello). Installata sul server di prova dal pannello il 2026-11-22, motore avviato e Telnet pronto.
 - [x] Rilasciare DXRegia 0.9.0 (aggiornamento senza riavvio per le sole modifiche alla grafica, piè di pagina del pannello, nomi delle versioni nella pagina Aggiornamenti).

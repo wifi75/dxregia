@@ -15,8 +15,8 @@
 **Prebuilt release.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.11.0/dxregia/deploy/install-release.sh
-sh install-release.sh v0.11.0
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.12.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.12.0
 ```
 
 The script verifies the SHA-256 checksum, installs runtime dependencies and starts the service. It prints the panel address and a temporary password for the first sign-in.
