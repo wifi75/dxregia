@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-11-22
+
+### Fixed
+
+- The admin panel stayed blank after sign-in since 0.12.0: the Backup page component was used but not imported (`BackupNode is not defined`). The build does not report a missing component, so it went unnoticed. Anyone who updated to 0.12.0 or 0.13.0 should update to 0.13.1.
+
 ## [0.13.0] - 2026-11-22
 
 ### Added

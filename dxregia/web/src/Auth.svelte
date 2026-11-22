@@ -11,6 +11,7 @@
   import PasswordSettings from './PasswordSettings.svelte'
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
+  import BackupNode from './BackupNode.svelte'
   import BackupVerify from './BackupVerify.svelte'
   import Updates from './Updates.svelte'
   import EmailSettings from './EmailSettings.svelte'

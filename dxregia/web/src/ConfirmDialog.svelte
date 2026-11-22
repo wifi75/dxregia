@@ -2,12 +2,12 @@
   // Conferma nello stile del pannello, al posto di window.confirm. Uso: <ConfirmDialog bind:this={confirmer} />
   // e poi `if (!await confirmer.ask(titolo, testo, etichetta, true)) return`.
   let dialog: HTMLDialogElement
-  let state = $state({ title: '', text: '', label: '', danger: false })
+  let prompt = $state({ title: '', text: '', label: '', danger: false })
   let done: ((ok: boolean) => void) | undefined
 
   export function ask(title: string, text: string, label: string, danger = false) {
     if (dialog.open) return Promise.resolve(false)
-    state = { title, text, label, danger }
+    prompt = { title, text, label, danger }
     dialog.returnValue = ''
     return new Promise<boolean>(resolve => { done = resolve; dialog.showModal() })
   }
@@ -19,11 +19,11 @@
 </script>
 
 <dialog class="glass-panel confirm-dialog" bind:this={dialog} onclose={finish} aria-labelledby="confirm-title" aria-describedby="confirm-text">
-  <h2 id="confirm-title">{state.title}</h2>
-  <p id="confirm-text" class="confirm-text">{state.text}</p>
+  <h2 id="confirm-title">{prompt.title}</h2>
+  <p id="confirm-text" class="confirm-text">{prompt.text}</p>
   <form method="dialog" class="actions">
     <button class="secondary" value="cancel" autofocus>Annulla</button>
-    <button class:danger={state.danger} value="confirm">{state.label}</button>
+    <button class:danger={prompt.danger} value="confirm">{prompt.label}</button>
   </form>
 </dialog>
 
