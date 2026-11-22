@@ -7,6 +7,7 @@ import json
 import os
 import secrets
 import socket
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -14,6 +15,7 @@ import time
 import urllib.error
 import urllib.request
 import zipfile
+from contextlib import closing
 from pathlib import Path
 
 HOST = "127.0.0.1"
@@ -55,6 +57,31 @@ def backup_command(work, *args):
         docker("run", "--rm", "--network", "none", "--user", f"{os.getuid()}:{os.getgid()}",
                "--mount", f"type=bind,src={work},dst=/smoke", "--entrypoint", "python3",
                "dxregia:local", "/opt/dxregia/backup_node.py", args[0], *paths)
+
+
+def hot_backup(work, archive):
+    """Back up the node while it is running, as the panel does."""
+    if NATIVE:
+        privileged("-u", "dxregia", "/opt/dxregia/bin/dxregia-backup", "backup", "--online",
+                   "/var/lib/dxregia/mojo", "/var/lib/dxregia/hot-smoke.zip")
+        privileged("cp", "/var/lib/dxregia/hot-smoke.zip", str(archive))
+        privileged("chown", f"{os.getuid()}:{os.getgid()}", str(archive))
+        privileged("rm", "-f", "/var/lib/dxregia/hot-smoke.zip")
+    else:
+        docker("exec", CONTAINER, "python3", "/opt/dxregia/backup_node.py", "backup", "--online", "/data/mojo", "/tmp/hot-smoke.zip")
+        docker("cp", CONTAINER + ":/tmp/hot-smoke.zip", str(archive))
+
+
+def check_hot_backup(base):
+    archive, restored = base / "hot.zip", base / "hot-restored"
+    hot_backup(base, archive)
+    backup_command(base, "verify", archive)
+    backup_command(base, "restore", archive, restored)
+    database = restored / "local_data/dxusers.db"
+    assert not list((restored / "local_data").glob("dxusers.db-*")), "SQLite side files in a hot backup"
+    with closing(sqlite3.connect(database)) as connection:
+        assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+        assert connection.execute("SELECT count(*) FROM sqlite_master").fetchone()[0] > 0
 
 
 def reject_corrupt_backup(work, original):
@@ -372,6 +399,8 @@ def main():
     time.sleep(6)
     telnet_login(b"T8TTT", b"Profilo Linux")
     assert request(client, "/api/spots")[1]["Available"]
+    with tempfile.TemporaryDirectory(prefix="dxregia-hot-") as hot_folder:
+        check_hot_backup(Path(hot_folder))
     service("stop")
     with tempfile.TemporaryDirectory(prefix="dxregia-smoke-") as folder:
         base = Path(folder)
