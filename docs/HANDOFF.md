@@ -483,3 +483,5 @@ Differenze di comportamento upstream da ricordare:
 - Non integrati: DXWeb, DXWeb Admin e il loro installatore. DXReg (registrazione utenti) è presente nel codice ma disattivato (`$reg_enable = 0` nel `DXVars.pm.issue` upstream).
 
 Verifica: test Go e smoke Linux su GitHub (amd64 e arm64, nativo e Docker) verdi; motore avviato sul server di prova, su una copia dei dati reali e porte diverse, con login, `sh/dx` e spot RBN corretti. Non verificato: PC92 con partner reali per un periodo prolungato e Version.pm: il saluto Telnet mostra «DXSpider V build» vuoti perché senza `.git` cluster.pl non legge Version.pm (comportamento già presente prima dell'allineamento).
+
+Aggiornamento del server di prova alla 0.10.0 dal pannello (aggiornamento completo, 2026-11-22 09:38 CET): revisione installata 4b452b13, servizio attivo, nuovo Mojo avviato, listener Telnet pronto, scambio PC18 con altri nodi in corso. Il registro update.log non è leggibile dall'utente sysop (permessi): lo stato dell'aggiornamento si legge dal pannello. Da controllare nel tempo: stabilità del PC92 con i partner diretti.
