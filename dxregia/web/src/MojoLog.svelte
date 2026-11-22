@@ -40,7 +40,7 @@
   <div class="heading">
     <h1 id="mojo-log-heading">Log DXSpider</h1>
     <label>Categoria
-      <select bind:value={category}><option value="">Tutte</option><option>Collegamenti</option><option>Avvio</option></select>
+      <select bind:value={category}><option value="">Tutte</option><option>Collegamenti</option><option>Routing</option><option>Accessi</option><option>Avvio</option></select>
     </label>
     <button class="secondary" onclick={refresh} disabled={busy}>{busy ? 'Aggiornamento…' : 'Aggiorna'}</button>
   </div>

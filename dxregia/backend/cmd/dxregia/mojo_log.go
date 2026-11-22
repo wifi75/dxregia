@@ -60,6 +60,9 @@ func mojoDebugParser(tail string) func(string) (mojoLogEvent, bool) {
 		}
 	}
 	return func(line string) (mojoLogEvent, bool) {
+		if event, ok := parseMojoRouting(line); ok {
+			return event, true
+		}
 		if m := mojoStageLine.FindStringSubmatch(line); m != nil {
 			message, ok := mojoStageNames[m[6]]
 			if !ok {
