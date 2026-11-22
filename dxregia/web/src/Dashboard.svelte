@@ -53,7 +53,6 @@
   let fresh = $derived(Boolean(snapshot?.At) && now / 1000 - (snapshot?.At ?? 0) < 20)
   let channels = $derived(fresh ? snapshot?.Channels ?? [] : [])
   let nodes = $derived(channels.filter(channel => channel.Kind === 'node'))
-  let inboundNodes = $derived(nodes.filter(node => node.State === 'normal' && node.Outbound === false))
   let sessions = $derived(channels.filter(channel => channel.Kind === 'telnet' || channel.Kind === 'web')
     .sort((a, b) => a.Call.localeCompare(b.Call) || a.Kind.localeCompare(b.Kind)))
   let sessionsWidth = $state(0)
@@ -218,28 +217,6 @@
       <p class="muted">Nessun nodo partner registrato.</p>
     {/if}
   </article>
-
-  <article class="glass-panel box inbound">
-    <header class="box-head"><h2>Nodi collegati in ingresso</h2><span class="count">{fresh ? inboundNodes.length : '—'}</span></header>
-    {#if !fresh}
-      <p class="muted">Stato delle sessioni non disponibile.</p>
-    {:else if inboundNodes.length}
-      <ul class="rows">
-        {#each inboundNodes as node (node.Call)}
-          <li>
-            <span class="led" data-tone="green" aria-hidden="true"></span>
-            <strong>{node.Call}</strong>
-            {#if directory[node.Call]?.Name && directory[node.Call].Name !== node.Call}
-              <span class="muted">{directory[node.Call].Name}</span>
-            {/if}
-            {#if node.Since > 0}<span class="state">dalle {time.format(new Date(node.Since * 1000))}</span>{/if}
-          </li>
-        {/each}
-      </ul>
-    {:else}
-      <p class="muted">Nessun nodo collegato in ingresso.</p>
-    {/if}
-  </article>
 </div>
 
 <article class="glass-panel box users" aria-labelledby="active-users-title" bind:clientWidth={sessionsWidth}>
@@ -390,13 +367,11 @@
   .partner-table .tag { white-space: nowrap; }
   .partner-table th:last-child { padding-left: calc(.5rem + 8px); }
   .tag-gap { padding-inline-start: 8px; }
-  .inbound { border-top: 3px solid #167b50; }
   .users { margin-top: 14px; border-top: 4px solid #2fa36b; container-type: inline-size; }
   .session-grid { display: grid; grid-template-columns: repeat(var(--session-columns), minmax(0, 1fr)); gap: 3px 4px; padding: 0; margin: 0; list-style: none; }
   .session-grid li { display: flex; align-items: center; gap: 4px; min-width: 0; min-height: 29px; padding: 3px 4px; border: 1px solid #b9d0df; border-radius: 5px; background: #f6fbfe; white-space: nowrap; }
   .session-call { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
   .session-call strong { overflow: hidden; text-overflow: ellipsis; font-size: .875rem; }
-  .inbound .led { width: 7px; height: 7px; flex-basis: 7px; }
   .session-flag { position: relative; flex: none; }
   .session-flag img { display: block; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
   .flag-name { display: none; position: absolute; z-index: 2; inset-block-end: calc(100% + 4px); inset-inline-start: -4px; padding: 3px 7px; border: 1px solid #a9c3d0; border-radius: 4px; background: #fff; color: #0f2a41; font-size: .8rem; font-weight: 650; pointer-events: none; }
@@ -418,10 +393,9 @@
   .pagination button { min-height: 28px; padding: 2px 8px; }
 
   .sub { margin: 4px 0 10px; color: #5b6e80; font-size: .88rem; }
-  .columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 10px; margin-top: 10px; align-items: start; }
-  @media (max-width: 1000px) { .columns { grid-template-columns: minmax(0, 1fr); } }
+  .columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 10px; align-items: start; }
   .box { padding: 16px; }
-  .partners, .inbound, .users { padding: 10px 12px; }
+  .partners, .users { padding: 10px 12px; }
   h2 { margin: 0 0 8px; font-size: 1.05rem; }
   h2:not(:first-child) { margin-top: 20px; }
   .muted { color: #485b6d; margin: 6px 0; }
