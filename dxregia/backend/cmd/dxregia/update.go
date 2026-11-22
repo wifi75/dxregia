@@ -41,13 +41,15 @@ type updateInfo struct {
 	AvailableTag string `json:",omitempty"`
 	UpToDate     bool
 	CheckedAt    int64
-	CheckError   string   `json:",omitempty"`
-	Log          []string `json:",omitempty"`
+	CheckError   string         `json:",omitempty"`
+	Log          []string       `json:",omitempty"`
+	Preview      *updatePreview `json:",omitempty"`
 }
 
 type updater struct {
 	revisionFile, pathUnit, requestFile, logFile string
 	remote                                       func(context.Context) (head string, tags map[string]string, err error)
+	preview                                      func(ctx context.Context, base, head string) (updatePreview, bool)
 	running                                      func() bool
 
 	mu       sync.Mutex
@@ -55,6 +57,8 @@ type updater struct {
 	tags     map[string]string
 	checked  time.Time
 	checkErr string
+	changes  *updatePreview
+	changeAt string // base+head dell'anteprima in memoria
 }
 
 func newUpdater(stateDir string) *updater {
@@ -64,6 +68,7 @@ func newUpdater(stateDir string) *updater {
 		requestFile:  filepath.Join(stateDir, "update-request"),
 		logFile:      filepath.Join(stateDir, "update.log"),
 		remote:       githubHead,
+		preview:      githubPreview,
 		running:      systemdUpdateRunning,
 	}
 }
@@ -145,6 +150,16 @@ func (u *updater) refresh(ctx context.Context, force bool) {
 		return
 	}
 	u.head, u.tags, u.checkErr = head, tags, ""
+	if base := u.installedRevision(); u.preview != nil && base != "" && base != head {
+		if key := base + head; key != u.changeAt {
+			u.changeAt, u.changes = key, nil
+			if preview, ok := u.preview(ctx, base, head); ok {
+				u.changes = &preview
+			}
+		}
+	} else {
+		u.changeAt, u.changes = "", nil
+	}
 }
 
 func (u *updater) installedRevision() string {
@@ -213,7 +228,7 @@ func updateState(running, queued bool, log []string) string {
 
 func (u *updater) info() updateInfo {
 	u.mu.Lock()
-	head, tags, checked, checkErr := u.head, u.tags, u.checked, u.checkErr
+	head, tags, checked, checkErr, changes := u.head, u.tags, u.checked, u.checkErr, u.changes
 	u.mu.Unlock()
 	_, unitErr := os.Stat(u.pathUnit)
 	_, requestErr := os.Stat(u.requestFile)
@@ -229,6 +244,9 @@ func (u *updater) info() updateInfo {
 		UpToDate:     current != "" && head != "" && current == head,
 		CheckError:   checkErr,
 		Log:          log,
+	}
+	if !info.UpToDate {
+		info.Preview = changes
 	}
 	if !checked.IsZero() {
 		info.CheckedAt = checked.Unix()

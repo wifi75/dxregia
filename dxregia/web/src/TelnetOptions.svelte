@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ConfirmDialog from './ConfirmDialog.svelte'
+  let confirmer: ConfirmDialog
   import { onMount } from 'svelte'
   import { tr } from './adminI18n'
   import Hint from './Hint.svelte'
@@ -55,7 +57,7 @@
     event.preventDefault()
     if (!options || busy) return
     if (options.PasswordRequired &&
-      !confirm(tr('I collegamenti Telnet senza una password impostata verranno rifiutati. Vuoi continuare?'))) return
+      !await confirmer.ask(tr('Password Telnet obbligatoria'), tr('I collegamenti Telnet senza una password impostata verranno rifiutati. Vuoi continuare?'), tr('Continua'))) return
     status = ''
     error = false
     busy = true
@@ -115,6 +117,8 @@
   {/if}
   {#if status}<p role={error ? 'alert' : 'status'}>{status}</p>{/if}
 </section>
+
+<ConfirmDialog bind:this={confirmer} />
 
 <style>
   section { padding: clamp(14px, 2vw, 24px); }

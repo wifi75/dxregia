@@ -39,6 +39,7 @@ type partnerStatus struct {
 	CanSetInboundIP      bool   `json:",omitempty"`
 	InboundIP            string `json:",omitempty"`
 	CanResend            bool   `json:",omitempty"`
+	RenameBlocked        string `json:",omitempty"`
 	Locked               bool   `json:",omitempty"`
 	CanUnlock            bool   `json:",omitempty"`
 	Direction            string `json:",omitempty"`
@@ -201,6 +202,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 						}
 					}
 				}
+				status.RenameBlocked = partnerRenameBlocker(root, entry, snapshot)
 				status.CanResend = callsign.MatchString(call) && len(call) <= 12 && entry.Provisioning == "Abilitato in Mojo" &&
 					entry.Email != "" && readInboundPassword(root, call) != ""
 				var job partnerMail
@@ -436,6 +438,34 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
 		json.NewEncoder(w).Encode(map[string]string{"Password": password, "MailStatus": mailStatus})
+	})
+	mux.HandleFunc("POST /api/partners/{call}/rename", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if !auth.allowed(r) {
+			http.Error(w, "Accesso sysop richiesto.", http.StatusUnauthorized)
+			return
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			http.Error(w, "Richiesta non valida.", http.StatusUnsupportedMediaType)
+			return
+		}
+		var input struct{ Call string }
+		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024))
+		decoder.DisallowUnknownFields()
+		if decoder.Decode(&input) != nil || decoder.Decode(new(any)) != io.EOF {
+			http.Error(w, "Richiesta non valida.", http.StatusBadRequest)
+			return
+		}
+		snapshot := readPresence(filepath.Join(root, "local_data", "dxregia-presence.json"))
+		lock.Lock()
+		defer lock.Unlock()
+		entry, status, message := renamePartner(root, path, partners, r.PathValue("call"), input.Call, snapshot, time.Now())
+		if status != http.StatusOK {
+			http.Error(w, message, status)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(entry)
 	})
 	mux.HandleFunc("DELETE /api/partners/{call}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")

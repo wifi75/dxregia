@@ -52,8 +52,8 @@ Usa un’immagine a 64 bit con systemd. Raspberry Pi OS Lite a 64 bit, disponibi
 2. Scarica e avvia l’installatore della release ARM64. Lo script sceglie automaticamente il pacchetto.
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.12.0/dxregia/deploy/install-release.sh
-sh install-release.sh v0.12.0
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.13.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.13.0
 ```
 
 3. Apri da un PC della LAN l’indirizzo stampato, completa il wizard e prova Telnet sulla porta configurata. Per aggiornamenti e backup usa la [guida dell’installatore Linux](../dxregia/deploy/README.md).

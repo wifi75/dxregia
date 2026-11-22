@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ConfirmDialog from './ConfirmDialog.svelte'
+  let confirmer: ConfirmDialog
   import { tr } from './adminI18n'
   import { onMount } from 'svelte'
   export type ContactRequest = {
@@ -40,7 +42,7 @@
   }
 
   async function remove(request: ContactRequest) {
-    if (!confirm(tr('Eliminare la richiesta di {}? Non si può annullare. Un partner già configurato resta in Nodi partner.', request.Call))) return
+    if (!await confirmer.ask(tr('Elimina richiesta'), tr('Eliminare la richiesta di {}? Non si può annullare. Un partner già configurato resta in Nodi partner.', request.Call), tr('Elimina richiesta'), true)) return
     try {
       const response = await fetch('/api/contact-requests/' + encodeURIComponent(request.ID), { method: 'DELETE' })
       if (!response.ok) { autoError = (await response.text()).trim(); return }
@@ -96,6 +98,8 @@
   {:else if requests}<p>Nessuna richiesta ricevuta.</p>
   {:else}<p>Caricamento delle richieste…</p>{/if}
 </section>
+
+<ConfirmDialog bind:this={confirmer} />
 
 <style>
   .auto { margin: 10px 0 14px; padding: 10px 14px; border: 1px solid #cdd9e4; border-radius: 8px; background: #ffffffb8; }

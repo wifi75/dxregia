@@ -5,6 +5,7 @@
     Installed: boolean; State: 'idle' | 'queued' | 'running' | 'success' | 'failed'
     Current: string; Available: string; CurrentTag?: string; AvailableTag?: string; UpToDate: boolean
     CheckedAt: number; CheckError?: string; Log?: string[]
+    Preview?: { Changes: string[] | null; Restart: boolean; Files: number }
   }
   let info = $state<Info>()
   let offline = $state(false)
@@ -107,6 +108,16 @@
       </p>
     {/if}
 
+    {#if info.Preview && !info.UpToDate && !busy}
+      <div class="preview">
+        <h3>Cosa cambia</h3>
+        <p class="status">{info.Preview.Restart ? 'Aggiornamento completo: il servizio si riavvia per circa un minuto.' : 'Solo grafica e documentazione: nessun riavvio, Telnet e collegamenti restano attivi.'} <small>{info.Preview.Files} file</small></p>
+        {#if info.Preview.Changes?.length}
+          <ul>{#each info.Preview.Changes as change}<li>{change}</li>{/each}</ul>
+        {/if}
+      </div>
+    {/if}
+
     {#if !info.Installed}
       <p class="hint">L’aggiornamento dal pannello si attiva con un ultimo aggiornamento fatto da terminale: collegati in SSH ed esegui <code>dxregia-update</code>. Dopo, basterà questo pulsante.</p>
     {/if}
@@ -156,6 +167,7 @@
   .status { margin: 8px 0; }
   .status.ok { color: #12563e; font-weight: 650; }
   .hint { margin: 8px 0; }
+  .preview ul { margin: 6px 0; padding-left: 1.2rem; max-height: 220px; overflow: auto; }
   .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
   h3 { margin: 14px 0 6px; font-size: 1rem; }
   .log { max-height: 320px; overflow: auto; margin: 0; padding: 10px 12px; border: 1px solid #cdd9e4; border-radius: 6px; background: #0f2233; color: #dce9f3; font-size: .82rem; white-space: pre-wrap; }

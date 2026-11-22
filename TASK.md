@@ -25,6 +25,7 @@ Regola: nessuna voce di menu nuova se la funzione sta bene dentro una pagina esi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.13.0 (voci 7, 8 e 9 del piano). Voce 7: cambio indicativo dalla scheda partner, solo se il nodo non è mai stato abilitato in Mojo e non è collegato. Voce 8: anteprima delle modifiche e del riavvio in Gestione > Aggiornamenti. Voce 9: finestre di conferma del pannello al posto di quelle del browser; il saluto Telnet mostrava già versione e build del motore (Messages, `l2`), quindi nessuna modifica. Resta la voce 10 (Mojo separato dal servizio web), da decidere con il sysop prima di toccare le unità systemd.
 - [x] Rilasciare DXRegia 0.12.0 (voci 4, 5 e 6 del piano). Voce 4: gli avvisi sui partner spenti con soglia e ripristino esistevano già nelle preferenze email; si è aggiunto il riepilogo giornaliero. Voce 5: elenchi nodi e utenti bloccati al login. Voce 6: backup a caldo, pianificato, con scarico e conservazione. Restano le voci 7-10 del piano.
 - [x] Rilasciare DXRegia 0.11.0: log Routing e Accessi, riavvio automatico del motore, durata di servizio e motore nella diagnostica. Cambio di piano: la «Salute del nodo» non è una pagina nuova, perché disco, memoria, processi e ultimo spot erano già nella scheda Diagnostica del nodo; ora vi si aggiungono durata e riavvii.
 - [x] Rilasciare DXRegia 0.10.0 (motore allineato a DXSpider 1.57 build 929, risposta alla conferma di sostituzione della sessione nella console del pannello). Installata sul server di prova dal pannello il 2026-11-22, motore avviato e Telnet pronto.

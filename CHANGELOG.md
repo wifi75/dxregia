@@ -4,6 +4,17 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-22
+
+### Added
+
+- Change the callsign of a partner node from its card, to fix a wrong callsign. It is possible only while the node has not been enabled in DXSpider and is not connected; after that the callsign also lives in the engine, so the node is deleted and registered again. Saved credentials move with the node and a note records the change.
+- Preview before updating (Gestione > Aggiornamenti): the changes between the installed and the available version, taken from GitHub, and whether the update restarts the service or only replaces the panel files.
+
+### Changed
+
+- The last four browser confirmation windows (delete a contact request, delete a filter, revoke a registration, Telnet password required) now use the panel's own dialog, shared in `ConfirmDialog.svelte`.
+
 ## [0.12.0] - 2026-11-22
 
 ### Added

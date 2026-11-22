@@ -8,7 +8,7 @@
   let { draft }: { draft?: ContactRequest } = $props()
 
   type Details = { Call: string; Name: string; Contact: string; Email: string; Host: string; Port?: number; Lang?: string; Person?: string }
-  type Partner = Details & { DXCC?: number; RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; IPMailStatus?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; CanSetInboundIP?: boolean; InboundIP?: string; InboundTestUntil?: string; InboundAutoNext?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
+  type Partner = Details & { DXCC?: number; RegisteredAt: string; FirstConnectedAt: string | null; FirstInboundAt?: string | null; Provisioning?: string; Connection?: string; MailStatus?: string; MailRetryAt?: string; IPMailStatus?: string; OutgoingReady?: boolean; CanResetCCInbound?: boolean; CanSetInboundIP?: boolean; InboundIP?: string; InboundTestUntil?: string; InboundAutoNext?: string; PublicMailAcceptedAt?: string; Reconnect?: string; LastConnectAttempt?: string; RetryEligibleAt?: string; CanResend?: boolean; RenameBlocked?: string; Locked?: boolean; CanUnlock?: boolean; Direction?: string; Notes: { Text: string; At: string }[] | null }
   const empty = (): Details => ({ Call: '', Name: '', Contact: '', Email: '', Host: '', Port: undefined, Lang: '', Person: '' })
   const date = new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' })
   const regionNames = $derived(new Intl.DisplayNames([lang()], { type: 'region' }))
@@ -37,6 +37,7 @@
   let inboundIP = $state('')
   let inboundMode = $state<'password' | 'ip'>('password')
   let ipMailStatus = $state<{ text: string; error: boolean }>()
+  let renameTo = $state('')
   let publicMail = $state<{ call: string; state: 'sending' | 'accepted' | 'failed'; text: string }>()
   let localNode = $state('')
 
@@ -211,6 +212,34 @@
       message = 'Password copiata.'
     } catch {
       message = 'Copia non riuscita: selezionala a mano.'
+    }
+  }
+
+  async function renamePartner(event: SubmitEvent) {
+    event.preventDefault()
+    const from = selected?.Call
+    const to = renameTo.trim().toUpperCase()
+    if (!from || !to || busy || enabling) return
+    busy = true
+    error = ''
+    message = ''
+    try {
+      const response = await fetch('/api/partners/' + encodeURIComponent(from) + '/rename', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Call: to }),
+      })
+      if (!response.ok) {
+        error = (await response.text()).trim()
+        return
+      }
+      const saved: Partner = await response.json()
+      partners = [...partners.filter(partner => partner.Call !== from), saved]
+      renameTo = ''
+      open(saved)
+      message = 'Indicativo cambiato da ' + from + ' a ' + saved.Call + '.'
+    } catch {
+      error = 'Impossibile cambiare l’indicativo.'
+    } finally {
+      busy = false
     }
   }
 
@@ -540,6 +569,13 @@
         </div>
       </header>
 
+      {#if selected && !selected.RenameBlocked}
+        <form class="rename" onsubmit={renamePartner}>
+          <label>Cambia indicativo <input bind:value={renameTo} maxlength="12" autocomplete="off" placeholder={selected.Call} /></label>
+          <button class="secondary" disabled={busy || enabling || !renameTo.trim()}>Rinomina</button>
+          <span class="muted">Possibile finché il nodo non è stato abilitato in DXSpider.</span>
+        </form>
+      {/if}
       {#if selected}
         <div class="cards">
           <article class="card">
@@ -857,6 +893,8 @@
   .detail { margin-top: 18px; display: grid; gap: 14px; }
   .detail-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; }
   .detail-head p { margin: 0; }
+  .rename { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 10px 0; }
+  .rename input { width: 9rem; text-transform: uppercase; }
   .head-actions { display: flex; gap: 10px; margin-left: auto; }
   button.danger { --button-face: #fff1f1; --button-edge: #d99a9d; --button-ink: #9b2424; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }

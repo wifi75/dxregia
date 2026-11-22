@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ConfirmDialog from './ConfirmDialog.svelte'
+  let confirmer: ConfirmDialog
   import { tr } from './adminI18n'
   import { onMount } from 'svelte'
   import Hint from './Hint.svelte'
@@ -57,7 +59,7 @@
     finally { savingRule = false }
   }
   async function removeRule(filter: Filter, slot: Slot) {
-    if (!confirm(tr('Eliminare il filtro {}?', filter.Name + ' · ' + slot.Number + ' ' + slot.Action))) return
+    if (!await confirmer.ask(tr('Elimina filtro'), tr('Eliminare il filtro {}?', filter.Name + ' · ' + slot.Number + ' ' + slot.Action), tr('Elimina filtro'), true)) return
     try {
       const response = await fetch(filterPath(filter.Name, slot.Number) + '?action=' + slot.Action, { method: 'DELETE' })
       filterStatus = response.ok ? 'Filtro eliminato.' : (await response.text()).trim()
@@ -110,7 +112,7 @@
     } catch { status = 'Connessione interrotta.' } finally { busy = false }
   }
   async function remove(filter: Filter) {
-    if (!confirm(tr('Eliminare il filtro {}?', filter.Name))) return
+    if (!await confirmer.ask(tr('Elimina filtro'), tr('Eliminare il filtro {}?', filter.Name), tr('Elimina filtro'), true)) return
     const response = await fetch('/api/filters/' + filter.Sort + '/' + filter.Name, { method: 'DELETE' })
     filterStatus = response.ok ? 'Filtro eliminato.' : (await response.text()).trim()
     if (response.ok) await loadFilters()
@@ -200,6 +202,8 @@
   {#if filterStatus}<p class="note" role="status">{filterStatus}</p>{/if}
   <p class="note">Le liste «nodx», «noann» e «nowwv» del vecchio DXSpider non sono più lette da questo motore: per escludere un tipo di informazione usa i filtri.</p>
 </section>
+
+<ConfirmDialog bind:this={confirmer} />
 
 <style>
   section { padding: 22px; }

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ConfirmDialog from './ConfirmDialog.svelte'
+  let confirmer: ConfirmDialog
   import { onMount } from 'svelte'
   import Hint from './Hint.svelte'
   import { tr } from './adminI18n'
@@ -58,7 +60,7 @@
   }
 
   async function revoke(row: Row) {
-    if (!confirm(tr('Revocare la registrazione di {}? L’utente potrà ancora collegarsi ma non inviare spot, e la sua password non varrà più.', row.Call))) return
+    if (!await confirmer.ask(tr('Revoca registrazione'), tr('Revocare la registrazione di {}? L’utente potrà ancora collegarsi ma non inviare spot, e la sua password non varrà più.', row.Call), tr('Revoca registrazione'), true)) return
     const response = await fetch('/api/registrations/' + encodeURIComponent(row.Call), { method: 'DELETE' })
     status = response.ok ? 'Registrazione revocata.' : (await response.text()).trim()
     if (response.ok) await load()
@@ -105,6 +107,8 @@
     <p class="note">Nessuna registrazione.</p>
   {/if}
 </section>
+
+<ConfirmDialog bind:this={confirmer} />
 
 <style>
   section { padding: 22px; }

@@ -125,3 +125,18 @@ func TestUpdateFromPanel(t *testing.T) {
 		t.Fatalf("update accepted when already up to date: %d", w.Code)
 	}
 }
+
+func TestParseUpdatePreview(t *testing.T) {
+	light := `{"commits":[{"commit":{"message":"docs: a\n\ndettaglio"}},{"commit":{"message":"feat: b"}}],"files":[{"filename":"dxregia/web/src/A.svelte"},{"filename":"CHANGELOG.md"}]}`
+	preview, ok := parseUpdatePreview([]byte(light))
+	if !ok || preview.Restart || len(preview.Changes) != 2 || preview.Changes[0] != "feat: b" || preview.Changes[1] != "docs: a" {
+		t.Fatalf("light: %+v %v", preview, ok)
+	}
+	full := `{"commits":[{"commit":{"message":"fix"}}],"files":[{"filename":"dxregia/web/x"},{"filename":"engine/perl/ExtMsg.pm"}]}`
+	if preview, ok := parseUpdatePreview([]byte(full)); !ok || !preview.Restart {
+		t.Fatalf("full: %+v %v", preview, ok)
+	}
+	if _, ok := parseUpdatePreview([]byte(`{"commits":[]}`)); ok {
+		t.Fatal("empty compare accepted")
+	}
+}
