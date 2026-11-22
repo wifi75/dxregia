@@ -50,7 +50,7 @@ func TestSpotArchiveHistoryAndResume(t *testing.T) {
 	cursor := first.Spots[0].Cursor
 	// New records include two archive bands and a CTY exact-call exception.
 	today := fmt.Sprintf("21074^JA1ABC^%d^FT8 PM95AB^I1ABC^95^85^I1NODE^45^25^28^15^^^192.0.2.24\n", now.Unix()) +
-		fmt.Sprintf("14074^DX0NE^%d^JN55^JA1ABC^269^95^JA1NODE^50^26\n", now.Unix())
+		fmt.Sprintf("14074^3D2CCC^%d^JN55^JA1ABC^269^95^JA1NODE^50^26\n", now.Unix())
 	write(now, today)
 	get := func(path string, status int) *httptest.ResponseRecorder {
 		t.Helper()

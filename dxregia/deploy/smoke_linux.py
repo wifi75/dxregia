@@ -131,7 +131,7 @@ def read_until(conn, marker):
     while marker not in data:
         chunk = conn.recv(4096)
         if not chunk or len(data) >= 65536:
-            raise RuntimeError("Expected Telnet prompt was absent")
+            raise RuntimeError("Expected Telnet prompt was absent; received: " + data.decode("latin-1")[-600:])
         data.extend(chunk)
     return data
 
