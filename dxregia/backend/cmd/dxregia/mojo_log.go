@@ -225,8 +225,17 @@ func parseMojoConnection(line string) (mojoLogEvent, bool) {
 	}
 }
 
+var mojoWatchLine = regexp.MustCompile(`^([0-9]{9,12})\^DXRegia watchdog (restart|giveup)$`)
+
 func parseMojoStartup(line string) (mojoLogEvent, bool) {
 	const kind = "Avvio"
+	if m := mojoWatchLine.FindStringSubmatch(line); m != nil {
+		at, _ := strconv.ParseInt(m[1], 10, 64)
+		if m[2] == "giveup" {
+			return mojoLogEvent{At: at, Kind: kind, Message: "Riavvio automatico del motore sospeso: troppi arresti in 10 minuti"}, true
+		}
+		return mojoLogEvent{At: at, Kind: kind, Message: "Il motore si era fermato in modo anomalo: riavvio automatico"}, true
+	}
 	switch {
 	case strings.Contains(line, "Can't locate") && strings.Contains(line, "in @INC"):
 		return mojoLogEvent{Kind: kind, Message: "Modulo Perl mancante"}, true

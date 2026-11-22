@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestMojoLogAllowsDiagnosticFactsOnly(t *testing.T) {
@@ -74,5 +75,33 @@ func TestMojoRoutingAndAccessEvents(t *testing.T) {
 	}
 	if _, ok := parseMojoRouting("1795337431^(*) something else entirely"); ok {
 		t.Error("an unknown line produced an event")
+	}
+}
+
+func TestMojoWatchdogEvents(t *testing.T) {
+	event, ok := parseMojoStartup("1795337000^DXRegia watchdog restart")
+	if !ok || event.Kind != "Avvio" || event.At != 1795337000 || !strings.Contains(event.Message, "riavvio automatico") {
+		t.Fatalf("unexpected %+v", event)
+	}
+	if event, ok := parseMojoStartup("1795337000^DXRegia watchdog giveup"); !ok || !strings.Contains(event.Message, "sospeso") {
+		t.Fatalf("unexpected %+v", event)
+	}
+}
+
+func TestMojoRestartLimit(t *testing.T) {
+	mojoRestarts.Lock()
+	mojoRestarts.times = nil
+	mojoRestarts.Unlock()
+	now := time.Now()
+	for i := 0; i < mojoRestartLimit; i++ {
+		if !allowMojoRestart(now.Add(time.Duration(i) * time.Second)) {
+			t.Fatalf("restart %d refused too early", i)
+		}
+	}
+	if allowMojoRestart(now.Add(time.Minute)) {
+		t.Fatal("the limit was not enforced")
+	}
+	if !allowMojoRestart(now.Add(mojoRestartWindow + time.Minute)) {
+		t.Fatal("the limit did not expire")
 	}
 }

@@ -94,7 +94,7 @@ func startMojo(service context.Context, children *sync.WaitGroup, perl, root str
 				case err := <-exited:
 					return fmt.Errorf("Mojo si è chiuso durante l'avvio: %v", err)
 				default:
-					go func() { log.Printf("Mojo terminato: %v", <-exited) }()
+					go watchMojo(service, children, perl, root, config, exited)
 					return nil
 				}
 			}
