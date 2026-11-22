@@ -64,6 +64,7 @@ func watchMojo(service context.Context, children *sync.WaitGroup, perl, root str
 		return
 	}
 	noteMojoWatch(root, "restart")
+	mojoAutoRestarts.Add(1)
 	log.Print("Mojo si è fermato in modo anomalo: riavvio automatico")
 	go retryMojo(service, children, perl, root, config)
 }

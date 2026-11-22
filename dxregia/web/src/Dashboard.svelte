@@ -12,6 +12,7 @@
     LogBytes: number; FreeBytes: number; TotalBytes: number; GrowthBytes: number
     GrowthIntervalSeconds: number; DiskAvailable: boolean; LogsAvailable: boolean
     DXRegiaPID: number; DXSpiderPID: number; LatestSpotAt: number; RetentionDays: number
+    ServiceStartedAt: number; EngineStartedAt: number; EngineRestarts: number
   }
   type Tone = 'green' | 'amber' | 'red' | 'neutral'
 
@@ -31,6 +32,12 @@
   function size(bytes: number) {
     const unit = Math.abs(bytes) >= 1024 ** 3 ? 3 : Math.abs(bytes) >= 1024 ** 2 ? 2 : Math.abs(bytes) >= 1024 ? 1 : 0
     return number.format(bytes / 1024 ** unit) + ' ' + ['B', 'KiB', 'MiB', 'GiB'][unit]
+  }
+  const uptime = (at: number, current: number) => {
+    if (!(at > 0) || at > current / 1000) return ''
+    const minutes = Math.floor((current / 1000 - at) / 60)
+    const days = Math.floor(minutes / 1440), hours = Math.floor(minutes % 1440 / 60)
+    return days ? days + ' g ' + hours + ' h' : hours ? hours + ' h ' + minutes % 60 + ' min' : minutes + ' min'
   }
   const since = (at: number, current: number) => at > 0 && at <= current / 1000
     ? Math.floor(current / 1000 - at) + ' s' : '—'
@@ -309,8 +316,11 @@
         {/if}
         {#if nodeHealth?.RetentionDays}<small>Conservazione eventi: {nodeHealth.RetentionDays} giorni</small>{/if}
       </dd></div>
-      <div><dt>Processo DXRegia</dt><dd>{nodeHealth?.DXRegiaPID ? 'PID ' + nodeHealth.DXRegiaPID : '—'}</dd></div>
-      <div><dt>Processo DXSpider</dt><dd>{nodeHealth?.DXSpiderPID ? 'PID ' + nodeHealth.DXSpiderPID : fresh ? 'Dati attivi · PID non rilevato' : 'Non rilevato'}</dd></div>
+      <div><dt>Processo DXRegia</dt><dd>{nodeHealth?.DXRegiaPID ? 'PID ' + nodeHealth.DXRegiaPID : '—'}
+        {#if uptime(nodeHealth?.ServiceStartedAt ?? 0, now)}<small>Attivo da {uptime(nodeHealth?.ServiceStartedAt ?? 0, now)}</small>{/if}</dd></div>
+      <div><dt>Processo DXSpider</dt><dd>{nodeHealth?.DXSpiderPID ? 'PID ' + nodeHealth.DXSpiderPID : fresh ? 'Dati attivi · PID non rilevato' : 'Non rilevato'}
+        {#if uptime(nodeHealth?.EngineStartedAt ?? 0, now)}<small>Attivo da {uptime(nodeHealth?.EngineStartedAt ?? 0, now)}</small>{/if}
+        {#if nodeHealth?.EngineRestarts}<small>Riavvii automatici: {nodeHealth.EngineRestarts}</small>{/if}</dd></div>
     </dl>
   </article>
 </section>

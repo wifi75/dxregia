@@ -18,6 +18,13 @@ import (
 
 var managedEnginePID atomic.Int64
 
+// Avvio del servizio e del motore gestito (secondi Unix) e riavvii automatici del motore dopo un arresto anomalo.
+var (
+	serviceStartedAt     = time.Now().Unix()
+	managedEngineStarted atomic.Int64
+	mojoAutoRestarts     atomic.Int64
+)
+
 type resourcePoint struct {
 	At                                           int64
 	DiskUsed, DiskTotal, MemoryUsed, MemoryTotal uint64
@@ -157,10 +164,12 @@ func registerNodeHealth(ctx context.Context, mux *http.ServeMux, root string, au
 				storageSample
 				DXRegiaPID                int
 				DXSpiderPID, LatestSpotAt int64
+				ServiceStartedAt, EngineStartedAt, EngineRestarts int64
 				RetentionDays             int
 				Resources                 []resourcePoint
 			}{
 				storageSample: sample, DXRegiaPID: os.Getpid(), DXSpiderPID: managedEnginePID.Load(),
+				ServiceStartedAt: serviceStartedAt, EngineStartedAt: managedEngineStarted.Load(), EngineRestarts: mojoAutoRestarts.Load(),
 				LatestSpotAt:  spots().LatestAt,
 				RetentionDays: retention,
 				Resources:     history,

@@ -68,6 +68,7 @@ func startMojo(service context.Context, children *sync.WaitGroup, perl, root str
 	}
 	pid := int64(cmd.Process.Pid)
 	managedEnginePID.Store(pid)
+	managedEngineStarted.Store(time.Now().Unix())
 	exited := make(chan error, 1)
 	children.Add(1)
 	go func() {
