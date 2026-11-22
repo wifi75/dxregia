@@ -279,6 +279,8 @@ sub reload_lists {
         "$main::local_data/badword.new" => sub { BadWords::load() },
         "$main::local_data/badip.local" => sub { DXCIDR::reload() },
         "$main::local_data/baddx"       => sub { $DXProt::baddx = DXHash->new('baddx') },
+        "$main::local_data/badnode.local"    => sub { $DXProt::badnode = DXHash->new('badnode') },
+        "$main::local_data/badspotter.local" => sub { $DXProt::badspotter = DXHash->new('badspotter') },
     );
     foreach my $path (keys %jobs) {
         my $stamp = join(':', (stat $path)[9, 7]);

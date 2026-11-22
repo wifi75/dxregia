@@ -72,14 +72,17 @@ func parseBadDX(text string) map[string]int64 {
 	return out
 }
 
-func renderBadDX(entries map[string]int64) string {
+func renderBadDX(entries map[string]int64) string { return renderBadList("baddx", entries) }
+
+// renderBadList scrive un elenco nel formato di DXSpider (hash Perl) con il nome dell'elenco.
+func renderBadList(name string, entries map[string]int64) string {
 	calls := make([]string, 0, len(entries))
 	for call := range entries {
 		calls = append(calls, call)
 	}
 	sort.Strings(calls)
 	var b strings.Builder
-	b.WriteString("bless( {\n  name => 'baddx',\n")
+	fmt.Fprintf(&b, "bless( {\n  name => '%s',\n", name)
 	for _, call := range calls {
 		fmt.Fprintf(&b, "  '%s' => %d,\n", call, entries[call])
 	}
@@ -152,6 +155,35 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 		return string(data)
 	}
 
+	// Nominativi di nodi e utenti bloccati al login: DXSpider unisce l'elenco di base con questi file «.local»,
+	// gli stessi che scrivono i comandi set/badnode e set/badspotter.
+	nodesPath := filepath.Join(root, "local_data", "badnode.local")
+	spottersPath := filepath.Join(root, "local_data", "badspotter.local")
+	listCalls := func(path string) []string {
+		calls := []string{}
+		for call := range parseBadDX(read(path)) {
+			calls = append(calls, call)
+		}
+		sort.Strings(calls)
+		return calls
+	}
+	baseCount := func(name string) int {
+		return len(parseBadDX(read(filepath.Join(root, "local_data", name))))
+	}
+	// keepDated conserva la data di inserimento delle voci che restano e data quelle nuove.
+	keepDated := func(path string, calls []string) map[string]int64 {
+		old := parseBadDX(read(path))
+		entries := map[string]int64{}
+		for _, call := range calls {
+			if at, ok := old[call]; ok {
+				entries[call] = at
+			} else {
+				entries[call] = time.Now().Unix()
+			}
+		}
+		return entries
+	}
+
 	// Script di avvio
 	mux.HandleFunc("GET /api/startup", func(w http.ResponseWriter, r *http.Request) {
 		if !guard(w, r, false) {
@@ -210,13 +242,18 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 			words[i] = strings.ToUpper(words[i])
 		}
 		reply(w, map[string]any{"Words": nonNil(words), "IPs": nonNil(ips), "DX": dx,
+			"Nodes": listCalls(nodesPath), "Spotters": listCalls(spottersPath),
+			"BaseNodes": baseCount("badnode"), "BaseSpotters": baseCount("badspotter"),
 			"OtherWords": len(wordsExtra) - commentCount(wordsExtra), "OtherIPs": len(ipsExtra) - commentCount(ipsExtra)})
 	})
 	mux.HandleFunc("PUT /api/badlists", func(w http.ResponseWriter, r *http.Request) {
 		if !guard(w, r, true) {
 			return
 		}
-		var change struct{ Words, IPs, DX []string }
+		var change struct {
+			Words, IPs, DX  []string
+			Nodes, Spotters *[]string // assenti: l'elenco resta com'è
+		}
 		if !decode(w, r, &change) {
 			return
 		}
@@ -245,6 +282,23 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 				return
 			}
 		}
+		var nodes, spotters []string
+		if change.Nodes != nil {
+			nodes = dedupe(*change.Nodes, strings.ToUpper)
+		}
+		if change.Spotters != nil {
+			spotters = dedupe(*change.Spotters, strings.ToUpper)
+		}
+		if len(nodes) > 5000 || len(spotters) > 5000 {
+			http.Error(w, "Liste troppo lunghe.", http.StatusBadRequest)
+			return
+		}
+		for _, call := range append(append([]string{}, nodes...), spotters...) {
+			if !badCall.MatchString(call) {
+				http.Error(w, "Nominativo non valido: «"+call+"».", http.StatusBadRequest)
+				return
+			}
+		}
 		lock.Lock()
 		defer lock.Unlock()
 		_, wordsExtra := splitManaged(read(wordsPath), func(s string) bool { return badWord.MatchString(strings.ToUpper(s)) })
@@ -266,6 +320,18 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 			{wordsPath, strings.Join(append(wordsExtra, words...), "\n") + "\n"},
 			{ipsPath, strings.Join(append(ipsExtra, ips...), "\n") + "\n"},
 			{dxPath, renderBadDX(entries)},
+		}
+		if change.Nodes != nil {
+			files = append(files, struct {
+				path string
+				text string
+			}{nodesPath, renderBadList("badnode", keepDated(nodesPath, nodes))})
+		}
+		if change.Spotters != nil {
+			files = append(files, struct {
+				path string
+				text string
+			}{spottersPath, renderBadList("badspotter", keepDated(spottersPath, spotters))})
 		}
 		for _, file := range files {
 			if err := writeNodeFile(file.path, []byte(file.text)); err != nil {
