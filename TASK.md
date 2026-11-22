@@ -6,6 +6,23 @@
 
 Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazioni dopo il primo avvio. Estendere i collaudi Linux a due nodi, feed DX e aggiornamento da release. La procedura è in dxregia/deploy/README.md.
 
+## Piano miglioramenti del pannello (2026-11-22)
+
+Regola: nessuna voce di menu nuova se la funzione sta bene dentro una pagina esistente (schede nella pagina). Unica novità di menu: il gruppo **Diagnostica** (Salute del nodo, Log DXSpider), che toglie il log dal gruppo Nodo. Un lavoro per volta, ciascuno verificato e rilasciato.
+
+| # | Lavoro | Dove nel menu |
+|---|--------|---------------|
+| 1 | Registro connessioni e PC92 (rotte scartate, rollback, accessi respinti, troppe connessioni), filtro per partner | Diagnostica > Log DXSpider, con schede |
+| 2 | Salute del nodo: attivo da, memoria, disco, riavvii di Mojo, DNS | Diagnostica > Salute del nodo (nuova) |
+| 3 | Riavvio automatico di Mojo se si ferma, con avviso e voce nel registro | Impostazione dentro Salute del nodo |
+| 4 | Avvisi sui partner spenti oltre una soglia e riepilogo giornaliero | Collegamenti > Storico email partner (rinominata Avvisi ed email partner) |
+| 5 | Liste di blocco modificabili con ricarica (`load/badnode`, `load/badspotter`) | Nodo > Liste di blocco (esistente) |
+| 6 | Backup pianificato e ripristino dal pannello | Gestione > Backup (esistente) |
+| 7 | Rinomina di un nodo partner | Scheda del partner, nessuna voce |
+| 8 | Anteprima delle novità prima di aggiornare | Gestione > Aggiornamenti (esistente) |
+| 9 | Sostituire gli ultimi avvisi nativi del browser; versione del motore nel saluto Telnet | Nessuna voce |
+| 10 | Mojo separato dal servizio web (aggiornamenti senza riavvio del motore) | Nessuna voce, lavoro delicato, per ultimo |
+
 ## Stato
 
 - [x] Rilasciare DXRegia 0.10.0 (motore allineato a DXSpider 1.57 build 929, risposta alla conferma di sostituzione della sessione nella console del pannello). Installata sul server di prova dal pannello il 2026-11-22, motore avviato e Telnet pronto.
