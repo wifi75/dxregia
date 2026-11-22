@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import MailSettings from './MailSettings.svelte'
 
-  type Preferences = { Recipient: string; PortalMessages: boolean; PartnerRequests: boolean; PartnerDown: boolean; PartnerRecovered: boolean; PartnerDownMinutes: number }
+  type Preferences = { Recipient: string; PortalMessages: boolean; PartnerRequests: boolean; PartnerDown: boolean; PartnerRecovered: boolean; PartnerDownMinutes: number; DailySummary: boolean }
   let active = $state<'email' | 'smtp'>('email')
   let preferences = $state<Preferences>()
   let sysopEmail = $state('')
@@ -88,6 +88,7 @@
           <label class="minutes">Attendi <input type="number" min="1" max="1440" step="1" required bind:value={preferences.PartnerDownMinutes} /> minuti</label>
           <label class="choice"><input type="checkbox" bind:checked={preferences.PartnerRecovered} disabled={!preferences.PartnerDown} /> Avvisami quando il collegamento torna attivo</label>
           <p class="hint">L’avviso riporta l’ultimo esito di DXSpider, quando disponibile. Viene inviato una volta per interruzione.</p>
+          <label class="choice"><input type="checkbox" bind:checked={preferences.DailySummary} /> Inviami ogni giorno un riepilogo del nodo (dopo le 06:00 UTC)</label>
         </fieldset>
         <button disabled={busy}>Salva preferenze email</button>
       </form>

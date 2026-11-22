@@ -115,6 +115,7 @@ func registerPartners(ctx context.Context, mux *http.ServeMux, root string, auth
 						processPartnerMail(root, m, snapshot)
 					}
 					processPartnerAlerts(root, snapshot, time.Now().UTC())
+					processDailySummary(root, snapshot, time.Now().UTC())
 				}
 			}
 		}()

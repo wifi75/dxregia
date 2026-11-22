@@ -17,6 +17,7 @@ type emailPreferences struct {
 	PartnerDown        bool
 	PartnerRecovered   bool
 	PartnerDownMinutes int
+	DailySummary       bool
 }
 
 func emailPreferencesPath(root string) string {

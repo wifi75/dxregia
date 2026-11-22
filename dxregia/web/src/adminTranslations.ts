@@ -716,5 +716,6 @@ export const adminRows: string[][] = [
   ['Diagnostica', 'Diagnostics', 'Diagnóstico', 'Diagnose', 'Diagnostic', 'Diagnóstico'],
   ['Routing', 'Routing', 'Enrutamiento', 'Routing', 'Routage', 'Encaminhamento'],
   ['Accessi', 'Logins', 'Accesos', 'Anmeldungen', 'Connexions', 'Acessos'],
+  ['Inviami ogni giorno un riepilogo del nodo (dopo le 06:00 UTC)', 'Send me a daily summary of the node (after 06:00 UTC)', 'Envíame cada día un resumen del nodo (después de las 06:00 UTC)', 'Sende mir täglich eine Zusammenfassung des Knotens (nach 06:00 UTC)', 'Envoyez-moi chaque jour un résumé du nœud (après 06:00 UTC)', 'Envia-me todos os dias um resumo do nó (depois das 06:00 UTC)'],
   ['· Prima connessione in ingresso: {}','· First incoming connection: {}', '· Primera conexión entrante: {}', '· Erste eingehende Verbindung: {}', '· Première connexion entrante : {}', '· Primeira ligação de entrada: {}'],
 ]
