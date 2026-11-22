@@ -4,7 +4,14 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
-## [0.13.1] - 2026-11-22
+## [0.14.0] - 2026-11-22
+
+### Changed
+
+- Updates that do not touch the engine (DXSpider files, `COPYING`, `LICENSE`, `presence.pm`) no longer interrupt Telnet and the partner links: the web service restarts and the running engine stays up; the new service finds it and takes it over. When the engine changes, the update restarts everything as before. The first update that installs this version still restarts the engine, because the old service unit stops it; the following ones keep it.
+- On Linux the engine now runs in its own process group, started by a small shell that records its process number and exit code. The web service stops it when the service stops, unless the update script left a recent `keep-engine` file. A crash of an engine taken over by a new service is still detected (automatic restart).
+- The panel's diagnostic log shows when the new service took over the running engine and when a stopping service left it running.
+
 
 ### Fixed
 

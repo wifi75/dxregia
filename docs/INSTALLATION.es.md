@@ -15,8 +15,8 @@
 **Paquete precompilado.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.13.1/dxregia/deploy/install-release.sh
-sh install-release.sh v0.13.1
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.14.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.14.0
 ```
 
 El script verifica la suma SHA-256, instala las dependencias e inicia el servicio. Muestra la dirección del panel y una contraseña temporal para el primer acceso.
