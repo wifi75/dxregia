@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-11-22
+
+### Changed
+
+- Dashboard: the "Nodi collegati in ingresso" card is gone. The "Nodi partner" card already lists every connected node, including inbound ones that are not registered as partners, with the IN tag, so the second card repeated the same information.
+
 ## [0.14.1] - 2026-11-22
 
 ### Changed
