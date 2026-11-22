@@ -106,7 +106,9 @@ BEGIN {
 	$systime = time;
 
 	# copy across initial data files to data in "update mode" preserving mod times
-	system('cp -up /spider/initial_data/* /spider/data') unless $is_win;
+	# DXRegia 2026-11-22: skip the copy when /spider/initial_data does not exist (DXRegia keeps the defaults in data/),
+	# so the startup log has no "cannot stat" noise. Upstream line: system('cp -up ...') unless $is_win;
+	system('cp -up /spider/initial_data/* /spider/data') unless $is_win || !-d '/spider/initial_data';
 }
 
 
@@ -803,7 +805,8 @@ sub setup_start
 		
 		# determine the real Git build number and branch
 		my $desc;
-		eval {$desc = `git --git-dir=$root/.git describe --long`};
+		# DXRegia 2026-11-22: ask git only when a repository exists (installed nodes have none; Version.pm has the build).
+		eval {$desc = `git --git-dir=$root/.git describe --long`} if -d "$root/.git";
 		if (!$@ && $desc) {
 			my ($v, $s, $b, $g) = $desc =~ /^([\d\.]+)(?:\.(\d+))?-(\d+)-g([0-9a-f]+)/;
 			$version = $v;
@@ -811,7 +814,7 @@ sub setup_start
 			$build = $b || 0;
 			$gitversion = "$g\[r]";
 		}
-		if (!$@) {
+		if (!$@ && -d "$root/.git") {
 			my @branch;
 
 			eval {@branch = `git --git-dir=$root/.git branch`};

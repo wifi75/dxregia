@@ -18,6 +18,8 @@ TimeoutStopSec=15s
 # Solo il processo web: il motore ha il suo gruppo e lo ferma il servizio stesso, salvo che un aggiornamento del
 # solo pannello lasci il file keep-engine, nel qual caso resta attivo e il nuovo servizio lo adotta.
 KillMode=process
+# Rete di sicurezza: dopo un arresto pulito, senza keep-engine recente, il motore non deve restare acceso.
+ExecStopPost=/bin/sh -c '[ "$$SERVICE_RESULT" = success ] || exit 0; [ -z "$$(find /var/lib/dxregia/keep-engine -mmin -10 2>/dev/null)" ] || exit 0; p=$$(cat /var/lib/dxregia/mojo/local_data/dxregia-engine.pid 2>/dev/null); [ -n "$$p" ] && grep -q cluster.pl /proc/$$p/cmdline 2>/dev/null && kill $$p; exit 0'
 NoNewPrivileges=true
 
 [Install]
