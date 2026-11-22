@@ -15,8 +15,8 @@
 **Vorgefertigtes Paket.**
 
 ```sh
-curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.10.0/dxregia/deploy/install-release.sh
-sh install-release.sh v0.10.0
+curl -fL -o install-release.sh https://raw.githubusercontent.com/wifi75/dxregia/v0.11.0/dxregia/deploy/install-release.sh
+sh install-release.sh v0.11.0
 ```
 
 Das Skript prüft die SHA-256-Prüfsumme, installiert die Laufzeitabhängigkeiten und startet den Dienst. Es zeigt die Adresse des Panels und ein temporäres Passwort für die erste Anmeldung an.

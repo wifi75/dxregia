@@ -4,6 +4,18 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-22
+
+### Added
+
+- The DXSpider log shows two new categories: **Routing** (spots and PC92 packets the engine discarded, route changes rolled back) and **Accessi** (logins refused by `badip`, `badnode` or `badspotter`, too many connections, logins too close together, a second login refused). The existing search finds a partner by callsign. Private details (user IPs, packet contents) are not shown.
+- The engine restarts by itself after an abnormal exit, up to five times in ten minutes; a clean exit (for example the sysop `shutdown` command) does not restart it. Each automatic restart is recorded in the DXSpider log.
+- The node diagnostics show how long the service and the engine have been running and how many automatic restarts happened.
+
+### Changed
+
+- The DXSpider log moves to a new **Diagnostica** menu group, which leaves the Nodo group shorter.
+
 ## [0.10.0] - 2026-11-22
 
 ### Changed
