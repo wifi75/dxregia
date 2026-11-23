@@ -96,6 +96,7 @@ func main() {
 	registerBackupVerification(mux, auth, *backupTool)
 	registerBackups(service, mux, auth, *setupRoot, *backupTool)
 	registerPresence(mux, *setupRoot, auth)
+	registerRecords(service, mux, *setupRoot, auth)
 	registerSMTP(mux, *setupRoot, auth)
 	registerNodeFiles(mux, *setupRoot, auth)
 	go refreshIssueCountries(service, *setupRoot)

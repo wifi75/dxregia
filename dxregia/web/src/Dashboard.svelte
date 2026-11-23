@@ -30,6 +30,15 @@
   let nodeHealth = $state<NodeHealth>()
   let presenceDelay = $state<number>()
   let events = $state<LogEvent[]>([])
+  type RecordEntry = { Count: number; At: number }
+  let records = $state<{ Telnet: RecordEntry; Web: RecordEntry }>()
+  const recordDate = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  async function loadRecords() {
+    try {
+      const response = await fetch('/api/records', { cache: 'no-store', signal: AbortSignal.timeout(5000) })
+      if (response.ok) records = await response.json()
+    } catch { /* la scheda resta com'è */ }
+  }
   const number = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 })
   function size(bytes: number) {
     const unit = Math.abs(bytes) >= 1024 ** 3 ? 3 : Math.abs(bytes) >= 1024 ** 2 ? 2 : Math.abs(bytes) >= 1024 ? 1 : 0
@@ -146,8 +155,9 @@
     void load()
     void loadHealth()
     void loadEvents()
+    void loadRecords()
     const healthTimer = setInterval(loadHealth, 15000)
-    const eventsTimer = setInterval(loadEvents, 15000)
+    const eventsTimer = setInterval(() => { void loadEvents(); void loadRecords() }, 15000)
     void fetch('/api/node-settings', { cache: 'no-store' }).then(async response => {
       if (response.status !== 200) return
       const { advertisedHost, port } = await response.json()
@@ -214,6 +224,22 @@
     {:else}
       <p class="value">Nessun evento</p>
       <p class="detail">Collegamenti e riavvii recenti compaiono qui.</p>
+    {/if}
+  </article>
+  <article class="tile glass-panel" data-tone="neutral">
+    <p class="label"><span class="led" data-tone="neutral" aria-hidden="true"></span>Record collegati insieme</p>
+    {#if records}
+      <ul class="records">
+        {#each [['Telnet', records.Telnet], ['Web', records.Web]] as [name, entry] (name)}
+          {@const record = entry as RecordEntry}
+          <li>
+            <span class="record-count">{record.Count}</span>
+            <span class="record-text"><strong>{name}</strong>{#if record.At > 0}<small>{recordDate.format(new Date(record.At * 1000))}</small>{:else}<small>nessun dato ancora</small>{/if}</span>
+          </li>
+        {/each}
+      </ul>
+    {:else}
+      <p class="value">Non disponibile</p>
     {/if}
   </article>
 </section>
@@ -389,6 +415,11 @@
   .events { margin: 3px 0 0; padding: 0; list-style: none; color: #485b6d; font-size: .8rem; }
   .events li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.4; }
   .events time { color: #2c4a60; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .records { margin: 3px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .records li { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .record-count { font-size: 1.9rem; font-weight: 750; line-height: 1; color: #12384f; font-variant-numeric: tabular-nums; }
+  .record-text { display: grid; min-width: 0; font-size: .85rem; }
+  .record-text small { color: #506678; font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .detail { margin-top: 2px !important; color: #485b6d; font-size: .81rem; overflow-wrap: anywhere; }
   .led { width: 13px; height: 13px; flex: 0 0 13px; border-radius: 50%; background: #708391; box-shadow: 0 0 0 4px #70839126; }
   .led[data-tone=green] { background: #1fa86b; box-shadow: 0 0 0 4px #1fa86b33, 0 0 10px #1fa86b88; }

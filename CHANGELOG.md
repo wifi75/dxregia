@@ -4,6 +4,10 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+### Added
+
+- Dashboard card "Record collegati insieme": the highest number of users connected at the same time over Telnet and over the DXSpider web client, with the date it was reached. The records never reset (no daily or monthly window) and are stored in `local_data/dxregia-records.json`, so they survive restarts and are included in backups. The count comes from the presence snapshot every 5 seconds, with the same rule as the list of connected amateurs. New sysop-only endpoint `GET /api/records`.
+
 ## [0.15.5] - 2026-11-23
 
 ### Changed
