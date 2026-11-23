@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.15.7] - 2026-11-23
+
+### Changed
+
+- Dashboard: the six status cards sit on two rows of three (two per row below 900 px, one on a phone) instead of one row, and their text wraps instead of being cut off with an ellipsis, so the latest events and the connection records can be read in full.
+
 ## [0.15.6] - 2026-11-23
 
 ### Added
