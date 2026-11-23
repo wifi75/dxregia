@@ -13,12 +13,14 @@
   import Spots from './Spots.svelte'
   import ClusterStats from './ClusterStats.svelte'
   import Contact from './Contact.svelte'
+  import Mobile from './Mobile.svelte'
   import { trackPortalPresence } from './portalPresence'
   import type { SpotView } from './spotTools'
   const contactPage = window.location.pathname === '/contatti'
   const registerPage = window.location.pathname === '/registrazione'
   const confirmPage = window.location.pathname === '/registrazione/conferma'
   const statsPage = window.location.pathname === '/statistiche'
+  const mobilePage = window.location.pathname === '/mobile'
   function viewFromURL(): SpotView {
     const view = new URLSearchParams(location.search).get('view')
     return view === 'research' || view === 'alerts' || view === 'propagation' || view === 'rbn' ? view : 'feed'
@@ -34,7 +36,7 @@
   const toolPage = contactPage || registerPage || confirmPage || statsPage
   let registrationOpen = $state(false)
   let registrationConnection = $state<{ Host: string; Port: number }>()
-  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
+  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin') && !mobilePage) {
     fetch('/api/register/status').then(async response => {
       if (!response.ok) return
       const status = await response.json()
@@ -43,7 +45,7 @@
     }).catch(() => {})
   }
   // Il pannello sysop è solo su /admin; ogni altra pagina è il portale pubblico.
-  const publicPortal = !(window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'))
+  const publicPortal = !(window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/') || mobilePage)
   if (publicPortal) trackPortalPresence()
   const titles = { feed: 'spotsTitle', research: 'spotResearch', alerts: 'radioAlerts', propagation: 'navPropagation', rbn: 'rbnTitle' } as const
   const portalTitle = $derived(t(titles[spotView]))
@@ -86,6 +88,7 @@
 
 <svelte:window onclick={() => { langOpen = false }} onpopstate={() => { spotView = viewFromURL() }} onkeydown={event => { if (event.key === 'Escape') langOpen = false }} />
 
+{#if !mobilePage}
 <header>
   <div class="brandline">
     <a class="brand" href="/spots"><img class="brand-logo" src={currentTheme() === 'dark' ? '/brand/dxregia-logo-dark.svg' : '/brand/dxregia-logo.svg'} alt="DXRegia" width="112" height="34"></a>
@@ -151,6 +154,7 @@
   {/if}
   </div>
 </header>
+{/if}
 {#if iosHint && publicPortal}
   <p class="install-hint" role="status">{t('installIos')}</p>
 {/if}
@@ -166,11 +170,12 @@
 {:else if publicPortal}
   <Spots activePage={spotView} />
 {:else}
-<main>
+<main class:phone-main={mobilePage}>
+  {#snippet phoneApp()}<Mobile />{/snippet}
   {#snippet nodeStatus()}
     <Dashboard {status} {failed} {refresh} />
   {/snippet}
-  <Auth onSaved={refresh} {nodeStatus} />
+  <Auth onSaved={refresh} {nodeStatus} phone={mobilePage ? phoneApp : undefined} />
 </main>
 {/if}
 
@@ -231,6 +236,7 @@
   header a { color: #234968; font-weight: 650; padding: .55rem .8rem; border-radius: .5rem; text-decoration: none; }
   header a:hover, header a[aria-current=page] { background: #e7f0f7; color: #143a60; }
   header .stats-link { background: #dcecf8; }
+  main.phone-main { padding: 0; }
   main { width: 100%; padding: 24px clamp(14px, 2vw, 36px); }
   .install-hint { margin: 8px auto 0; max-width: 560px; padding: 10px 14px; border: 1px solid #9db8cc; border-radius: 12px; background: #ffffffee; color: #143a60; font-size: .92rem; text-align: center; }
 </style>

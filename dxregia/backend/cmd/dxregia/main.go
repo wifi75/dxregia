@@ -168,6 +168,7 @@ func main() {
 		w.Header().Set("Cache-Control", "no-store")
 		http.ServeFile(w, r, filepath.Join(*web, "index.html"))
 	}
+	mux.HandleFunc("GET /mobile", adminPage)
 	mux.HandleFunc("GET /admin", adminPage)
 	mux.HandleFunc("GET /admin/", adminPage)
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {

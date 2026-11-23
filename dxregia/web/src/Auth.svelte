@@ -30,7 +30,7 @@
 
   type Session = { signedIn: boolean; mustChange: boolean; mustVerify?: boolean; enrollmentKey?: string; recoveryCodes?: string[] }
   let session = $state<Session>()
-  let { onSaved, nodeStatus }: { onSaved: () => void; nodeStatus: Snippet } = $props()
+  let { onSaved, nodeStatus, phone }: { onSaved: () => void; nodeStatus: Snippet; phone?: Snippet } = $props()
   const groups = [
     { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['accessi', 'Accessi al nodo'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet'], ['opzioni-telnet', 'Opzioni Telnet'], ['messaggio', 'Messaggio e pianificazione'], ['avvio', 'Script di avvio'], ['liste', 'Liste di blocco'], ['hop', 'Hop e filtri']] },
     { label: 'Diagnostica', items: [['log-dxspider', 'Log DXSpider']] },
@@ -264,6 +264,8 @@
       </ul>
       <button type="button" onclick={() => { codes = []; if (session) session.recoveryCodes = undefined }}>Ho salvato i codici</button>
     </section>
+  {:else if session.signedIn && !session.mustChange && !session.mustVerify && phone}
+    {@render phone()}
   {:else if session.signedIn && !session.mustChange && !session.mustVerify}
     <div class="workspace">
       <aside class="sidebar">
