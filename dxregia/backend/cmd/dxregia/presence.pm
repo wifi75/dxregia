@@ -1,4 +1,5 @@
 package Local;
+# DXREGIA-MANAGED-HOOK: file gestito da DXRegia, sostituito a ogni aggiornamento. Le modifiche locali vanno in altri file.
 
 use strict;
 use JSON ();

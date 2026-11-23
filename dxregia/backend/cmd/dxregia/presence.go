@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	_ "embed"
 	"encoding/hex"
@@ -72,6 +73,11 @@ func readPresence(path string) presence {
 	return snapshot
 }
 
+// presenceHookMarker apre la seconda riga dell'hook gestito da DXRegia. Un file che la contiene si sostituisce a ogni
+// aggiornamento, senza dover aggiungere l'impronta della versione precedente all'elenco qui sotto: dimenticarla
+// lasciava i nodi già installati con un hook vecchio (le nuove funzioni non partivano e nulla lo segnalava).
+const presenceHookMarker = "# DXREGIA-MANAGED-HOOK"
+
 func installPresenceHook(local string) error {
 	path := filepath.Join(local, "Local.pm")
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
@@ -118,7 +124,11 @@ func installPresenceHook(local string) error {
 			digest != "360d54c3e524016fa07e96a841b44e549de2cd146dc1d7aef117a2bb67a19a4b" &&
 			digest != "a18d8c4d16195b38bdb262d72b370e9f001fda54a8195ed9b84e0693eb405e6e" &&
 			digest != "26ffe62c17ce5f9cadfaf5fd372e59ae4c1e3b9b6dea3d4e412183a06a7abbd2" &&
-			digest != "4846cf7c7af1fa255226849712421e64aa24e4576ee8e504d51a448472f6ca32" {
+			digest != "4846cf7c7af1fa255226849712421e64aa24e4576ee8e504d51a448472f6ca32" &&
+				digest != "19e1e360c2083f91c20042cb807f8275a8adcbbb7afed0a0c99103909e54d96d" &&
+				digest != "1488b1d813d008348d32f526203fea34de733401af6ed34b89f00662e1e6af60" &&
+				digest != "9fc731b118eed502f89efcc53a79c72fc679fd8d83255364873be160314d7b21" &&
+				!bytes.Contains(current, []byte("\n"+presenceHookMarker)) {
 			return nil
 		}
 		return upgradePresenceHook(local, path)
