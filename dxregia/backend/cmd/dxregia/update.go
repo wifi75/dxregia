@@ -245,6 +245,11 @@ func (u *updater) info() updateInfo {
 		CheckError:   checkErr,
 		Log:          log,
 	}
+	// Un commit senza nome di versione che cambia solo la documentazione non è un aggiornamento da proporre:
+	// arriverà con la prossima versione rilasciata.
+	if !info.UpToDate && changes != nil && changes.DocsOnly && tags[head] == "" {
+		info.UpToDate = true
+	}
 	if !info.UpToDate {
 		info.Preview = changes
 	}

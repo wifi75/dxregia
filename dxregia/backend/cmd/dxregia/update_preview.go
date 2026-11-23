@@ -16,12 +16,16 @@ const (
 	previewMaxLine    = 160
 )
 
-var lightPath = regexp.MustCompile(`^(dxregia/web/|docs/|[^/]+\.md$|dxregia/deploy/README\.md$)`)
+var docsPath = regexp.MustCompile(`^(docs/|[^/]+\.md$|dxregia/deploy/README\.md$)`)
+
+var lightPath =regexp.MustCompile(`^(dxregia/web/|docs/|[^/]+\.md$|dxregia/deploy/README\.md$)`)
 
 type updatePreview struct {
 	Changes []string // oggetto dei commit, dal più recente
 	Restart bool     // l'aggiornamento riavvia il servizio
 	Files   int
+	// DocsOnly: cambiano solo documentazione e file di testo del progetto, nessun file del pannello né del servizio.
+	DocsOnly bool
 }
 
 func parseUpdatePreview(data []byte) (updatePreview, bool) {
@@ -51,9 +55,13 @@ func parseUpdatePreview(data []byte) (updatePreview, bool) {
 	}
 	preview.Files = len(compare.Files)
 	preview.Restart = len(compare.Files) == 0 || len(compare.Files) >= 300 // 300 = limite dell'API: nel dubbio, completo
+	preview.DocsOnly = len(compare.Files) > 0 && len(compare.Files) < 300
 	for _, file := range compare.Files {
 		if !lightPath.MatchString(file.Filename) {
 			preview.Restart = true
+		}
+		if !docsPath.MatchString(file.Filename) {
+			preview.DocsOnly = false
 		}
 	}
 	return preview, true

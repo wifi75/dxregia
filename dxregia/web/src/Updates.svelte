@@ -97,7 +97,9 @@
   {:else}
     <dl class="versions">
       <div><dt>Installata</dt><dd>{#if info.CurrentTag}{info.CurrentTag} <small>({info.Current})</small>{:else}{info.Current || 'sconosciuta'}{/if}</dd></div>
-      <div><dt>Disponibile</dt><dd>{#if info.AvailableTag}{info.AvailableTag} <small>({info.Available})</small>{:else}{info.Available || '—'}{/if}</dd></div>
+      {#if !info.UpToDate}
+        <div><dt>Disponibile</dt><dd>{#if info.AvailableTag}{info.AvailableTag} <small>({info.Available})</small>{:else if info.Available}Versione non ancora rilasciata <small>({info.Available})</small>{:else}—{/if}</dd></div>
+      {/if}
     </dl>
     {#if info.CheckError}
       <p role="alert">{info.CheckError}</p>

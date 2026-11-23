@@ -140,3 +140,53 @@ func TestParseUpdatePreview(t *testing.T) {
 		t.Fatal("empty compare accepted")
 	}
 }
+
+func TestUntaggedDocsCommitIsNotAnUpdate(t *testing.T) {
+	dir := t.TempDir()
+	tags := map[string]string{oldRevision: "v9.9.0"}
+	preview := updatePreview{Changes: []string{"docs: stato"}, Files: 2, DocsOnly: true}
+	up := &updater{
+		revisionFile: filepath.Join(dir, "revision"),
+		pathUnit:     filepath.Join(dir, "dxregia-update.path"),
+		requestFile:  filepath.Join(dir, "update-request"),
+		logFile:      filepath.Join(dir, "update.log"),
+		remote: func(context.Context) (string, map[string]string, error) {
+			return newRevision, tags, nil
+		},
+		preview: func(context.Context, string, string) (updatePreview, bool) { return preview, true },
+		running: func() bool { return false },
+	}
+	if err := os.WriteFile(up.revisionFile, []byte(oldRevision+"\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	up.refresh(context.Background(), true)
+	if info := up.info(); !info.UpToDate || info.Preview != nil {
+		t.Fatalf("a docs-only commit without a version offered an update: %+v", info)
+	}
+	// Se il commit porta il nome di una versione, si propone anche se cambia solo la documentazione.
+	tags[newRevision] = "v9.9.1"
+	up.checked = time.Time{}
+	up.refresh(context.Background(), true)
+	if info := up.info(); info.UpToDate || info.AvailableTag != "v9.9.1" {
+		t.Fatalf("a released version was hidden: %+v", info)
+	}
+	// Una modifica che non è solo documentazione si propone sempre.
+	delete(tags, newRevision)
+	preview.DocsOnly = false
+	up.checked, up.changeAt = time.Time{}, ""
+	up.refresh(context.Background(), true)
+	if info := up.info(); info.UpToDate {
+		t.Fatalf("a code change was hidden: %+v", info)
+	}
+}
+
+func TestDocsOnlyPreview(t *testing.T) {
+	docs := `{"commits":[{"commit":{"message":"docs: a"}}],"files":[{"filename":"TASK.md"},{"filename":"docs/HANDOFF.md"}]}`
+	if preview, ok := parseUpdatePreview([]byte(docs)); !ok || !preview.DocsOnly {
+		t.Fatalf("docs: %+v %v", preview, ok)
+	}
+	panel := `{"commits":[{"commit":{"message":"fix"}}],"files":[{"filename":"TASK.md"},{"filename":"dxregia/web/src/A.svelte"}]}`
+	if preview, ok := parseUpdatePreview([]byte(panel)); !ok || preview.DocsOnly {
+		t.Fatalf("panel: %+v %v", preview, ok)
+	}
+}
