@@ -273,16 +273,16 @@
     <ul class="session-grid" style:--session-columns={sessionColumns}>
       {#each visibleSessions as session, index (session.Call + ':' + session.Kind)}
         {@const flag = dxccFlags[session.DXCC ?? 0]}
+        {@const country = flag ? dxccFlagName(flag, regionNames, session.DXCC) : ''}
         <li class:at-edge={(index + 1) % sessionColumns === 0} class:fresh={isFresh(session)}>
           <div class="session-call">
             {#if flag}
-              {@const country = dxccFlagName(flag, regionNames, session.DXCC)}
-              <span class="session-flag">
-                <img src={'/flags/' + flag + '.svg'} alt={country} width="17" height="12" loading="lazy" />
-                <span class="flag-name" aria-hidden="true">{country}</span>
-              </span>
+              <span class="session-flag"><img src={'/flags/' + flag + '.svg'} alt="" width="17" height="12" loading="lazy" /></span>
             {/if}
-            <strong title={session.Call}>{session.Call}</strong>
+            <span class="session-text" title={country ? session.Call + ' · ' + country : session.Call}>
+              <strong>{session.Call}</strong>
+              {#if country}<small>{country}</small>{/if}
+            </span>
           </div>
           <abbr class="tag" title={session.Kind === 'telnet' ? 'Telnet' : 'Web DXSpider'}>{session.Kind === 'telnet' ? 'T' : 'W'}</abbr>
         </li>
@@ -417,7 +417,7 @@
   .tag-gap { padding-inline-start: 8px; }
   .users { margin-top: 14px; border-top: 4px solid #2fa36b; container-type: inline-size; }
   .session-grid { display: grid; grid-template-columns: repeat(var(--session-columns), minmax(0, 1fr)); gap: 3px 4px; padding: 0; margin: 0; list-style: none; }
-  .session-grid li { display: flex; align-items: center; gap: 4px; min-width: 0; min-height: 29px; padding: 3px 4px; border: 1px solid #b9d0df; border-radius: 5px; background: #f6fbfe; white-space: nowrap; }
+  .session-grid li { display: flex; align-items: center; gap: 4px; min-width: 0; min-height: 40px; padding: 3px 4px; border: 1px solid #b9d0df; border-radius: 5px; background: #f6fbfe; white-space: nowrap; }
   /* Appena collegato: un LED verde gira lungo il bordo della casella e lo sfondo lampeggia. */
   @property --spin { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
   .session-grid li.fresh { position: relative; border-color: #1fa86b; animation: arrival-flash .9s ease-in-out infinite alternate; }
@@ -435,12 +435,12 @@
     .session-grid li.fresh::before { display: none; }
   }
   .session-call { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
-  .session-call strong { overflow: hidden; text-overflow: ellipsis; font-size: .875rem; }
+  .session-text { display: grid; min-width: 0; line-height: 1.2; }
+  .session-text strong, .session-text small { overflow: hidden; text-overflow: ellipsis; }
+  .session-call strong { font-size: .875rem; }
+  .session-text small { color: #506678; font-size: .72rem; }
   .session-flag { position: relative; flex: none; }
   .session-flag img { display: block; object-fit: cover; border: 1px solid #15263826; border-radius: 2px; }
-  .flag-name { display: none; position: absolute; z-index: 2; inset-block-end: calc(100% + 4px); inset-inline-start: -4px; padding: 3px 7px; border: 1px solid #a9c3d0; border-radius: 4px; background: #fff; color: #0f2a41; font-size: .8rem; font-weight: 650; pointer-events: none; }
-  .session-flag:hover .flag-name { display: block; }
-  .session-grid li.at-edge:not(:first-child) .flag-name { inset-inline: auto -4px; }
   .session-grid .tag { padding: 0 3px; font-size: .75rem; text-decoration: none; }
   .session-legend { font-size: .78rem; margin: 2px 0 6px; }
   /* The global dark theme inverts these colors after compositing. */
@@ -449,8 +449,9 @@
   :global(html[data-theme=dark]) .session-grid .tag { color: #000; background: #c7dfef; }
   :global(html[data-theme=dark]) .session-legend { color: #000; }
   @container (min-width: 1320px) {
-    .session-grid li { min-height: 31px; padding-inline: 6px; }
+    .session-grid li { min-height: 42px; padding-inline: 6px; }
     .session-call strong { font-size: .9375rem; }
+    .session-text small { font-size: .75rem; }
     .session-flag img { width: 19px; height: 14px; }
   }
   .pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: end; margin-top: 7px; font-size: .8rem; }
