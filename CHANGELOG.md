@@ -4,6 +4,17 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-23
+
+### Added
+
+- Dashboard, first row: a "Partner silenziosi" card lists connected partner nodes from which no DX spot has arrived for more than 30 minutes (the green LED does not show this). A "Ultimi eventi" card shows the latest link and start events of the engine (connections, restarts, take-overs).
+- The engine hook (`presence.pm`) now records when each neighbouring node last sent a spot; the presence snapshot carries it as `SpotAt` on node channels. Because the hook is embedded in the binary, the first update to this version restarts the engine.
+
+### Changed
+
+- Dashboard, "Nodi partner" card: the country sits on the same line as the callsign, separated by a dot, and the nodes are laid out on three columns (18 per page), so the card is much lower.
+
 ## [0.14.2] - 2026-11-22
 
 ### Changed
