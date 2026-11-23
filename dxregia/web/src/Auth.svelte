@@ -105,6 +105,12 @@
     page = next
   }
 
+  // A ogni cambio di pagina si riparte dall'alto, così si vedono subito i pulsanti della pagina scelta.
+  $effect(() => {
+    void page
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  })
+
   function readPage() {
     const target = location.hash.slice(1)
     for (const group of groups) {
