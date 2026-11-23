@@ -4,6 +4,13 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.15.5] - 2026-11-23
+
+### Changed
+
+- Updates page: a commit without a version name that changes only documentation (`docs/`, `*.md`) is no longer offered as an update, so the page no longer says "Aggiornamento disponibile" with a bare commit id after a docs-only push to `main`; those changes arrive with the next released version. A released version, or any change to the panel or the service, is offered as before.
+- The "Disponibile" line is shown only when there is something to install. It shows the version name (for example `v0.15.5`) with the commit id in brackets; a commit with code that is not yet released reads "Versione non ancora rilasciata".
+
 ## [0.15.4] - 2026-11-23
 
 ### Changed
