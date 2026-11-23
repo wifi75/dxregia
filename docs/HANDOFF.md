@@ -490,6 +490,10 @@ Aggiornamento del server di prova alla 0.10.0 dal pannello (aggiornamento comple
 
 `mojo_routing.go` riconosce frasi note del registro di debug del motore (Bad Spot, PC61 da indirizzo non pubblico, PC92_MALFORMED, PC92_ADMISSION, rollback di PC92 A/C/D, troppi errori, accessi troppo ravvicinati, badip/badnode/badspotter, troppe connessioni, secondo accesso respinto) e le mostra come eventi «Routing» e «Accessi» senza IP degli utenti né contenuto dei pacchetti. Le frasi arrivano da `cluster.pl` e `DXProtHandle.pm` del motore build 929: a ogni allineamento upstream vanno riviste (il test `TestMojoRoutingAndAccessEvents` ne fissa il formato). Alcune righe PC92 sono scritte solo con certe categorie di debug (routelow, chanerr): se non compaiono nel log, non sono attive. `mojo_watch.go` riavvia Mojo dopo un'uscita con codice diverso da zero, al massimo 5 volte in 10 minuti. Prova pratica con `kill -9` sul motore reale ancora da fare.
 
+## 2026-11-23 — DXRegia 0.15.8 (elenco utenti su otto righe)
+
+`Dashboard.svelte`: `pageSize` passa da `sessionColumns * 4` a `sessionColumns * 8`; la paginazione compare solo oltre quella soglia. Verifica: build Svelte e collaudo GitHub; non ancora vista sul server di produzione.
+
 ## 2026-11-23 — DXRegia 0.15.7 (schede su due righe)
 
 `Dashboard.svelte`: `.health` passa a `repeat(3, minmax(0, 1fr))` (2 colonne sotto 900 px, 1 sotto 560 px); `.events li` e `.record-text small` vanno a capo (`overflow-wrap: anywhere`) invece di `nowrap` con puntini. Solo CSS. Verifica: build Svelte e collaudo GitHub; non ancora vista con i dati del server di produzione.

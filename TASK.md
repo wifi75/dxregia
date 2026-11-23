@@ -25,6 +25,7 @@ Regola: nessuna voce di menu nuova se la funzione sta bene dentro una pagina esi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.15.8: l'elenco dei radioamatori collegati mostra otto righe per pagina invece di quattro (80 con dieci colonne). Solo pannello e servizio web, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.7: le sei schede della dashboard su due righe da tre, con i testi che vanno a capo invece di essere tagliati. Solo pannello e servizio web, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.6: scheda «Record collegati insieme» in dashboard con il massimo storico di utenti contemporanei via Telnet e via web DXSpider, con data, salvato in `local_data/dxregia-records.json`. Solo pannello e servizio web, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.5: la pagina Aggiornamenti non propone più come aggiornamento un commit senza versione che cambia solo la documentazione, e mostra «Disponibile» solo quando c'è qualcosa da installare, con il nome della versione. Solo pannello e servizio web, nessun riavvio del motore.

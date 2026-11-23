@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.15.8] - 2026-11-23
+
+### Changed
+
+- Dashboard: the list of connected amateurs shows eight rows per page instead of four, so a busy day fits on one page.
+
 ## [0.15.7] - 2026-11-23
 
 ### Changed
