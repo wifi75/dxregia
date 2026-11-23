@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.15.4] - 2026-11-23
+
+### Changed
+
+- Dashboard, "Radioamatori collegati al tuo nodo": the country name now sits under the callsign inside the same box (long names are shortened with an ellipsis, the full name is in the tooltip). The country used to appear only when hovering the flag.
+
 ## [0.15.3] - 2026-11-23
 
 ### Fixed

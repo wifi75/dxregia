@@ -490,6 +490,10 @@ Aggiornamento del server di prova alla 0.10.0 dal pannello (aggiornamento comple
 
 `mojo_routing.go` riconosce frasi note del registro di debug del motore (Bad Spot, PC61 da indirizzo non pubblico, PC92_MALFORMED, PC92_ADMISSION, rollback di PC92 A/C/D, troppi errori, accessi troppo ravvicinati, badip/badnode/badspotter, troppe connessioni, secondo accesso respinto) e le mostra come eventi «Routing» e «Accessi» senza IP degli utenti né contenuto dei pacchetti. Le frasi arrivano da `cluster.pl` e `DXProtHandle.pm` del motore build 929: a ogni allineamento upstream vanno riviste (il test `TestMojoRoutingAndAccessEvents` ne fissa il formato). Alcune righe PC92 sono scritte solo con certe categorie di debug (routelow, chanerr): se non compaiono nel log, non sono attive. `mojo_watch.go` riavvia Mojo dopo un'uscita con codice diverso da zero, al massimo 5 volte in 10 minuti. Prova pratica con `kill -9` sul motore reale ancora da fare.
 
+## 2026-11-23 — DXRegia 0.15.4 (paese sotto il nominativo)
+
+`Dashboard.svelte`: nella griglia dei radioamatori ogni casella ha bandiera e, accanto, nominativo con il nome del paese sotto (`.session-text`, `small` con puntini di sospensione); tolto il suggerimento al passaggio del mouse (`.flag-name`). Altezza minima della casella 40 px (42 px su schermi larghi). Verifiche: `npm run build`, layout provato in una pagina di prova nel browser (nomi lunghi accorciati). Attenzione: `{@const}` va subito dentro `{#each}`, altrimenti il build fallisce.
+
 ## 2026-11-23 — DXRegia 0.15.3 (aggiornamento dell'hook Local.pm)
 
 Nella stessa versione: `Dashboard.svelte` ordina le sessioni per `Since` decrescente e dà la classe `fresh` (12 s) a chi si è appena collegato, con anello verde animato (`@property --spin`, conic-gradient e maschera) e lampeggio dello sfondo; con `prefers-reduced-motion` resta un contorno fisso. L'animazione è stata provata in una pagina di prova nel browser, non nella dashboard con accesso.
