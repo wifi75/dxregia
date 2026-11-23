@@ -25,6 +25,7 @@ Regola: nessuna voce di menu nuova se la funzione sta bene dentro una pagina esi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.15.1: a ogni cambio di pagina il pannello torna in cima (`$effect` su `page` in `Auth.svelte`). Solo pannello, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.0: dashboard con le schede «Partner silenziosi» e «Ultimi eventi» nella prima riga e «Nodi partner» compatta su tre colonne. L'hook `presence.pm` registra l'ultimo spot ricevuto da ogni nodo (`SpotAt`). Da verificare sul server dopo l'aggiornamento: che `SpotAt` compaia in `/api/presence` e che la scheda indichi i nodi realmente silenziosi.
 - [x] Rilasciare DXRegia 0.14.2: la dashboard mostra solo la scheda «Nodi partner»; la scheda «Nodi collegati in ingresso» ripeteva gli stessi nodi (la tabella dei partner include già gli ingressi non registrati, con il tag IN).
 - [x] Rilasciare DXRegia 0.14.1: avvio del motore senza le righe inutili nel registro (modifica datata in `engine/perl/cluster.pl`) e rete di sicurezza `ExecStopPost` nell'unità. Dopo un crash il servizio riparte da solo e riprende il motore, quindi il motore acceso a servizio fermo riguarda solo il caso rarissimo del servizio che non riparte. Rami di lavoro già uniti cancellati.

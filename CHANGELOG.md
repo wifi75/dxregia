@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-11-23
+
+### Fixed
+
+- Admin panel: choosing a page from the menu (or using the browser's back button) now scrolls the window to the top, so the page's buttons are visible at once. Before, the page stayed at the scroll position of the menu entry that was clicked.
+
 ## [0.15.0] - 2026-11-23
 
 ### Added

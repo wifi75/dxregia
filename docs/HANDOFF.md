@@ -490,6 +490,10 @@ Aggiornamento del server di prova alla 0.10.0 dal pannello (aggiornamento comple
 
 `mojo_routing.go` riconosce frasi note del registro di debug del motore (Bad Spot, PC61 da indirizzo non pubblico, PC92_MALFORMED, PC92_ADMISSION, rollback di PC92 A/C/D, troppi errori, accessi troppo ravvicinati, badip/badnode/badspotter, troppe connessioni, secondo accesso respinto) e le mostra come eventi «Routing» e «Accessi» senza IP degli utenti né contenuto dei pacchetti. Le frasi arrivano da `cluster.pl` e `DXProtHandle.pm` del motore build 929: a ogni allineamento upstream vanno riviste (il test `TestMojoRoutingAndAccessEvents` ne fissa il formato). Alcune righe PC92 sono scritte solo con certe categorie di debug (routelow, chanerr): se non compaiono nel log, non sono attive. `mojo_watch.go` riavvia Mojo dopo un'uscita con codice diverso da zero, al massimo 5 volte in 10 minuti. Prova pratica con `kill -9` sul motore reale ancora da fare.
 
+## 2026-11-23 — DXRegia 0.15.1 (pagina in cima a ogni cambio)
+
+`Auth.svelte`: `$effect` che a ogni cambio di `page` chiama `window.scrollTo` in cima (menu, tasto indietro, `location.hash`). Verifica: `npm run build`; non provato in un browser con accesso. Solo pannello, quindi l'aggiornamento non riavvia il motore.
+
 ## 2026-11-23 — DXRegia 0.15.0 (schede della dashboard)
 
 `presence.pm`: in `init` si avvolge `DXProt::handle_11` (anche PC26 e PC61 vi passano con `goto`) e, se la chiamata non è ricorsiva e il canale è un nodo, si salva l'ora in `%node_spot_at`; lo snapshot di presenza scrive `SpotAt` per i nodi (`presenceChannel.SpotAt` in `presence.go`). `Dashboard.svelte`: `silentPartners` = nodi in stato `normal`, non bloccati, con `max(SpotAt, Since)` più vecchio di 30 minuti; «Ultimi eventi» legge `/api/mojo-log` e mostra gli ultimi 4 eventi `Avvio` e `Collegamenti` (accessi e routing restano fuori, per i login ripetuti). «Nodi partner»: tre colonne, 18 per pagina, paese accanto al nominativo. Verifiche: sintassi Perl, `go vet`, test Go, build del pannello. Da provare sul server: `SpotAt` in `/api/presence` dopo qualche minuto; il primo aggiornamento riavvia il motore perché `presence.pm` cambia.
