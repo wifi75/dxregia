@@ -49,6 +49,10 @@ Il motore in `engine/` segue il ramo mojo del fork EA3CV/dxspider. L'allineament
 
 Il backup da terminale richiedeva il nodo fermo, quindi non si poteva pianificare. Il pannello usa `--online`: la banca utenti SQLite si copia con l'API di backup (consistente anche durante le scritture) e si controlla prima di entrare nell'archivio; gli altri file sono piccoli e, per quanto verificato, scritti con sostituzione completa (non provato su tutti). L'archivio contiene credenziali, quindi scaricarlo o cancellarlo richiede una sessione completa, e il ripristino resta da terminale perché sostituisce un nodo in funzione.
 
+## 2026-11-23 — L'hook del motore si riconosce da un marcatore
+
+L'elenco fisso di impronte SHA-256 per decidere se `Local.pm` si può sostituire richiedeva di aggiungere a mano l'impronta di ogni versione; dimenticarla lasciava i nodi con un hook vecchio senza alcun errore. Ora `presence.pm` ha un marcatore sulla seconda riga e un file che lo contiene è considerato gestito da DXRegia e si sostituisce a ogni aggiornamento. Un `Local.pm` scritto dal sysop (senza marcatore e con impronta sconosciuta) resta intatto. Le modifiche locali vanno in altri file, non in questo.
+
 ## 2026-11-22 — Il motore sopravvive al riavvio del servizio web
 
 Per non interrompere Telnet e i collegamenti a ogni aggiornamento del solo pannello, il motore gira in un gruppo di processi proprio e il nuovo servizio lo adotta, invece di spostare il motore in una seconda unità systemd. Scartata la seconda unità: il pannello non gira come root e non potrebbe riavviarla, e avvio, sorveglianza e impostazioni vanno riscritti. Il motore si lascia attivo solo se l'aggiornamento non cambia il motore o il suo hook (`keep-engine`); in ogni altro caso tutto si riavvia come prima. Windows e Docker non cambiano.

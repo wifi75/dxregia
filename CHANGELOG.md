@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.15.3] - 2026-11-23
+
+### Fixed
+
+- The engine hook (`local/Local.pm`) was not upgraded on nodes that were already installed: the update only replaced it when its SHA-256 was in a fixed list, and the list had not been extended since 2026-11-20. Nodes kept an old hook, so the live reload of the "nodes and users blocked at login" lists (0.12.0) and the "Partner silenziosi" card (0.15.0) did not work, with no error shown. The hook now carries a `DXREGIA-MANAGED-HOOK` marker on its second line and any file with it is replaced on update; the missing versions were added to the list too. A file the sysop wrote (no marker, unknown digest) is still left alone. Tests cover fresh install, upgrade and custom file.
+
 ## [0.15.2] - 2026-11-23
 
 ### Changed

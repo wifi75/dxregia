@@ -25,6 +25,7 @@ Regola: nessuna voce di menu nuova se la funzione sta bene dentro una pagina esi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.15.3: corretto l'aggiornamento dell'hook `Local.pm` sui nodi già installati (restava quello del 20/11 perché la sua impronta non era nell'elenco); ora ha un marcatore e si sostituisce a ogni aggiornamento. Da verificare sul server dopo l'aggiornamento: `Local.pm` contiene `node_spot_at`, `SpotAt` compare in `/api/presence`, le liste bloccate si ricaricano senza riavvio.
 - [x] Rilasciare DXRegia 0.15.2: motore allineato alla build 931 (due commit upstream applicati su `engine/`), pannello adattato al nuovo formato testo di `badnode.local` e `badspotter.local` (il motore converte le liste vecchie al primo avvio), piè di pagina con «DXSpider Mojo» e link. Da verificare sul server dopo l'aggiornamento: conversione delle liste con copia in `badlist-backups/`, aggiunta e rimozione di un nodo e di un utente dal pannello, riavvio del motore senza errori.
 - [x] Rilasciare DXRegia 0.15.1: a ogni cambio di pagina il pannello torna in cima (`$effect` su `page` in `Auth.svelte`). Solo pannello, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.0: dashboard con le schede «Partner silenziosi» e «Ultimi eventi» nella prima riga e «Nodi partner» compatta su tre colonne. L'hook `presence.pm` registra l'ultimo spot ricevuto da ogni nodo (`SpotAt`). Da verificare sul server dopo l'aggiornamento: che `SpotAt` compaia in `/api/presence` e che la scheda indichi i nodi realmente silenziosi.
