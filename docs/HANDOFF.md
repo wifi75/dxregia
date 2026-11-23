@@ -4,9 +4,9 @@
 
 - Le schermate in `docs/screenshots/` mostrano `/spots` e `/admin` dalla build web locale su Edge. Per aggiornare le immagini dei README, usare un’istanza di prova con dati dimostrativi.
 - Repository condiviso: https://github.com/wifi75/dxregia, ramo main. Su un altro computer partire dal ramo main del repository e leggere TASK.md, questo file e AGENTS.md.
-- Punto raggiunto: il wizard locale salva, inizializza e avvia Mojo. Diagnostica e riavvio con porta e utenti persistenti sono stati collaudati con Mojo reale su Windows. Una porta occupata viene rifiutata prima di scrivere.
+- Punto raggiunto (2026-11-23, versione 0.15.4): pannello completo con i dieci punti del piano (TASK.md), motore DXSpider Mojo build 931 in `engine/`, collaudo GitHub verde su Linux (nativo e Docker, amd64 e arm64), server di produzione in aggiornamento dal pannello. Il motore sopravvive al riavvio del solo pannello e l'hook `local/Local.pm` si aggiorna da un marcatore (docs/DECISIONS.md).
 - Per riprodurre, compilare il pannello e avviare il backend con una copia Mojo separata e Perl con le dipendenze richieste. I comandi e la baseline sono in dxregia/backend/README.md. Le istanze locali, i dati di prova e i codici temporanei non fanno parte del repository.
-- Prossimo intervento: build del container e collaudo su Linux pulito. Il cambio obbligatorio della password sysop è implementato e verificato via API su Windows. Istruzioni della build locale in dxregia/deploy/README.md.
+- Prossimo intervento: verifiche sul server dopo l'aggiornamento (elenco in TASK.md, «Da verificare»), poi le proposte di docs/PROPOSTE.md. Rilascio: ramo di lavoro, collaudo GitHub (`gh workflow run linux-smoke.yml --ref <ramo>`), unione su main, tag, pacchetti costruiti sul server e `gh release create`. Dopo ogni release che cambia `presence.pm`, controllare che `Local.pm` sul server sia cambiato.
 - Interfacce: solo tema chiaro, riferimento per il portale pubblico in docs/INTERFACES.md. Usare la skill design-taste-frontend quando disponibile. Dati della pagina pubblica e gestione dei partner ancora da integrare.
 
 ## 2026-11-17 — Avvio del progetto

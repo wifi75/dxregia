@@ -4,7 +4,7 @@
 
 ## Prossimo passo
 
-Completare la migrazione di un nodo Mojo esistente e la gestione delle impostazioni dopo il primo avvio. Estendere i collaudi Linux a due nodi, feed DX e aggiornamento da release. La procedura è in dxregia/deploy/README.md.
+Verificare sul server di produzione la 0.15.x: `SpotAt` in `/api/presence` e scheda «Partner silenziosi», conversione di `badnode.local` e `badspotter.local` in testo con copia in `badlist-backups/`, backup pianificato del giorno dopo, rinomina di un partner, aggiornamento che non tocca `engine/` (il motore deve restare in piedi). Poi scegliere dalle proposte in docs/PROPOSTE.md.
 
 ## Piano miglioramenti del pannello (2026-11-22)
 
