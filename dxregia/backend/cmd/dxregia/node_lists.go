@@ -59,9 +59,24 @@ func validIPEntry(line string) bool {
 	return err == nil
 }
 
-// parseBadDX legge il file di DXSpider (un hash Perl «bless( {...}, 'DXHash' )»).
+// parseBadDX legge un elenco di DXSpider. Il formato storico è un hash Perl «bless( {...}, 'DXHash' )»; dalla
+// build 931 il motore converte i file «.local» in testo semplice (un nominativo per riga, «#» per i commenti).
+// Si leggono entrambi, perché dopo l'aggiornamento il motore converte le liste all'avvio.
 func parseBadDX(text string) map[string]int64 {
 	out := map[string]int64{}
+	if !strings.Contains(text, "=>") {
+		for _, line := range strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n") {
+			if i := strings.Index(line, "#"); i >= 0 {
+				line = line[:i]
+			}
+			for _, word := range strings.Fields(strings.ToUpper(line)) {
+				if badCall.MatchString(word) {
+					out[word] = 0
+				}
+			}
+		}
+		return out
+	}
 	for _, m := range dumperEntry.FindAllStringSubmatch(text, -1) {
 		if m[1] == "NAME" || !badCall.MatchString(m[1]) {
 			continue
@@ -87,6 +102,25 @@ func renderBadList(name string, entries map[string]int64) string {
 		fmt.Fprintf(&b, "  '%s' => %d,\n", call, entries[call])
 	}
 	b.WriteString("}, 'DXHash' )\n")
+	return b.String()
+}
+
+// renderBadText scrive un elenco «.local» nel testo semplice che il motore legge dalla build 931: un nominativo per
+// riga. I commenti dell'elenco precedente si conservano in testa.
+func renderBadText(old string, calls []string) string {
+	var b strings.Builder
+	if !strings.Contains(old, "=>") {
+		for _, line := range strings.Split(strings.ReplaceAll(old, "\r\n", "\n"), "\n") {
+			if strings.HasPrefix(strings.TrimSpace(line), "#") {
+				b.WriteString(strings.TrimRight(line, " \t") + "\n")
+			}
+		}
+	}
+	sorted := append([]string{}, calls...)
+	sort.Strings(sorted)
+	for _, call := range sorted {
+		b.WriteString(call + "\n")
+	}
 	return b.String()
 }
 
@@ -170,20 +204,6 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 	baseCount := func(name string) int {
 		return len(parseBadDX(read(filepath.Join(root, "local_data", name))))
 	}
-	// keepDated conserva la data di inserimento delle voci che restano e data quelle nuove.
-	keepDated := func(path string, calls []string) map[string]int64 {
-		old := parseBadDX(read(path))
-		entries := map[string]int64{}
-		for _, call := range calls {
-			if at, ok := old[call]; ok {
-				entries[call] = at
-			} else {
-				entries[call] = time.Now().Unix()
-			}
-		}
-		return entries
-	}
-
 	// Script di avvio
 	mux.HandleFunc("GET /api/startup", func(w http.ResponseWriter, r *http.Request) {
 		if !guard(w, r, false) {
@@ -325,13 +345,13 @@ func registerNodeLists(mux *http.ServeMux, root string, auth *sysopAuth) {
 			files = append(files, struct {
 				path string
 				text string
-			}{nodesPath, renderBadList("badnode", keepDated(nodesPath, nodes))})
+			}{nodesPath, renderBadText(read(nodesPath), nodes)})
 		}
 		if change.Spotters != nil {
 			files = append(files, struct {
 				path string
 				text string
-			}{spottersPath, renderBadList("badspotter", keepDated(spottersPath, spotters))})
+			}{spottersPath, renderBadText(read(spottersPath), spotters)})
 		}
 		for _, file := range files {
 			if err := writeNodeFile(file.path, []byte(file.text)); err != nil {

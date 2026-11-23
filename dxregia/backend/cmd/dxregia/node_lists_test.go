@@ -32,6 +32,30 @@ func TestBadDXRoundTrip(t *testing.T) {
 	}
 }
 
+func TestBadListPlainTextAndHash(t *testing.T) {
+	text := "# nodi bloccati\nK1ABC-5 w9zz  # commento\n\nNOT_A_CALL\n"
+	entries := parseBadDX(text)
+	if len(entries) != 2 || entries["K1ABC-5"] != 0 || entries["W9ZZ"] != 0 {
+		t.Fatalf("plain text parsed as %+v", entries)
+	}
+	legacy := parseBadDX("bless( {\n  name => 'badnode',\n  'K1ABC-5' => 17,\n}, 'DXHash' )\n")
+	if len(legacy) != 1 || legacy["K1ABC-5"] != 17 {
+		t.Fatalf("hash parsed as %+v", legacy)
+	}
+}
+
+func TestRenderBadTextKeepsCommentsAndDropsHash(t *testing.T) {
+	got := renderBadText("# nodi\nK1ABC-5\n", []string{"W9ZZ", "K1ABC-5"})
+	if got != "# nodi\nK1ABC-5\nW9ZZ\n" {
+		t.Fatalf("rendered %q", got)
+	}
+	// Un file nel vecchio formato non porta righe di hash nel nuovo testo.
+	got = renderBadText("bless( {\n  name => 'badnode',\n  'K1ABC-5' => 17,\n}, 'DXHash' )\n", []string{"W9ZZ"})
+	if got != "W9ZZ\n" {
+		t.Fatalf("rendered %q", got)
+	}
+}
+
 func TestIPEntries(t *testing.T) {
 	for _, ok := range []string{"192.0.2.1", "192.0.2.0/24", "2001:db8::/32"} {
 		if !validIPEntry(ok) {

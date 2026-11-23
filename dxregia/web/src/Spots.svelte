@@ -528,7 +528,10 @@
       <span class="dot" aria-hidden="true"></span>
     {/if}
     {#if engine}
-      <span class="stat" title="DXSpider">DXSpider <strong>{engine}</strong></span>
+      <span class="stat">
+        <a class="engine-link" href="https://github.com/EA3CV/dxspider/tree/mojo" target="_blank" rel="noopener noreferrer" title="DXSpider Mojo, Dirk Koopman G1TLH and contributors">DXSpider Mojo</a>
+        <strong>{engine}</strong>
+      </span>
       <span class="dot" aria-hidden="true"></span>
     {/if}
     <a class="project" href="https://github.com/wifi75/dxregia" target="_blank" rel="noopener noreferrer" title={t('projectNote')}>
@@ -683,6 +686,8 @@
   .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; margin: 0 auto; flex: none; padding: 9px 18px; width: fit-content; max-width: 100%; border: 1px solid #b9cbd9; border-radius: 999px; background: #ffffffb3; backdrop-filter: blur(10px); color: #274760; font-size: .88rem; }
   .stat, .project { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
   .stat strong { font-variant-numeric: tabular-nums; color: #143a60; font-weight: 800; }
+  .engine-link { color: inherit; text-decoration: none; }
+  .engine-link:hover, .engine-link:focus-visible { text-decoration: underline; }
   .stat svg, .project svg { color: #3a82c0; }
   .project { color: #175c82; font-weight: 650; text-decoration: none; }
   .project:hover { text-decoration: underline; }

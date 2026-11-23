@@ -37,7 +37,7 @@ func TestBadLoginLists(t *testing.T) {
 		t.Fatalf("save refused: %d %s", w.Code, w.Body)
 	}
 	local, err := os.ReadFile(filepath.Join(data, "badnode.local"))
-	if err != nil || !strings.Contains(string(local), "name => 'badnode'") || !strings.Contains(string(local), "'KK3ZZ-5' =>") {
+	if err != nil || string(local) != "KK3ZZ-5\n" {
 		t.Fatalf("unexpected node list file: %q %v", local, err)
 	}
 	if got, _ := os.ReadFile(filepath.Join(data, "badnode")); string(got) != base {
