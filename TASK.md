@@ -25,6 +25,7 @@ Regola: nessuna voce di menu nuova se la funzione sta bene dentro una pagina esi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.15.6: scheda «Record collegati insieme» in dashboard con il massimo storico di utenti contemporanei via Telnet e via web DXSpider, con data, salvato in `local_data/dxregia-records.json`. Solo pannello e servizio web, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.5: la pagina Aggiornamenti non propone più come aggiornamento un commit senza versione che cambia solo la documentazione, e mostra «Disponibile» solo quando c'è qualcosa da installare, con il nome della versione. Solo pannello e servizio web, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.4: nella scheda dei radioamatori collegati il paese sta sotto il nominativo, nella stessa casella. Solo pannello.
 - [x] Rilasciare DXRegia 0.15.3: corretto l'aggiornamento dell'hook `Local.pm` sui nodi già installati (restava quello del 20/11 perché la sua impronta non era nell'elenco); ora ha un marcatore e si sostituisce a ogni aggiornamento. Da verificare sul server dopo l'aggiornamento: `Local.pm` contiene `node_spot_at`, `SpotAt` compare in `/api/presence`, le liste bloccate si ricaricano senza riavvio.
