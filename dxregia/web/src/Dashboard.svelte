@@ -63,7 +63,11 @@
   let channels = $derived(fresh ? snapshot?.Channels ?? [] : [])
   let nodes = $derived(channels.filter(channel => channel.Kind === 'node'))
   let sessions = $derived(channels.filter(channel => channel.Kind === 'telnet' || channel.Kind === 'web')
-    .sort((a, b) => a.Call.localeCompare(b.Call) || a.Kind.localeCompare(b.Kind)))
+    // I più recenti per primi: chi è collegato da più tempo scivola in coda.
+    .sort((a, b) => (b.Since || 0) - (a.Since || 0) || a.Call.localeCompare(b.Call) || a.Kind.localeCompare(b.Kind)))
+  // Un nominativo appena collegato lampeggia per qualche secondo.
+  const freshSeconds = 12
+  const isFresh = (session: Channel) => session.Since > 0 && now / 1000 - session.Since < freshSeconds
   let sessionsWidth = $state(0)
   let sessionPage = $state(1)
   const sessionColumns = $derived(Math.min(10, Math.max(1, Math.floor((sessionsWidth - 24 + 4) / (113 + 4)))))
@@ -269,7 +273,7 @@
     <ul class="session-grid" style:--session-columns={sessionColumns}>
       {#each visibleSessions as session, index (session.Call + ':' + session.Kind)}
         {@const flag = dxccFlags[session.DXCC ?? 0]}
-        <li class:at-edge={(index + 1) % sessionColumns === 0}>
+        <li class:at-edge={(index + 1) % sessionColumns === 0} class:fresh={isFresh(session)}>
           <div class="session-call">
             {#if flag}
               {@const country = dxccFlagName(flag, regionNames, session.DXCC)}
@@ -414,6 +418,22 @@
   .users { margin-top: 14px; border-top: 4px solid #2fa36b; container-type: inline-size; }
   .session-grid { display: grid; grid-template-columns: repeat(var(--session-columns), minmax(0, 1fr)); gap: 3px 4px; padding: 0; margin: 0; list-style: none; }
   .session-grid li { display: flex; align-items: center; gap: 4px; min-width: 0; min-height: 29px; padding: 3px 4px; border: 1px solid #b9d0df; border-radius: 5px; background: #f6fbfe; white-space: nowrap; }
+  /* Appena collegato: un LED verde gira lungo il bordo della casella e lo sfondo lampeggia. */
+  @property --spin { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+  .session-grid li.fresh { position: relative; border-color: #1fa86b; animation: arrival-flash .9s ease-in-out infinite alternate; }
+  .session-grid li.fresh::before {
+    content: ''; position: absolute; inset: -3px; padding: 3px; border-radius: 8px; pointer-events: none;
+    background: conic-gradient(from var(--spin), transparent 0 35%, #1fa86b 65%, #eafff4 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    animation: arrival-spin 1.1s linear infinite;
+  }
+  @keyframes arrival-spin { to { --spin: 360deg; } }
+  @keyframes arrival-flash { from { background: #f6fbfe; box-shadow: none; } to { background: #d4f5e5; box-shadow: 0 0 9px #1fa86b99; } }
+  @media (prefers-reduced-motion: reduce) {
+    .session-grid li.fresh { animation: none; background: #d4f5e5; box-shadow: 0 0 0 2px #1fa86b; }
+    .session-grid li.fresh::before { display: none; }
+  }
   .session-call { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
   .session-call strong { overflow: hidden; text-overflow: ellipsis; font-size: .875rem; }
   .session-flag { position: relative; flex: none; }

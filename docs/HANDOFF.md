@@ -492,6 +492,8 @@ Aggiornamento del server di prova alla 0.10.0 dal pannello (aggiornamento comple
 
 ## 2026-11-23 — DXRegia 0.15.3 (aggiornamento dell'hook Local.pm)
 
+Nella stessa versione: `Dashboard.svelte` ordina le sessioni per `Since` decrescente e dà la classe `fresh` (12 s) a chi si è appena collegato, con anello verde animato (`@property --spin`, conic-gradient e maschera) e lampeggio dello sfondo; con `prefers-reduced-motion` resta un contorno fisso. L'animazione è stata provata in una pagina di prova nel browser, non nella dashboard con accesso.
+
 `installPresenceHook` (`presence.go`) sostituisce `local/Local.pm` solo se la sua SHA-256 è nell'elenco delle versioni gestite; l'elenco non era stato esteso dopo la versione del 20/11 (`bfc99c7e`, impronta `19e1e360`), quindi il server aveva ancora quella: mancavano il ricaricamento di `badnode.local`/`badspotter.local` (0.12.0) e `SpotAt` (0.15.0), senza alcun errore (scoperto controllando `SpotAt` vuoto per tutti i nodi dopo ore). Ora: aggiunte le impronte di `19e1e360`, `1488b1d8` (0.12.0) e `9fc731b1` (0.15.x) e un marcatore `# DXREGIA-MANAGED-HOOK` sulla seconda riga di `presence.pm`; un file che lo contiene si sostituisce sempre. Da qui in poi non serve più estendere l'elenco. Test: `presence_hook_test.go` (marcatore presente, installazione, aggiornamento, file del sysop intatto). Lezione: dopo ogni release che cambia `presence.pm`, controllare sul server che `Local.pm` sia cambiato.
 
 ## 2026-11-23 — DXRegia 0.15.2 (motore build 931 e nuovo formato delle liste)
