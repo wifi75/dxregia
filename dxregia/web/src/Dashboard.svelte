@@ -80,7 +80,7 @@
   let sessionsWidth = $state(0)
   let sessionPage = $state(1)
   const sessionColumns = $derived(Math.min(10, Math.max(1, Math.floor((sessionsWidth - 24 + 4) / (113 + 4)))))
-  const pageSize = $derived(sessionColumns * 4)
+  const pageSize = $derived(sessionColumns * 8)
   const pageCount = $derived(Math.max(1, Math.ceil(sessions.length / pageSize)))
   const currentPage = $derived(Math.min(sessionPage, pageCount))
   const visibleSessions = $derived(sessions.slice((currentPage - 1) * pageSize, currentPage * pageSize))
