@@ -13,7 +13,7 @@
 
 - Directory: D:/progetti/dxregia.
 - Branch di lavoro: dxregia/main.
-- Baseline upstream: mojo, commit 5e4139b53d1d9f801b84f4b4d4e1fc50b5430dab (DXSpider 1.57 build 929, allineata il 2026-11-22; la base precedente era 9b55f03f, build 688).
+- Baseline upstream: mojo, commit 30e57466864c369787542b786a867a0216d85f31 (DXSpider 1.57 build 931, allineata il 2026-11-23, con due commit applicati sopra la base 5e4139b5 build 929; la base precedente era 9b55f03f, build 688).
 - Documentazione e struttura iniziali create. Il motore e i file di licenza del clone sono conservati.
 - Su questo host il controllo iniziale ha trovato Node, ma go, npm e docker non risultavano disponibili nel PATH. Nessuna verifica runtime Linux è stata eseguita.
 - Requisiti visivi e flussi per pagina pubblica e area sysop: docs/INTERFACES.md.
@@ -489,6 +489,10 @@ Aggiornamento del server di prova alla 0.10.0 dal pannello (aggiornamento comple
 ## 2026-11-22 — DXRegia 0.11.0 (voci 1, 2 e 3 del piano del pannello)
 
 `mojo_routing.go` riconosce frasi note del registro di debug del motore (Bad Spot, PC61 da indirizzo non pubblico, PC92_MALFORMED, PC92_ADMISSION, rollback di PC92 A/C/D, troppi errori, accessi troppo ravvicinati, badip/badnode/badspotter, troppe connessioni, secondo accesso respinto) e le mostra come eventi «Routing» e «Accessi» senza IP degli utenti né contenuto dei pacchetti. Le frasi arrivano da `cluster.pl` e `DXProtHandle.pm` del motore build 929: a ogni allineamento upstream vanno riviste (il test `TestMojoRoutingAndAccessEvents` ne fissa il formato). Alcune righe PC92 sono scritte solo con certe categorie di debug (routelow, chanerr): se non compaiono nel log, non sono attive. `mojo_watch.go` riavvia Mojo dopo un'uscita con codice diverso da zero, al massimo 5 volte in 10 minuti. Prova pratica con `kill -9` sul motore reale ancora da fare.
+
+## 2026-11-23 — DXRegia 0.15.2 (motore build 931 e nuovo formato delle liste)
+
+Il repository non contiene il commit upstream `5e4139b5` (l'allineamento alla build 929 fu una copia dei file): i due commit `9756930d` (DXUser, recupero di `dxusers.db` da `user_json`) e `30e57466` (validazione delle liste bad* e IPv6 CIDR) sono stati scaricati con `gh api -H "Accept: application/vnd.github.v3.diff"` e applicati con `git apply --directory=engine`; `Version.pm` è a build 931, git id `30e57466[i]`. Cambio che pesa: `DXHash.pm` ora tratta ogni file con estensione (`badnode.local`, `badspotter.local`) come testo semplice e, all'avvio (`_badlist_run`), converte una volta l'hash vecchio in testo con copia in `local_data/badlist-backups/`. Il pannello (`node_lists.go`) leggeva e scriveva solo l'hash, quindi dopo l'aggiornamento avrebbe mostrato le liste vuote e le avrebbe sovrascritte: `parseBadDX` ora legge entrambi i formati e `renderBadText` salva testo (commenti `#` conservati, nessuna data). `baddx` e i file di base senza estensione restano in formato hash. Verifiche: go vet, go test (nuovi `TestBadListPlainTextAndHash`, `TestRenderBadTextKeepsCommentsAndDropsHash`), build del pannello, sintassi Perl. Da provare sul server: conversione reale delle liste, avvio del motore con la nuova `DXHash.pm`, comandi `set/badnode` e `unset/badnode` da Telnet.
 
 ## 2026-11-23 — DXRegia 0.15.1 (pagina in cima a ogni cambio)
 

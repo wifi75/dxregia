@@ -4,6 +4,15 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.15.2] - 2026-11-23
+
+### Changed
+
+- Engine aligned to DXSpider Mojo build 931 (upstream commit `30e57466`): two upstream changes are applied on top of build 929. DXUser can rebuild a missing `dxusers.db` from the weekly `user_json` export; the bad* lists are validated and repaired at startup, with backups in `local_data/badlist-backups/`, and IPv6 CIDR handling no longer prints spurious warnings.
+- The engine now converts `badnode.local` and `badspotter.local` from the old Perl hash format to plain text (one callsign per line) the first time it starts. The panel reads both formats and saves plain text, so the lists stay visible and are not overwritten after the update. Comments (`#`) at the top of a list are kept; the insertion date of an entry is no longer stored.
+- Public page footer: "DXSpider Mojo" links to the upstream branch, and shows the engine build.
+- The first update to this version restarts the engine, because `engine/` changes.
+
 ## [0.15.1] - 2026-11-23
 
 ### Fixed

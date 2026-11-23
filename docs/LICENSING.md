@@ -4,7 +4,7 @@ Inventario verificato il 19 novembre 2026. Ambito: repository sorgente, binario 
 
 ## Motore DXSpider
 
-DXRegia incorpora una versione modificata di DXSpider Mojo, di Dirk Koopman (G1TLH) e dei contributori. La base del motore è il [commit upstream 5e4139b5](https://github.com/EA3CV/dxspider/commit/5e4139b53d1d9f801b84f4b4d4e1fc50b5430dab). I file [COPYING](../COPYING) e [LICENSE](../LICENSE) coincidono con quelli della base upstream e vengono conservati anche nell’installazione del motore.
+DXRegia incorpora una versione modificata di DXSpider Mojo, di Dirk Koopman (G1TLH) e dei contributori. La base del motore è il [commit upstream 30e57466](https://github.com/EA3CV/dxspider/commit/30e57466864c369787542b786a867a0216d85f31). I file [COPYING](../COPYING) e [LICENSE](../LICENSE) coincidono con quelli della base upstream e vengono conservati anche nell’installazione del motore.
 
 Il commit upstream [Make license version 2](https://github.com/EA3CV/dxspider/commit/8fdda36498ce8c8b0feaf33d67f6582de5c2b03b) aggiorna esplicitamente `LICENSE` ad [Artistic License 2.0](https://opensource.org/license/Artistic-2.0). `COPYING` conserva il testo Artistic storico. Mantieni entrambi e rispetta gli avvisi specifici dei singoli file. I testi upstream riguardano il motore e i suoi derivati. La scelta esplicita di licenza per i componenti originali separati sotto `dxregia/` resta da registrare.
 

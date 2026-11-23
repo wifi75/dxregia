@@ -25,6 +25,7 @@ Regola: nessuna voce di menu nuova se la funzione sta bene dentro una pagina esi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.15.2: motore allineato alla build 931 (due commit upstream applicati su `engine/`), pannello adattato al nuovo formato testo di `badnode.local` e `badspotter.local` (il motore converte le liste vecchie al primo avvio), piè di pagina con «DXSpider Mojo» e link. Da verificare sul server dopo l'aggiornamento: conversione delle liste con copia in `badlist-backups/`, aggiunta e rimozione di un nodo e di un utente dal pannello, riavvio del motore senza errori.
 - [x] Rilasciare DXRegia 0.15.1: a ogni cambio di pagina il pannello torna in cima (`$effect` su `page` in `Auth.svelte`). Solo pannello, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.0: dashboard con le schede «Partner silenziosi» e «Ultimi eventi» nella prima riga e «Nodi partner» compatta su tre colonne. L'hook `presence.pm` registra l'ultimo spot ricevuto da ogni nodo (`SpotAt`). Da verificare sul server dopo l'aggiornamento: che `SpotAt` compaia in `/api/presence` e che la scheda indichi i nodi realmente silenziosi.
 - [x] Rilasciare DXRegia 0.14.2: la dashboard mostra solo la scheda «Nodi partner»; la scheda «Nodi collegati in ingresso» ripeteva gli stessi nodi (la tabella dei partner include già gli ingressi non registrati, con il tag IN).
