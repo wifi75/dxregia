@@ -11,8 +11,20 @@ my $rbn_enabled = 0;
 my $rbn_next_attempt = 0;
 my $rbn_error = '';
 my @rbn_spots;
+my %node_spot_at;
 
 sub init {
+    # Remember when each neighbouring node last sent a DX spot (PC11/PC61), for the panel's "silent partners".
+    my $handle_spot = \&DXProt::handle_11;
+    no warnings 'redefine';
+    *DXProt::handle_11 = sub {
+        my ($self, $pcno, $line, $origin, $pc, $recurse) = @_;
+        if (!$recurse && ref($self) && eval { $self->is_node }) {
+            my $call = eval { "" . $self->call };
+            $node_spot_at{$call} = time if defined $call && length($call);
+        }
+        goto &$handle_spot;
+    };
     # Observe the curated candidates once before the engine applies each user's filters.
     my $send = \&RBN::send_dx_spot;
     no warnings 'redefine';
@@ -167,6 +179,7 @@ sub process {
             Since => int($channel->startt || 0),
             ($dxcc && $dxcc != 666 ? (DXCC => int($dxcc)) : ()),
             Outbound => ($kind eq 'node' && $channel->{outbound}) ? JSON::true : JSON::false,
+            ($kind eq 'node' && $node_spot_at{"" . $channel->call} ? (SpotAt => int($node_spot_at{"" . $channel->call})) : ()),
         };
     }
     my $target = "$main::local_data/dxregia-presence.json";

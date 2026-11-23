@@ -4,7 +4,8 @@
   import { lang } from './i18n.svelte'
 
   type Status = { address: string; state: 'ready' | 'unexpected' | 'unreachable'; checkedAt: string }
-  type Channel = { Call: string; Kind: string; State: string; Since: number; Outbound?: boolean; DXCC?: number }
+  type Channel = { Call: string; Kind: string; State: string; Since: number; Outbound?: boolean; DXCC?: number; SpotAt?: number }
+  type LogEvent = { At: number; Kind: string; Message: string; Call?: string }
   type Snapshot = { At: number; Channels: Channel[] | null }
   type NodeHealth = {
     MemoryFreeBytes: number; MemoryTotalBytes: number; MemoryAvailable: boolean
@@ -28,6 +29,7 @@
   let publicTelnet = $state('')
   let nodeHealth = $state<NodeHealth>()
   let presenceDelay = $state<number>()
+  let events = $state<LogEvent[]>([])
   const number = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 })
   function size(bytes: number) {
     const unit = Math.abs(bytes) >= 1024 ** 3 ? 3 : Math.abs(bytes) >= 1024 ** 2 ? 2 : Math.abs(bytes) >= 1024 ? 1 : 0
@@ -49,6 +51,13 @@
   }
 
   const time = new Intl.DateTimeFormat('it-IT', { timeStyle: 'medium' })
+  const shortTime = new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit' })
+  async function loadEvents() {
+    try {
+      const response = await fetch('/api/mojo-log?anonymous=false', { cache: 'no-store', signal: AbortSignal.timeout(8000) })
+      events = response.ok ? (await response.json() as LogEvent[]).filter(event => event.At > 0 && (event.Kind === 'Avvio' || event.Kind === 'Collegamenti')).slice(0, 4) : []
+    } catch { /* la scheda resta com'è */ }
+  }
 
   let fresh = $derived(Boolean(snapshot?.At) && now / 1000 - (snapshot?.At ?? 0) < 20)
   let channels = $derived(fresh ? snapshot?.Channels ?? [] : [])
@@ -71,15 +80,26 @@
   const partnerRows = $derived([...new Set([...partnerCalls, ...nodes.map(node => node.Call)])]
     .sort((a, b) => Number(activeNodeCalls.has(b)) - Number(activeNodeCalls.has(a)) || a.localeCompare(b)))
   let partnerPage = $state(1)
-  const partnersPerPage = 16
+  const partnersPerPage = 18
   const partnerPageCount = $derived(Math.max(1, Math.ceil(partnerRows.length / partnersPerPage)))
   const currentPartnerPage = $derived(Math.min(partnerPage, partnerPageCount))
   const visiblePartners = $derived(partnerRows.slice((currentPartnerPage - 1) * partnersPerPage, currentPartnerPage * partnersPerPage))
   $effect(() => { if (fresh && partnerPage > partnerPageCount) partnerPage = partnerPageCount })
   const partnerColumns = $derived.by(() => {
-    const half = Math.ceil(visiblePartners.length / 2)
-    return [visiblePartners.slice(0, half), visiblePartners.slice(half)].filter(column => column.length)
+    const size = Math.ceil(visiblePartners.length / 3)
+    return [0, 1, 2].map(i => visiblePartners.slice(i * size, (i + 1) * size)).filter(column => column.length)
   })
+  // Nodo collegato da oltre 30 minuti dal quale non arriva nessuno spot (la spia verde non lo segnala).
+  const silentMinutes = 30
+  const silentPartners = $derived(nodes
+    .filter(node => node.State === 'normal' && !directory[node.Call]?.Locked && now / 1000 - Math.max(node.SpotAt ?? 0, node.Since) > silentMinutes * 60)
+    .map(node => node.Call).sort())
+  const silentTile = $derived<{ tone: Tone; title: string; detail: string }>(
+    !fresh ? { tone: 'neutral', title: 'Non disponibile', detail: 'Stato delle sessioni non disponibile.' }
+      : !activeNodeCalls.size ? { tone: 'neutral', title: 'Nessun nodo collegato', detail: 'Niente da controllare.' }
+      : silentPartners.length ? { tone: 'amber', title: silentPartners.length + (silentPartners.length === 1 ? ' nodo senza spot' : ' nodi senza spot'),
+          detail: silentPartners.slice(0, 4).join(', ') + (silentPartners.length > 4 ? '…' : '') + ' · da oltre ' + silentMinutes + ' min' }
+      : { tone: 'green', title: 'Tutti i nodi inviano spot', detail: 'Ultimi ' + silentMinutes + ' minuti.' })
   let lockedCalls = $derived(partnerCalls.filter(call => directory[call].Locked))
   let connected = $derived(partnerCalls.filter(call => activeNodeCalls.has(call)))
   let listener = $derived<{ tone: Tone; title: string; detail: string }>(
@@ -121,7 +141,9 @@
   onMount(() => {
     void load()
     void loadHealth()
+    void loadEvents()
     const healthTimer = setInterval(loadHealth, 15000)
+    const eventsTimer = setInterval(loadEvents, 15000)
     void fetch('/api/node-settings', { cache: 'no-store' }).then(async response => {
       if (response.status !== 200) return
       const { advertisedHost, port } = await response.json()
@@ -141,7 +163,7 @@
     const safety = setInterval(load, 20000)
     const probe = setInterval(refresh, 30000)
     const clock = setInterval(() => { now = Date.now() }, 1000)
-    return () => { source?.close(); clearInterval(timer); clearInterval(safety); clearInterval(probe); clearInterval(clock); clearInterval(healthTimer) }
+    return () => { source?.close(); clearInterval(timer); clearInterval(safety); clearInterval(probe); clearInterval(clock); clearInterval(healthTimer); clearInterval(eventsTimer) }
   })
 </script>
 
@@ -171,6 +193,25 @@
       {/if}
     </article>
   {/each}
+  <article class="tile glass-panel" data-tone={silentTile.tone}>
+    <p class="label"><span class="led" data-tone={silentTile.tone} aria-hidden="true"></span>Partner silenziosi</p>
+    <p class="value">{silentTile.title}</p>
+    <p class="detail">{silentTile.detail}</p>
+  </article>
+  <article class="tile glass-panel" data-tone="neutral">
+    <p class="label"><span class="led" data-tone="neutral" aria-hidden="true"></span>Ultimi eventi</p>
+    {#if events.length}
+      <ul class="events">
+        {#each events as event (event.At + event.Message + (event.Call ?? ''))}
+          {@const text = (event.Call ? event.Call + ' · ' : '') + event.Message}
+          <li title={text}><time>{shortTime.format(new Date(event.At * 1000))}</time> {text}</li>
+        {/each}
+      </ul>
+    {:else}
+      <p class="value">Nessun evento</p>
+      <p class="detail">Collegamenti e riavvii recenti compaiono qui.</p>
+    {/if}
+  </article>
 </section>
 
 <div class="columns">
@@ -200,7 +241,7 @@
                   <tr>
                     <td><span class="partner-node">
                       {#if flag}<img src={'/flags/' + flag + '.svg'} alt="" width="22" height="16" loading="lazy" />{/if}
-                      <span class="partner-name"><strong title={directory[call]?.Name || undefined}>{call}</strong>{#if country}<small>{country}</small>{/if}</span>
+                      <span class="partner-name"><strong title={directory[call]?.Name || undefined}>{call}</strong>{#if country}<small>· {country}</small>{/if}</span>
                     </span></td>
                     <td><span class="partner-state"><span class="led" data-tone={tone} role="img" aria-label={locked || !node || node.State !== 'normal' ? undefined : 'Attivo'} aria-hidden={locked || !node || node.State !== 'normal' ? 'true' : undefined} title={node?.State === 'normal' && !locked ? 'Attivo' : undefined}></span>{locked ? 'Nodo bloccato in DXSpider' : !node ? 'Disconnesso' : node.State === 'normal' ? '' : 'Sessione aperta'}
                       {#if !locked && node?.State === 'normal'}<small>· dalle {time.format(new Date(node.Since * 1000))}</small>{/if}</span></td>
@@ -341,6 +382,9 @@
   .label { display: flex; align-items: center; gap: 9px; color: #485b6d; font-size: .88rem; font-weight: 650; text-transform: uppercase; letter-spacing: .03em; }
   .tile .led { width: 8px; height: 8px; flex-basis: 8px; }
   .value { margin-top: 3px !important; font-size: 1.08rem; font-weight: 750; color: #143a60; line-height: 1.2; }
+  .events { margin: 3px 0 0; padding: 0; list-style: none; color: #485b6d; font-size: .8rem; }
+  .events li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.4; }
+  .events time { color: #2c4a60; font-weight: 650; font-variant-numeric: tabular-nums; }
   .detail { margin-top: 2px !important; color: #485b6d; font-size: .81rem; overflow-wrap: anywhere; }
   .led { width: 13px; height: 13px; flex: 0 0 13px; border-radius: 50%; background: #708391; box-shadow: 0 0 0 4px #70839126; }
   .led[data-tone=green] { background: #1fa86b; box-shadow: 0 0 0 4px #1fa86b33, 0 0 10px #1fa86b88; }
@@ -350,16 +394,16 @@
   .box-head h2 { margin: 0; }
   .count { min-width: 1.8em; padding: 2px 10px; border-radius: 999px; background: #e3eef6; color: #143a60; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
   .partners { border-top: 3px solid #3a82c0; }
-  .partner-tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 0 14px; align-items: start; }
+  .partner-tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 0 14px; align-items: start; }
   .partner-table { margin-top: 7px; overflow-x: auto; }
   .partner-table + .partner-table { padding-left: 14px; border-left: 1px solid #b4cbd9; }
   @media (max-width: 1100px) { .partner-table + .partner-table { padding-left: 0; border-left: 0; } }
   .partner-node { display: inline-flex; align-items: center; gap: 8px; }
   .partner-node img { flex: none; object-fit: cover; border: 1px solid #17384c26; border-radius: 2px; }
-  .partner-name { display: grid; line-height: 1.15; }
+  .partner-name { display: inline-flex; align-items: baseline; gap: .35rem; line-height: 1.15; white-space: nowrap; }
   .partner-name small { color: #506678; font-size: .76rem; white-space: nowrap; }
   .partner-table table { width: 100%; border-collapse: collapse; text-align: left; }
-  .partner-table th, .partner-table td { padding: .32rem .5rem; border-bottom: 1px solid #cfdee7; }
+  .partner-table th, .partner-table td { padding: .2rem .4rem; border-bottom: 1px solid #cfdee7; }
   .partner-table th { color: #3f5c71; background: #e8f1f7; font-size: .8rem; }
   .partner-state { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .2rem .45rem; }
   .partner-state small { color: #506678; white-space: nowrap; }

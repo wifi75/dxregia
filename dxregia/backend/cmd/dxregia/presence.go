@@ -22,6 +22,8 @@ type presenceChannel struct {
 	Since    int64
 	Outbound bool
 	DXCC     int `json:",omitempty"`
+	// SpotAt è l'istante dell'ultimo spot ricevuto da questo nodo collegato (solo nodi, 0 se nessuno).
+	SpotAt int64 `json:",omitempty"`
 }
 
 type presence struct {
