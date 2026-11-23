@@ -403,7 +403,9 @@
   .blocked p { margin: 2px 0; }
   .heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
   h1 { margin: 0; font-size: 1.65rem; line-height: 1.2; }
-  .health { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 216px), 1fr)); gap: 10px; margin-top: 6px; }
+  .health { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 6px; }
+  @media (max-width: 900px) { .health { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .health { grid-template-columns: minmax(0, 1fr); } }
   .tile { padding: 8px 12px; border-left: 4px solid #708391; }
   .tile[data-tone=green] { border-left-color: #167b50; }
   .tile[data-tone=amber] { border-left-color: #ad6a10; }
@@ -413,13 +415,13 @@
   .tile .led { width: 8px; height: 8px; flex-basis: 8px; }
   .value { margin-top: 3px !important; font-size: 1.08rem; font-weight: 750; color: #143a60; line-height: 1.2; }
   .events { margin: 3px 0 0; padding: 0; list-style: none; color: #485b6d; font-size: .8rem; }
-  .events li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.4; }
+  .events li { overflow-wrap: anywhere; line-height: 1.4; }
   .events time { color: #2c4a60; font-weight: 650; font-variant-numeric: tabular-nums; }
   .records { margin: 3px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .records li { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .record-count { font-size: 1.9rem; font-weight: 750; line-height: 1; color: #12384f; font-variant-numeric: tabular-nums; }
   .record-text { display: grid; min-width: 0; font-size: .85rem; }
-  .record-text small { color: #506678; font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .record-text small { color: #506678; font-size: .72rem; overflow-wrap: anywhere; }
   .detail { margin-top: 2px !important; color: #485b6d; font-size: .81rem; overflow-wrap: anywhere; }
   .led { width: 13px; height: 13px; flex: 0 0 13px; border-radius: 50%; background: #708391; box-shadow: 0 0 0 4px #70839126; }
   .led[data-tone=green] { background: #1fa86b; box-shadow: 0 0 0 4px #1fa86b33, 0 0 10px #1fa86b88; }
