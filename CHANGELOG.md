@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-24
+
+### Added
+
+- Smartphone page at `/mobile` (sysop login): bottom menu with Stato, Statistiche and Altro. Stato shows node status (Telnet listener, DXSpider cluster, silent partners), partner nodes, connected amateurs and server status (memory, disk, uptimes). Statistiche shows today's spots and portal visits. Altro links to the full admin panel. New sections only need a new entry in the menu.
+
 ## [0.15.8] - 2026-11-23
 
 ### Changed

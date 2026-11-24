@@ -490,6 +490,10 @@ Aggiornamento del server di prova alla 0.10.0 dal pannello (aggiornamento comple
 
 `mojo_routing.go` riconosce frasi note del registro di debug del motore (Bad Spot, PC61 da indirizzo non pubblico, PC92_MALFORMED, PC92_ADMISSION, rollback di PC92 A/C/D, troppi errori, accessi troppo ravvicinati, badip/badnode/badspotter, troppe connessioni, secondo accesso respinto) e le mostra come eventi «Routing» e «Accessi» senza IP degli utenti né contenuto dei pacchetti. Le frasi arrivano da `cluster.pl` e `DXProtHandle.pm` del motore build 929: a ogni allineamento upstream vanno riviste (il test `TestMojoRoutingAndAccessEvents` ne fissa il formato). Alcune righe PC92 sono scritte solo con certe categorie di debug (routelow, chanerr): se non compaiono nel log, non sono attive. `mojo_watch.go` riavvia Mojo dopo un'uscita con codice diverso da zero, al massimo 5 volte in 10 minuti. Prova pratica con `kill -9` sul motore reale ancora da fare.
 
+## 2026-11-24 — DXRegia 0.16.0 (pagina /mobile)
+
+`Mobile.svelte` + route `GET /mobile` (stessa `index.html` del pannello, `no-store`). `App.svelte` riconosce `/mobile` (niente intestazione del portale, `main.phone-main` senza padding); `Auth.svelte` ha il prop opzionale `phone`: dopo il login mostra quello al posto del pannello. Schede: Stato (nodo, partner, radioamatori, server), Statistiche (`/api/cluster-stats`, `/api/analytics`), Altro (link a `/admin#voce`, tema, esci). Aggiornamento ogni 10 s (stato) e 30 s (statistiche), senza flusso live. Per una nuova sezione: voce in `tabs` e blocco `{#if tab === …}`. Verifica: build Svelte e collaudo GitHub; provata a 360 e 320 px solo con un server finto, non su un telefono con dati veri.
+
 ## 2026-11-23 — DXRegia 0.15.8 (elenco utenti su otto righe)
 
 `Dashboard.svelte`: `pageSize` passa da `sessionColumns * 4` a `sessionColumns * 8`; la paginazione compare solo oltre quella soglia. Verifica: build Svelte e collaudo GitHub; non ancora vista sul server di produzione.
