@@ -67,7 +67,7 @@ func (a *sysopAuth) registerFactorSettings(mux *http.ServeMux) {
 			a.expires = time.Now().Add(20 * time.Minute)
 		} else {
 			a.session = ""
-			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Path: "/", MaxAge: -1, HttpOnly: true, Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
+			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Path: "/", MaxAge: -1, HttpOnly: true, Secure: secureRequest(r), SameSite: http.SameSiteStrictMode})
 		}
 		w.WriteHeader(http.StatusNoContent)
 	}

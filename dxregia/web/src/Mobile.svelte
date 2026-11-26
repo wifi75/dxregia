@@ -137,7 +137,7 @@
   const menu = [
     { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['accessi', 'Accessi al nodo'], ['console', 'Console Telnet'], ['messaggio', 'Messaggio e pianificazione']] },
     { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['utenti', 'Utenti registrati'], ['richieste', 'Richieste ricevute'], ['rbn', 'Reverse Beacon Network']] },
-    { label: 'Gestione', items: [['analytics', 'Analytics'], ['backup', 'Backup'], ['aggiornamenti', 'Aggiornamenti'], ['password', 'Password']] },
+    { label: 'Gestione', items: [['analytics', 'Analytics'], ['backup', 'Backup'], ['aggiornamenti', 'Aggiornamenti'], ['sicurezza', 'Sicurezza'], ['password', 'Password']] },
   ] as const
 
   onMount(() => {

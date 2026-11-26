@@ -31,6 +31,8 @@ type sysopAuth struct {
 	expires       time.Time
 	nextLogin     time.Time
 	nextFactor    time.Time
+	loginFails    int
+	factorFails   int
 	factorFile    string
 	factor        secondFactor
 	pendingKey    string
@@ -191,7 +193,9 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				passwordOK := bcrypt.CompareHashAndPassword(a.hash, []byte(password)) == nil
 				userOK := subtle.ConstantTimeCompare([]byte(strings.ToLower(strings.TrimSpace(user))), []byte(strings.ToLower(a.loginName()))) == 1
 				if !passwordOK || !userOK {
-					a.nextLogin = time.Now().Add(time.Second)
+					a.loginFails++
+					a.nextLogin = time.Now().Add(loginDelay(a.loginFails))
+					security.record("Accesso errato", clientIP(r), "/api/auth/login")
 					http.Error(w, "Utente o password errati.", http.StatusUnauthorized)
 					return
 				}
@@ -201,6 +205,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 					return
 				}
 			}
+			a.loginFails = 0
 			token, err := randomToken()
 			if err == nil {
 				err = a.removeWebSession()
@@ -223,7 +228,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				}
 			}
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
-				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
+				Secure: secureRequest(r), SameSite: http.SameSiteStrictMode})
 		case "totp", "recovery":
 			if !a.signedIn(r) || a.temporary || a.factorOK || !a.factorEnabled() {
 				http.Error(w, "Accesso con password richiesto.", http.StatusUnauthorized)
@@ -241,7 +246,9 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 			}
 			if action == "recovery" {
 				if !a.factor.allowsRecovery(code) {
-					a.nextFactor = time.Now().Add(time.Second)
+					a.factorFails++
+					a.nextFactor = time.Now().Add(loginDelay(a.factorFails))
+					security.record("Codice errato", clientIP(r), "/api/auth/recovery")
 					http.Error(w, "Codice di recupero non valido.", http.StatusUnauthorized)
 					return
 				}
@@ -264,7 +271,9 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 			}
 			verified, ok, reused := factor.verify(code, time.Now())
 			if !ok {
-				a.nextFactor = time.Now().Add(time.Second)
+				a.factorFails++
+				a.nextFactor = time.Now().Add(loginDelay(a.factorFails))
+				security.record("Codice errato", clientIP(r), "/api/auth/totp")
 				message := "Codice non valido. Controlla di usare la voce DXRegia corretta e che telefono e server abbiano l’ora sincronizzata."
 				if reused {
 					message = "Codice già usato. Attendi che l’app mostri un nuovo codice e riprova."
@@ -272,6 +281,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				http.Error(w, message, http.StatusUnauthorized)
 				return
 			}
+			a.factorFails = 0
 			token, err := randomToken()
 			if err == nil && len(verified.Recovery) == 0 {
 				recoveryCodes, err = createRecoveryCodes(&verified)
@@ -290,8 +300,8 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				log.Printf("Save sysop session: %v", err)
 			}
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Value: token, Path: "/", HttpOnly: true,
-				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
-			if err := a.trustBrowser(w, r.TLS != nil); err != nil {
+				Secure: secureRequest(r), SameSite: http.SameSiteStrictMode})
+			if err := a.trustBrowser(w, secureRequest(r)); err != nil {
 				log.Printf("Save trusted device: %v", err)
 			}
 		case "logout":
@@ -303,7 +313,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				a.session, a.pendingKey, a.factorOK = "", "", false
 			}
 			http.SetCookie(w, &http.Cookie{Name: sysopCookie, Path: "/", MaxAge: -1, HttpOnly: true,
-				Secure: r.TLS != nil, SameSite: http.SameSiteStrictMode})
+				Secure: secureRequest(r), SameSite: http.SameSiteStrictMode})
 		}
 		w.Header().Set("Content-Type", "application/json")
 		// The login response precedes the browser's next request with its new cookie.

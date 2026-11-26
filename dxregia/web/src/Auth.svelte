@@ -9,6 +9,7 @@
   import MojoLog from './MojoLog.svelte'
   import TelnetConsole from './TelnetConsole.svelte'
   import PasswordSettings from './PasswordSettings.svelte'
+  import Security from './Security.svelte'
   import Setup from './Setup.svelte'
   import Partners from './Partners.svelte'
   import BackupNode from './BackupNode.svelte'
@@ -35,7 +36,7 @@
     { label: 'Nodo', items: [['stato', 'Stato e sessioni'], ['accessi', 'Accessi al nodo'], ['configurazione', 'Configurazione'], ['accesso-web', 'Accesso web'], ['console', 'Console Telnet'], ['opzioni-telnet', 'Opzioni Telnet'], ['messaggio', 'Messaggio e pianificazione'], ['avvio', 'Script di avvio'], ['liste', 'Liste di blocco'], ['hop', 'Hop e filtri']] },
     { label: 'Diagnostica', items: [['log-dxspider', 'Log DXSpider']] },
     { label: 'Collegamenti', items: [['partner', 'Nodi partner'], ['rbn', 'Reverse Beacon Network'], ['email-partner', 'Storico email partner'], ['richieste', 'Richieste ricevute'], ['utenti', 'Utenti registrati']] },
-    { label: 'Gestione', items: [['analytics', 'Analytics'], ['posta', 'Server di posta'], ['backup', 'Backup'], ['aggiornamenti', 'Aggiornamenti'], ['password', 'Password']] },
+    { label: 'Gestione', items: [['analytics', 'Analytics'], ['posta', 'Server di posta'], ['backup', 'Backup'], ['aggiornamenti', 'Aggiornamenti'], ['sicurezza', 'Sicurezza'], ['password', 'Password']] },
   ] as const
   type Page = typeof groups[number]['items'][number][0]
   let page = $state<Page>('stato')
@@ -360,6 +361,8 @@
           <BackupVerify />
         {:else if page === 'aggiornamenti'}
           <Updates />
+        {:else if page === 'sicurezza'}
+          <Security />
         {:else if page === 'password'}
           <PasswordSettings />
         {/if}

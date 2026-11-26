@@ -97,6 +97,7 @@ func main() {
 	registerBackups(service, mux, auth, *setupRoot, *backupTool)
 	registerPresence(mux, *setupRoot, auth)
 	registerRecords(service, mux, *setupRoot, auth)
+	registerSecurity(mux, auth)
 	registerSMTP(mux, *setupRoot, auth)
 	registerNodeFiles(mux, *setupRoot, auth)
 	go refreshIssueCountries(service, *setupRoot)
@@ -188,8 +189,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Load HTTP port: %v", err)
 	}
-	server := &http.Server{Addr: net.JoinHostPort(*httpBind, strconv.Itoa(httpPort)), Handler: mux,
-		ReadHeaderTimeout: 5 * time.Second, WriteTimeout: 25 * time.Second}
+	server := &http.Server{Addr: net.JoinHostPort(*httpBind, strconv.Itoa(httpPort)), Handler: secure(mux),
+		ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 25 * time.Second, IdleTimeout: 120 * time.Second, MaxHeaderBytes: 32 << 10}
 	webListener := &webListener{server: server, host: *httpBind, port: httpPort, path: *webPortFile}
 	webListener.listener, err = webListener.bind(httpPort)
 	if err != nil {
