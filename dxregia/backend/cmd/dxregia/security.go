@@ -28,8 +28,10 @@ func trustedProxy(r *http.Request) bool {
 	return ip != nil && (ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast())
 }
 
-// clientIP è l'indirizzo del visitatore, anche dietro un proxy fidato (Cloudflare, nginx).
-func clientIP(r *http.Request) string {
+// clientIP è l'indirizzo del visitatore, anche dietro un proxy fidato (HAProxy, Cloudflare, nginx). Il secondo valore
+// è falso quando la richiesta viene da un proxy che non dichiara l'indirizzo del visitatore: in quel caso l'unico
+// indirizzo noto è quello del proxy, uguale per tutti, e non si può usare per limitare le richieste.
+func clientIP(r *http.Request) (string, bool) {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		host = r.RemoteAddr
@@ -37,15 +39,16 @@ func clientIP(r *http.Request) string {
 	if trustedProxy(r) {
 		for _, name := range []string{"CF-Connecting-IP", "X-Real-IP"} {
 			if ip := net.ParseIP(strings.TrimSpace(r.Header.Get(name))); ip != nil {
-				return ip.String()
+				return ip.String(), true
 			}
 		}
 		parts := strings.Split(r.Header.Get("X-Forwarded-For"), ",")
 		if ip := net.ParseIP(strings.TrimSpace(parts[len(parts)-1])); ip != nil {
-			return ip.String()
+			return ip.String(), true
 		}
+		return host, false
 	}
-	return host
+	return host, true
 }
 
 // secureRequest dice se il visitatore usa HTTPS, direttamente o tramite un proxy fidato che termina TLS.
@@ -195,13 +198,13 @@ func secure(next http.Handler) http.Handler {
 		if secureRequest(r) {
 			h.Set("Strict-Transport-Security", "max-age=31536000")
 		}
-		ip := clientIP(r)
+		ip, known := clientIP(r)
 		if crossSite(r) {
 			security.record("Richiesta da altro sito", ip, r.URL.Path)
 			http.Error(w, "Richiesta non consentita.", http.StatusForbidden)
 			return
 		}
-		if class, limit, ok := limitFor(r); ok && !security.allow(class, ip, limit, time.Now()) {
+		if class, limit, ok := limitFor(r); ok && known && !security.allow(class, ip, limit, time.Now()) {
 			security.record("Troppe richieste", ip, r.URL.Path)
 			w.Header().Set("Retry-After", "60")
 			http.Error(w, "Troppe richieste: riprova tra poco.", http.StatusTooManyRequests)
@@ -241,3 +244,5 @@ func registerSecurity(mux *http.ServeMux, auth *sysopAuth) {
 		})
 	})
 }
+
+func clientIPText(r *http.Request) string { ip, _ := clientIP(r); return ip }

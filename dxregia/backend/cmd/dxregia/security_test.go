@@ -36,11 +36,11 @@ func TestClientIPOnlyTrustsLocalProxies(t *testing.T) {
 	request := httptest.NewRequest("GET", "/", nil)
 	request.RemoteAddr = "10.0.0.2:1"
 	request.Header.Set("CF-Connecting-IP", "198.51.100.7")
-	if got := clientIP(request); got != "198.51.100.7" {
+	if got, known := clientIP(request); got != "198.51.100.7" || !known {
 		t.Fatalf("behind a proxy: %s", got)
 	}
 	request.RemoteAddr = "203.0.113.9:1"
-	if got := clientIP(request); got != "203.0.113.9" {
+	if got, known := clientIP(request); got != "203.0.113.9" || !known {
 		t.Fatalf("spoofed header must be ignored: %s", got)
 	}
 }
@@ -88,5 +88,13 @@ func TestRateLimitRefillsAndIsPerAddress(t *testing.T) {
 func TestLoginDelayGrowsAndStops(t *testing.T) {
 	if loginDelay(1) != time.Second || loginDelay(3) != 4*time.Second || loginDelay(50) != 30*time.Second {
 		t.Fatalf("delays: %v %v %v", loginDelay(1), loginDelay(3), loginDelay(50))
+	}
+}
+
+func TestProxyWithoutClientAddressIsNotRateLimited(t *testing.T) {
+	request := httptest.NewRequest("POST", "/api/contact", nil)
+	request.RemoteAddr = "10.0.0.2:1"
+	if _, known := clientIP(request); known {
+		t.Fatal("a proxy that does not forward the visitor address must not be treated as one visitor")
 	}
 }

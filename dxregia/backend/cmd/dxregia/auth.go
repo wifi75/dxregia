@@ -195,7 +195,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				if !passwordOK || !userOK {
 					a.loginFails++
 					a.nextLogin = time.Now().Add(loginDelay(a.loginFails))
-					security.record("Accesso errato", clientIP(r), "/api/auth/login")
+					security.record("Accesso errato", clientIPText(r), "/api/auth/login")
 					http.Error(w, "Utente o password errati.", http.StatusUnauthorized)
 					return
 				}
@@ -248,7 +248,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 				if !a.factor.allowsRecovery(code) {
 					a.factorFails++
 					a.nextFactor = time.Now().Add(loginDelay(a.factorFails))
-					security.record("Codice errato", clientIP(r), "/api/auth/recovery")
+					security.record("Codice errato", clientIPText(r), "/api/auth/recovery")
 					http.Error(w, "Codice di recupero non valido.", http.StatusUnauthorized)
 					return
 				}
@@ -273,7 +273,7 @@ func (a *sysopAuth) route(action string) http.HandlerFunc {
 			if !ok {
 				a.factorFails++
 				a.nextFactor = time.Now().Add(loginDelay(a.factorFails))
-				security.record("Codice errato", clientIP(r), "/api/auth/totp")
+				security.record("Codice errato", clientIPText(r), "/api/auth/totp")
 				message := "Codice non valido. Controlla di usare la voce DXRegia corretta e che telefono e server abbiano l’ora sincronizzata."
 				if reused {
 					message = "Codice già usato. Attendi che l’app mostri un nuovo codice e riprova."
