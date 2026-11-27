@@ -25,6 +25,7 @@ Regola: nessuna voce di menu nuova se la funzione sta bene dentro una pagina esi
 
 ## Stato
 
+- [x] Rilasciare DXRegia 0.17.0: protezione del sito (intestazioni di sicurezza, limiti di richieste, richieste da altri siti, attese dopo errori) e pagina Gestione > Sicurezza. Solo pannello e servizio web. Da fare sul proxy: `option forwardfor` e `X-Forwarded-Proto https`.
 - [x] Rilasciare DXRegia 0.16.0: pagina `/mobile` per smartphone con menu in basso (Stato, Statistiche, Altro). Solo pannello e servizio web, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.8: l'elenco dei radioamatori collegati mostra otto righe per pagina invece di quattro (80 con dieci colonne). Solo pannello e servizio web, nessun riavvio del motore.
 - [x] Rilasciare DXRegia 0.15.7: le sei schede della dashboard su due righe da tre, con i testi che vanno a capo invece di essere tagliati. Solo pannello e servizio web, nessun riavvio del motore.

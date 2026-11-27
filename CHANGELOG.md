@@ -4,6 +4,17 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-11-27
+
+### Added
+
+- Site protection: security headers (content policy, no framing, nosniff, HSTS behind an HTTPS proxy), per-address rate limits (logins 10/min, public forms 5/min), refusal of data-changing requests from other sites, growing delay after wrong passwords and 2FA codes (1 to 30 s), tighter server timeouts.
+- Gestione > Sicurezza page (also in the `/mobile` menu): checklist, counters and the latest refused events, kept in memory only.
+
+### Changed
+
+- Sysop cookies are marked Secure behind a trusted proxy that sends `X-Forwarded-Proto: https`. Visitor addresses are read from `CF-Connecting-IP`, `X-Real-IP` or `X-Forwarded-For` only when the request comes from a loopback or private address; without them the per-address limit is not applied.
+
 ## [0.16.0] - 2026-11-24
 
 ### Added
