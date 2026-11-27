@@ -29,6 +29,17 @@
 | Peering CC Cluster | Collegamento con un nodo CC Cluster | In ingresso può usare l’indicativo del partner e un IP pubblico o DNS autorizzato |
 | SMTP | Email di prova, istruzioni e conferme | STARTTLS o TLS, secondo fornitore |
 
+## Dietro un reverse proxy (HAProxy, nginx, Cloudflare)
+
+Il certificato HTTPS sta sul proxy, non su DXRegia. Perché DXRegia sappia che il visitatore usa HTTPS e quale indirizzo ha, il proxy deve inviare due intestazioni; DXRegia le legge solo se la richiesta arriva da un indirizzo locale o di rete privata.
+
+| Intestazione | Serve per | HAProxy |
+| --- | --- | --- |
+| `X-Forwarded-For` (o `CF-Connecting-IP`) | Limite di richieste per indirizzo e registro della pagina Sicurezza | `option forwardfor`; in OPNsense la spunta «X-Forwarded-For header» del Backend Pool |
+| `X-Forwarded-Proto: https` | Cookie sysop Secure, HSTS e controllo HTTPS in Gestione > Sicurezza | Regola `http-request set-header` con `X-Forwarded-Proto https`, agganciata al backend (campo «Select Rules») |
+
+Senza il primo il limite per indirizzo non si applica; senza il secondo i cookie non sono marcati Secure. Dopo la modifica, Gestione > Sicurezza deve mostrare «Connessione cifrata (HTTPS)» in verde.
+
 ## Glossario
 
 | Termine | Significato |
