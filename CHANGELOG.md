@@ -4,6 +4,12 @@ All notable changes to DXRegia (the `dxregia/` folder) are recorded here. The fo
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-11-27
+
+### Changed
+
+- DXSpider engine updated with the 9 upstream EA3CV `mojo` commits from 23 to 27 November (bad-list recovery and loading, VPN rejection, `copyhash` and `load/baddx` commands, `download` with wildcards, PC92 transit fix, private IP normalisation, session takeover limited to the local console). DXWeb and DXWeb Admin changes are not included. Restarts the engine once on update.
+
 ## [0.17.0] - 2026-11-27
 
 ### Added
