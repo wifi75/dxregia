@@ -277,9 +277,18 @@ sub new_channel
 	# check for bad IP addresses
 	my $host = $conn->peerhost;
 	unless ($conn->isa('IntMsg')) {
-		if (DXCIDR::find($host)) {
+		# VPN provenance is checked independently; the generic union is unchanged.
+		my $vpn = DXCIDR::find_vpn($host);
+		if ($vpn || DXCIDR::find($host)) {
 			eval { DXHealth::connection_badip($call); 1 };
-			LogDbg('*', "$call on $host is from a badip $host, disconnected");
+			if ($vpn) {
+				LogDbg('*', "$call on $host is from badip.vpn, disconnected");
+				# D frame follows the existing admission message convention.
+				# Explicit UTF-8 bytes keep the socket write byte-oriented.
+				eval { $conn->send_now("D$call|Sorry, we don\xE2\x80\x99t accept connections from VPNs, goodbye"); 1 };
+			} else {
+				LogDbg('*', "$call on $host is from a badip $host, disconnected");
+			}
 			$conn->disconnect;
 			return;
 		}
@@ -437,8 +446,22 @@ sub new_channel
 		}
 
 	   
+        # Consume the external login marker; never trust a raw A frame.
+        my $external_login = delete $conn->{session_external_login};
+        my $external_takeover = $conn->isa('ExtMsg') && !$conn->{outgoing} &&
+            $sort eq 'A' && defined($external_login) && $external_login eq $call &&
+            (!$main::passwdreq && !($user && $user->passwd) || $conn->{usedpasswd});
+
+        # A confirmed local-console takeover is not an ordinary reconnect.
+        # Bind the exception to the exact still-current human channel.
+        my $takeover = $conn->isa('IntMsg') &&
+            (($conn->peerhost || '') eq '127.0.0.1' || ($conn->peerhost || '') eq '::1') &&
+            $conn->{session_takeover_verified} && $conn->{session_takeover_target} &&
+            DXChannel::get($call) && DXChannel::get($call) == $conn->{session_takeover_target} &&
+            DXChannel::get($call)->is_user;
+
 		# If this user has a nextlogin time, is it > now?
-		if ($tmlinterval && $user) {
+		if ($tmlinterval && $user && !$takeover) {
 			my $nextlogin = $user->{nextlogin} || 0;
 			my $atmax = $user->{nextloginatmax} || 0;
 			my $n =  $user->{connlist} ? @{$user->{connlist}} : 0;
@@ -519,7 +542,7 @@ sub new_channel
 				already_conn($conn, $call, DXM::msg($lang, 'conother', $call, $main::mycall));
 				return;
 			}
-			if ($allowmultiple && $user->is_user) {
+			if (!$takeover && $allowmultiple && $user->is_user) {
 				# determine whether we are a candidate, have we flip-flopped frequently enough?
 				my @lastconns = @{$user->connlist} if $user->connlist;
 				my $allow = 0;
@@ -544,21 +567,31 @@ sub new_channel
 
 			# handle "normal" (non-multiple) connections in the existing way
 			if ($call eq $newcall) {
-				# Session admission v0.01: never evict an existing human
-				# channel from an unauthenticated incoming connection.
-				# DXCommandmode authentication happens only after new().
-				# Until a verified takeover handshake is implemented,
-				# preserve the original channel regardless of bumpexisting
-				if ($conn->{session_takeover_verified} &&
-				    $conn->{session_takeover_target} &&
-				    $conn->{session_takeover_target} == $dxchan) {
+				# Console confirmation or completed external login only.
+				# Preserve node channels and normal multiple-SSID admission.
+				if (($takeover && $conn->{session_takeover_target} == $dxchan) ||
+                    ($external_takeover && $dxchan->is_user && $user && $user->is_user)) {
+                    # Check the projected connection count before eviction.
+                    if ($conn->{sort} && $conn->{sort} =~ /^I/) {
+                        my ($count, @calls) = Route::basecall_no($call);
+                        --$count if $main::routeroot->is_user($call);
+                        if ($maxconnect_user && $count > $maxconnect_user + $allowmultiple) {
+                            already_conn($conn, $call, DXM::msg($lang, 'contomany', $call, $maxconnect_user, join(' ', @calls)));
+                            return;
+                        }
+                    }
 					delete $conn->{session_takeover_verified};
 					delete $conn->{session_takeover_target};
-					LogDbg('*', "existing $call  on $existing_host authenticated session takeover from $new_host accepted");
-					$dxchan->send_now('D', "Another authenticated session on $existing_host  for $call on $new_host has replaced this connection.");
+					LogDbg('*', "existing $call on $existing_host session takeover from $new_host accepted");
+					$dxchan->send_now('D', "Another authenticated session for $call has replaced this connection.");
 					$dxchan->disconnect;
+                    if (DXChannel::get($call) || $main::routeroot->is_user($call)) {
+                        LogDbg('*', "$call session takeover: old session release incomplete");
+                        already_conn($conn, $call, 'Existing session could not be released. Connection cancelled.');
+                        return;
+                    }
 				} else {
-					LogDbg('*', "$call on $existing_host - duplicate login from $new_host rejected; existing channel preserved");
+					LogDbg('duplogin', "$call on $existing_host - duplicate login from $new_host rejected; existing channel preserved") if isdbg('duplogin');
 					already_conn($conn, $call, "Another session on $existing_host for $call from $new_host is already connected. Existing session preserved.");
 					return;
 				}
